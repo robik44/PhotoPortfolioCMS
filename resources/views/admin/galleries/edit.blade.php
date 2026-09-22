@@ -1,0 +1,78 @@
+<x-app-layout>
+    <x-slot name="header">
+        <h2 class="font-semibold text-xl text-gray-800 leading-tight">
+            Edytuj galerię
+        </h2>
+    </x-slot>
+
+    <div class="py-12">
+        <div class="max-w-3xl mx-auto sm:px-6 lg:px-8">
+            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+                <div class="p-6 text-gray-900">
+
+                    <form method="POST" action="{{ route('galleries.update', $gallery) }}">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="mb-6">
+                            <label for="title" class="block font-medium text-sm text-gray-700">
+                                Tytuł galerii
+                            </label>
+
+                            <input
+                                id="title"
+                                name="title"
+                                type="text"
+                                value="{{ old('title', $gallery->title) }}"
+                                required
+                                style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;"
+                            >
+
+                            @error('title')
+                                <p style="color:#dc2626; margin-top:5px;">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div class="mb-6">
+                            <label for="description" class="block font-medium text-sm text-gray-700">
+                                Opis galerii
+                            </label>
+
+                            <textarea
+                                id="description"
+                                name="description"
+                                rows="5"
+                                style="width:100%; padding:10px; border:1px solid #d1d5db; border-radius:6px;"
+                            >{{ old('description', $gallery->description) }}</textarea>
+
+                            @error('description')
+                                <p style="color:#dc2626; margin-top:5px;">
+                                    {{ $message }}
+                                </p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <button
+                                type="submit"
+                                style="padding:10px 16px; background:#2563eb; color:white; border:0; border-radius:6px; cursor:pointer;"
+                            >
+                                Zapisz zmiany
+                            </button>
+
+                            <a
+                                href="{{ route('galleries.index') }}"
+                                style="margin-left:15px; color:#2563eb; text-decoration:none;"
+                            >
+                                Anuluj
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</x-app-layout>

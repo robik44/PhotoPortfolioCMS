@@ -11,18 +11,11 @@ class Gallery extends Model
         'title',
         'slug',
         'description',
-        'cover_image',
-        'published',
         'sort_order',
-    ];
-
-    protected $casts = [
-        'published' => 'boolean',
     ];
 
     public function photos(): HasMany
     {
-        return $this->hasMany(Photo::class)
-            ->orderBy('sort_order');
+        return $this->hasMany(Photo::class)->orderBy('sort_order');
     }
 }

@@ -32,7 +32,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ $settings['site_title'] }}</title>
+    <title>{{ $settings['about_title'] }} — {{ $settings['site_title'] }}</title>
 
     <style>
         * {
@@ -46,7 +46,7 @@
         body {
             margin: 0;
             color: #222;
-            background: {{ $settings['background_color'] ?? '#ffffff' }};
+            background: #fff;
             font-family: Arial, Helvetica, sans-serif;
         }
 
@@ -64,7 +64,7 @@
         }
 
         .header-inner {
-            max-width: 1400px;
+            max-width: 1200px;
             min-height: 76px;
             margin: auto;
             padding: 0 28px;
@@ -94,73 +94,18 @@
         .main-menu {
             display: flex;
             align-items: center;
-            gap: 28px;
+            gap: 20px;
             font-size: 13px;
             letter-spacing: .08em;
             text-transform: uppercase;
         }
 
-        .main-menu-item {
-            position: relative;
-        }
-
-        .main-menu-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 0;
+        .main-menu a {
             transition: opacity .2s;
         }
 
-        .main-menu-link:hover {
+        .main-menu a:hover {
             opacity: .55;
-        }
-
-        .main-menu-arrow {
-            font-size: 9px;
-            line-height: 1;
-        }
-
-        .main-submenu {
-            position: absolute;
-            top: calc(100% + 1px);
-            left: -14px;
-            min-width: 190px;
-            padding: 10px 0;
-            margin: 0;
-            background: #fff;
-            border: 1px solid #eee;
-            box-shadow: 0 8px 24px rgba(0,0,0,.08);
-            list-style: none;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(6px);
-            transition: opacity .18s ease, transform .18s ease, visibility .18s ease;
-            z-index: 200;
-        }
-
-        .main-menu-item:hover > .main-submenu,
-        .main-menu-item:focus-within > .main-submenu {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .main-submenu li {
-            margin: 0;
-            padding: 0;
-        }
-
-        .main-submenu a {
-            display: block;
-            padding: 9px 16px;
-            white-space: nowrap;
-            transition: background .18s, opacity .18s;
-        }
-
-        .main-submenu a:hover {
-            opacity: 1;
-            background: #f7f7f7;
         }
 
         .hero {
@@ -248,15 +193,16 @@
         }
 
         .gallery-card-image {
+            aspect-ratio: 4 / 3;
             overflow: hidden;
-            background: #f7f7f7;
+            background: #eee;
         }
 
         .gallery-card-image img {
             width: 100%;
-            height: auto;
+            height: 100%;
             display: block;
-            object-fit: contain;
+            object-fit: cover;
             transition: transform .45s ease;
         }
 
@@ -289,7 +235,7 @@
         }
 
         .about-section {
-            background: transparent;
+            background: #f7f7f7;
         }
 
         .about-inner {
@@ -389,102 +335,77 @@
                 font-size: 40px;
             }
         }
-
-        @media (max-width: 1400px) {
-            .gallery-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-            }
+    
+        .about-page {
+            min-height: calc(100vh - 180px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 24px;
         }
 
-        @media (max-width: 900px) {
-            .gallery-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 12px;
-            }
+        .about-page .about-inner {
+            max-width: 760px;
+            width: 100%;
+            text-align: center;
         }
 
-        @media (max-width: 600px) {
-            .gallery-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 12px;
-            }
+        .about-page h1 {
+            margin-bottom: 32px;
         }
 
-        @media (max-width: 420px) {
-            .gallery-grid {
-                grid-template-columns: 1fr;
-            }
+        .about-page p {
+            line-height: 1.8;
+            white-space: pre-line;
+        }
+
+        .about-page .contact-email {
+            display: inline-block;
+            margin-top: 32px;
         }
 
     </style>
 </head>
 
-<body style="background: {{ $settings['background_color'] ?? '#ffffff' }};">
+<body>
 
-@include("components.site-header", ["settings" => $settings, "menuItems" => $menuItems])
+<header class="site-header">
+    <div class="header-inner">
+        <a href="{{ url('/') }}" class="logo">
+            <span style="font-size:28px; font-weight:700; letter-spacing:.08em; color:#222;">MAGDA GUGAŁA</span><span style="font-size:10px; font-weight:400; letter-spacing:.14em; color:#777;">FOTOGRAFIA</span><span style="font-size:10px; font-weight:400; letter-spacing:.14em; color:#777;">{{ $settings['site_subtitle'] }}</span>
+        </a>
+
+        <nav class="main-menu">
+            <a href="{{ url('/') }}">Start</a>
+            <a href="{{ url("/#portfolio") }}">Portfolio</a>
+            <a href="{{ route("about") }}">O mnie</a>
+            <a href="{{ url("/#contact") }}">Kontakt</a>
+
+            @auth
+            @else
+                <a href="{{ route('login') }}">Logowanie</a>
+            @endauth
+        </nav>
+    </div>
+</header>
 
 <main>
+    <section class="about-page">
+        <div class="about-inner">
+            <h1>{{ $settings['about_title'] }}</h1>
 
-    <section class="hero">
-        <div class="hero-content">
-            <h1>{{ $settings['hero_title'] }}</h1>
+            <p>{{ $settings['about_text'] }}</p>
 
-            <p>{{ $settings['hero_subtitle'] }}</p>
-
+            @if($settings['contact_email'])
+                <a
+                    class="contact-email"
+                    href="mailto:{{ $settings['contact_email'] }}"
+                >
+                    {{ $settings['contact_email'] }}
+                </a>
+            @endif
         </div>
     </section>
-
-    <section class="section" id="portfolio">
-        <div class="section-heading">
-            <h2>Portfolio</h2>
-
-            <p>
-                {{ $settings['site_subtitle'] }}
-            </p>
-        </div>
-
-        @if(isset($galleries) && $galleries->count())
-            <div class="gallery-grid">
-                @foreach($galleries as $gallery)
-                    @php
-                        $cover = $gallery->photos->firstWhere('is_cover', true)
-                            ?: $gallery->photos->first();
-                    @endphp
-
-                    <a
-                        href="{{ route('portfolio.gallery', $gallery) }}"
-                        class="gallery-card"
-                    >
-                        <div class="gallery-card-image">
-                            @if($cover)
-                                <img
-                                    src="{{ asset('storage/photos/' . basename($cover->filename)) }}"
-                                    alt="{{ $cover->alt ?: $gallery->title }}"
-                                >
-                            @else
-                                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;">
-                                    Brak zdjęcia
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="gallery-card-content">
-                            <h3>{{ $gallery->title }}</h3>
-
-                            @if($gallery->description)
-                                <p>{{ $gallery->description }}</p>
-                            @endif
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        @else
-            <div class="empty-gallery">
-                Galerie pojawią się tutaj po ich dodaniu w panelu administracyjnym.
-            </div>
-        @endif
-    </section>
-
 </main>
 
 <footer class="site-footer">
