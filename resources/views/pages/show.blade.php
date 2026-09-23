@@ -1,6 +1,7 @@
 @php
     $settings = \App\Models\SiteSetting::pluck("value", "key")->toArray();
 
+    $fontCatalog = $siteFonts;
     $backgroundColor = $settings["background_color"] ?? "#ffffff";
 
     $menuItems = \App\Models\MenuItem::query()
@@ -303,6 +304,7 @@
 @include("components.site-header", ["settings" => $settings, "menuItems" => $menuItems])
 
 
+@include('components.site-typography')
 <main class="page-editor-view">
 
     <div class="page-canvas">
@@ -318,6 +320,7 @@
 
                     $style = $element["style"] ?? [];
 
+                    $fontFamily = \App\Services\SiteFontLibrary::css($style['font_family'] ?? null, $fontCatalog);
                     $color = $style["color"] ?? "#222222";
 
                     $fontSize = (int) (
@@ -412,6 +415,7 @@
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
+                            font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
                             font-weight:{{ $fontWeight }};
                             text-align:{{ $textAlign }};
@@ -433,6 +437,7 @@
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
+                            font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
                             font-weight:{{ $fontWeight }};
                             text-align:{{ $textAlign }};
@@ -454,6 +459,7 @@
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
+                            font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
                             font-weight:{{ $fontWeight }};
                             text-align:{{ $textAlign }};
@@ -461,7 +467,7 @@
                             letter-spacing:{{ $letterSpacing }}px;
                         "
                     >
-                        <a href="#">
+                        <a href="#" style="color:{{ $color }};">
                             {{ $content }}
                         </a>
                     </div>
@@ -498,6 +504,7 @@
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
+                            font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
                             font-weight:{{ $fontWeight }};
                             text-align:{{ $textAlign }};
@@ -519,6 +526,7 @@
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
+                            font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
                             font-weight:{{ $fontWeight }};
                             text-align:{{ $textAlign }};
@@ -546,7 +554,7 @@
 </main>
 
 
-<footer class="site-footer">
+<footer class="site-footer site-typography">
     {{ $settings["footer_text"] ?? "Fotografia" }}
 </footer>
 

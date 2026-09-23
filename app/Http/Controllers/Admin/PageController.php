@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Page;
 use App\Models\PageBuilder;
+use App\Support\ContentPages;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -94,10 +95,17 @@ class PageController extends Controller
             ]);
         }
 
+        $preparedStaticContent = isset(ContentPages::PAGES[$page->slug]) && empty($builder->content['sections']);
+        if ($preparedStaticContent) {
+            // Only change the in-memory preview. The existing JSON remains untouched until Save.
+            $builder->content = array_replace($builder->content ?? [], ['sections' => ContentPages::initialContent($page)['sections']]);
+        }
+
         return view("admin.pages.builder", [
+            'preparedStaticContent' => $preparedStaticContent,
             "page" => $page,
             "builder" => $builder,
-            "publicPageUrl" => route("page.public", $page),
+            "publicPageUrl" => isset(ContentPages::PAGES[$page->slug]) ? url('/' . $page->slug) : route("page.public", $page),
             "editPageUrl" => route("pages.edit", $page),
             "builderSaveUrl" => route("pages.builder.save", $page),
         ]);
@@ -108,6 +116,12 @@ class PageController extends Controller
         $data = $request->validate([
             "content" => ["required", "array"],
         ]);
+
+        try {
+            app(\App\Services\SiteFontLibrary::class)->validateContent($data['content']);
+        } catch (\Illuminate\Validation\ValidationException $error) {
+            return response()->json(['message' => $error->getMessage(), 'errors' => $error->errors()], 422);
+        }
 
         $builder = PageBuilder::updateOrCreate(
             [

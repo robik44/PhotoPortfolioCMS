@@ -13,8 +13,6 @@ class SiteSettingController extends Controller
     public function edit()
     {
         $defaults = [
-            'logo' => 'ROBERT WOŹNIAK',
-            'logo_subtitle' => 'FOTOGRAFIA',
             'menu_gallery' => 'GALERIE',
             'menu_about' => 'O MNIE',
             'menu_contact' => 'KONTAKT',
@@ -42,8 +40,6 @@ class SiteSettingController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
-            'logo' => ['nullable', 'string', 'max:255'],
-            'logo_subtitle' => ['nullable', 'string', 'max:255'],
             'menu_gallery' => ['nullable', 'string', 'max:255'],
             'menu_about' => ['nullable', 'string', 'max:255'],
             'menu_contact' => ['nullable', 'string', 'max:255'],
@@ -57,8 +53,6 @@ class SiteSettingController extends Controller
         ]);
 
         foreach ([
-            'logo',
-            'logo_subtitle',
             'menu_gallery',
             'menu_about',
             'menu_contact',

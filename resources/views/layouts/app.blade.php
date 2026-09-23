@@ -59,27 +59,12 @@
             </a>
 
 
-            @php
-                $aboutPage = \App\Models\Page::where("slug", "o-mnie")->first();
-                $contactPage = \App\Models\Page::where("slug", "kontakt")->first();
-            @endphp
-
-            @if($aboutPage)
-                <a href="{{ route("pages.edit", $aboutPage) }}"
-                   class="cms-nav-item">
-                    <span>○</span>
-                    <span>O mnie</span>
-                </a>
-            @endif
-
-            @if($contactPage)
-                <a href="{{ route("pages.edit", $contactPage) }}"
-                   class="cms-nav-item">
-                    <span>✉</span>
-                    <span>Kontakt</span>
-                </a>
-            @endif
-
+            <a href="{{ route('content-pages.edit', 'o-mnie') }}" class="cms-nav-item">
+                <span>○</span><span>O mnie</span>
+            </a>
+            <a href="{{ route('content-pages.edit', 'kontakt') }}" class="cms-nav-item">
+                <span>✉</span><span>Kontakt</span>
+            </a>
 
             <div class="cms-nav-label">MENU</div>
 
@@ -91,6 +76,16 @@
 
 
             <div class="cms-nav-label">WYGLĄD</div>
+
+            <a href="{{ route('fonts.index') }}" class="cms-nav-item {{ request()->routeIs('fonts.*') ? 'active' : '' }}">
+                <span>Aa</span><span>Biblioteka czcionek</span>
+            </a>
+
+            <a href="{{ route('header-settings.edit') }}"
+               class="cms-nav-item {{ request()->routeIs('header-settings.*') ? 'active' : '' }}">
+                <span>▤</span>
+                <span>Nagłówek</span>
+            </a>
 
             <a href="{{ route("site-settings.edit") }}"
                class="cms-nav-item {{ request()->routeIs("site-settings.*") ? "active" : "" }}">

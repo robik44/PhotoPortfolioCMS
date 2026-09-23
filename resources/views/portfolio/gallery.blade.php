@@ -1,7 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
+@endphp
+@include('components.site-typography')
 <style>
+    #lightbox .lightbox-title, #lightbox .lightbox-description { font-family: {{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }}; }
     .gallery-page {
         min-height: 100vh;
         background: #fff;
@@ -331,34 +336,13 @@
 
 <div class="gallery-page">
 
-    <header class="site-header">
-        <div class="header-inner">
-            <a href="{{ url('/') }}" class="logo">
-                MAGDA GUGAŁA
-                <span>FOTOGRAFIA</span>
-                <span>{{ $settings['site_subtitle'] ?? '' }}</span>
-            </a>
-
-            <nav class="main-menu">
-                <a href="{{ url('/') }}">Start</a>
-                <a href="{{ url('/') }}#portfolio">Portfolio</a>
-                <a href="{{ url('/') }}#about">O mnie</a>
-                <a href="{{ url('/') }}#contact">Kontakt</a>
-
-                @auth
-                    <a href="{{ route('dashboard') }}">Panel</a>
-                @else
-                    <a href="{{ route('login') }}">Logowanie</a>
-                @endauth
-            </nav>
-        </div>
-    </header>
+    @include('components.site-header', ['settings' => $globalHeaderSettings, 'menuItems' => $globalHeaderMenuItems])
 
     <section class="gallery-heading">
-        <h1>{{ $gallery->title }}</h1>
+        <h1 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};">{{ $gallery->title }}</h1>
 
         @if($gallery->description)
-            <p>{{ $gallery->description }}</p>
+            <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};">{{ $gallery->description }}</p>
         @endif
 
         <a href="{{ url('/') }}#portfolio" class="back-link">
@@ -383,7 +367,7 @@
                     >
 
                     @if($photo->title || $photo->description)
-                        <div class="gallery-caption">
+                        <div class="gallery-caption" style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }};">
                             @if($photo->title)
                                 <strong>{{ $photo->title }}</strong>
                             @endif

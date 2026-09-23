@@ -2,10 +2,13 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\FontLibraryController;
+use App\Http\Controllers\Admin\HeaderSettingController;
 use App\Http\Controllers\Admin\MenuItemController;
 use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PhotoController;
 use App\Http\Controllers\Admin\SiteSettingController;
+use App\Http\Controllers\ContentPageController;
 use App\Models\Gallery;
 use App\Models\MenuItem;
 use App\Models\SiteSetting;
@@ -58,9 +61,9 @@ Route::get("/", function () {
     ));
 });
 
-Route::view("/o-mnie", "about")->name("about");
+Route::get('/o-mnie', [ContentPageController::class, 'show'])->defaults('slug', 'o-mnie')->name('about');
 
-Route::view("/kontakt", "contact")->name("contact");
+Route::get('/kontakt', [ContentPageController::class, 'show'])->defaults('slug', 'kontakt')->name('contact');
 
 Route::get("/portfolio/{gallery}", [GalleryController::class, "publicShow"])
     ->name("portfolio.gallery");
@@ -72,6 +75,18 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/content-pages/{slug}', [ContentPageController::class, 'edit'])
+        ->whereIn('slug', ['o-mnie', 'kontakt'])->name('content-pages.edit');
+    Route::get('/admin/fonts', [FontLibraryController::class, 'index'])->name('fonts.index');
+    Route::post('/admin/fonts', [FontLibraryController::class, 'store'])->name('fonts.store');
+    Route::put('/admin/fonts', [FontLibraryController::class, 'update'])->name('fonts.update');
+
+    Route::get('/admin/header-settings', [HeaderSettingController::class, 'edit'])
+        ->name('header-settings.edit');
+
+    Route::put('/admin/header-settings', [HeaderSettingController::class, 'update'])
+        ->name('header-settings.update');
+
     Route::get("/admin", [DashboardController::class, "index"])
         ->name("dashboard");
 

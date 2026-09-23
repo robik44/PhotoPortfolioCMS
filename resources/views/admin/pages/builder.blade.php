@@ -1,4 +1,18 @@
 <x-app-layout>
+    @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
+    <script src="{{ asset('js/site-typography.js') }}"></script>
+    <script>
+        window.builderTypography = window.SiteTypography.create({
+            families: @json($siteFonts['families']),
+            choices: @json($siteFonts['choices']),
+            defaults: @json($siteFonts['defaults']),
+            textTypes: @json(\App\Services\SiteFontLibrary::TEXT_BLOCKS)
+        });
+    </script>
+    @if (!empty($preparedStaticContent))
+        <p class="cms-alert">To propozycja układu na podstawie dotychczasowej treści. Publiczna strona zmieni się dopiero po zapisaniu buildera.</p>
+    @endif
+    <p style="margin:12px 24px;"><a href="{{ route('fonts.index') }}" target="_blank" rel="noopener">Biblioteka czcionek</a> — po dodaniu fontu zapisz pracę i odśwież edytor.</p>
     <x-slot name="header">Builder strony</x-slot>
 
     <div class="cms-card" style="padding:24px;" id="builder-overview">
@@ -418,7 +432,7 @@
                     id: createId(),
                     type: type,
                     style: {
-                        color: "#222222",
+                        color: type === "button" ? "#ffffff" : "#222222",
                         font_size: type === "heading" ? 42 : 18,
                         font_weight: type === "heading" ? 400 : 400,
                         text_align: "left",
@@ -427,6 +441,8 @@
                     }
                 };
 
+
+                window.builderTypography.initialize(base);
 
                 if (type === "text") {
                     return {
@@ -622,6 +638,7 @@
 
                     const content = document.createElement("div");
 
+                    window.builderTypography.apply(content, item);
                     content.style.color = item.style.color;
                     content.style.fontSize =
                         item.style.font_size + "px";
@@ -1209,11 +1226,12 @@
                 ensureElementStyle(item);
 
                 properties.innerHTML = "";
+                if (item) window.builderTypography.field(properties, item, render, 'builder-field');
 
 
                 const title = document.createElement("div");
 
-                title.style.fontWeight = "600";
+                title.style.fontWeight = item.style.font_weight;
                 title.style.fontSize = "18px";
                 title.style.marginBottom = "20px";
                 title.textContent = elementLabel(item.type);
@@ -2256,6 +2274,8 @@ document.addEventListener("DOMContentLoaded", function () {
         const box =
             document.createElement("div");
 
+        window.builderTypography.apply(box, item);
+
         box.style.color =
             item.style.color;
 
@@ -2324,7 +2344,7 @@ document.addEventListener("DOMContentLoaded", function () {
             button.style.display = "inline-block";
             button.style.padding = "12px 22px";
             button.style.background = "#171717";
-            button.style.color = "#fff";
+            button.style.color = item.style.color;
 
             box.appendChild(button);
 
@@ -2410,8 +2430,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         gallery.title || "Galeria";
 
                     title.style.padding = "12px";
-                    title.style.fontSize = "14px";
-                    title.style.fontWeight = "600";
+                    title.style.fontSize = item.style.font_size + "px";
+                    title.style.fontWeight = item.style.font_weight;
 
                     card.appendChild(title);
 
@@ -2682,6 +2702,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(heading);
 
+        window.builderTypography.field(properties, item, render, 'fve-field');
+
         if (item.type !== "image") {
 
             field(
@@ -2713,6 +2735,15 @@ document.addEventListener("DOMContentLoaded", function () {
                     item.style.color = value;
                 }
             );
+        }
+
+        if (window.builderTypography.isText(item)) {
+            field('Grubość czcionki', 'number', item.style.font_weight, function (value) {
+                item.style.font_weight = Math.max(100, Math.min(900, Number(value) || 400));
+            });
+            field('Odstęp między literami (px)', 'number', item.style.letter_spacing, function (value) {
+                item.style.letter_spacing = Number(value) || 0;
+            });
         }
 
         field(
@@ -2902,7 +2933,7 @@ document.addEventListener("DOMContentLoaded", function () {
                                 ? "Galeria"
                                 : "",
             style: {
-                color: "#222222",
+                color: type === "button" ? "#ffffff" : "#222222",
                 font_size:
                     type === "heading"
                         ? 42
@@ -2929,6 +2960,7 @@ document.addEventListener("DOMContentLoaded", function () {
             image_radius: 0
         };
 
+        window.builderTypography.initialize(item);
         data.sections.push(item);
 
         selected = item.id;

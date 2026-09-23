@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\SiteSetting;
+use App\Support\GalleryTypography;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -30,7 +31,7 @@ class GalleryController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ]);
+        ] + GalleryTypography::rules());
 
         $sortOrder = (int) (
             Gallery::max('sort_order') ?? -1
@@ -44,12 +45,14 @@ class GalleryController extends Controller
             $slug = $baseSlug . '-' . $counter++;
         }
 
-        Gallery::create([
+        $gallery = Gallery::create([
             'title' => $data['title'],
             'slug' => $slug,
             'description' => $data['description'] ?? null,
             'sort_order' => $sortOrder + 1,
         ]);
+
+        GalleryTypography::save($gallery->id, $data);
 
         return redirect()
             ->route('galleries.index')
@@ -117,7 +120,10 @@ class GalleryController extends Controller
 
     public function edit(Gallery $gallery)
     {
-        return view('admin.galleries.edit', compact('gallery'));
+        $galleryFonts = GalleryTypography::read([
+            GalleryTypography::key($gallery->id) => SiteSetting::where('key', GalleryTypography::key($gallery->id))->value('value'),
+        ], $gallery->id);
+        return view('admin.galleries.edit', compact('gallery', 'galleryFonts'));
     }
 
     public function update(Request $request, Gallery $gallery)
@@ -125,13 +131,15 @@ class GalleryController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ]);
+        ] + GalleryTypography::rules());
 
         $gallery->update([
             'title' => $data['title'],
             'slug' => Str::slug($data['title']),
             'description' => $data['description'] ?? null,
         ]);
+
+        GalleryTypography::save($gallery->id, $data);
 
         return redirect()
             ->route('galleries.index')

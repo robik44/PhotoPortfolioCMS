@@ -44,6 +44,12 @@ class HomeBuilderController extends Controller
             "content" => ["required", "array"],
         ]);
 
+        try {
+            app(\App\Services\SiteFontLibrary::class)->validateContent($data['content']);
+        } catch (\Illuminate\Validation\ValidationException $error) {
+            return response()->json(['message' => $error->getMessage(), 'errors' => $error->errors()], 422);
+        }
+
         $builder = PageBuilder::updateOrCreate(
             [
                 "page_id" => null,

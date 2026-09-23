@@ -1,13 +1,44 @@
-<header class="site-header">
+@php
+    $headerSettings = \App\Support\HeaderSettings::resolve($settings ?? []);
+    $headerFonts = \App\Support\HeaderFonts::custom($settings ?? []);
+    $headerFamilies = \App\Support\HeaderFonts::families($headerFonts);
+@endphp
+
+@include('components.header-font-faces', ['fonts' => $headerFonts])
+
+<style>
+    .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+    .site-header .logo span { display: block; }
+    .site-header.header-layout-center .header-inner { flex-direction: column; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
+    .site-header.header-layout-center .logo { text-align: center; }
+    .site-header.header-layout-center .main-menu { justify-content: center; flex-wrap: wrap; }
+    .site-header .main-menu-item { position: relative; }
+    .site-header .main-menu-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 0; }
+    .site-header .main-menu-arrow { font-size: 9px; line-height: 1; }
+    .site-header .main-submenu {
+        position: absolute; top: calc(100% + 1px); left: -14px; min-width: 190px;
+        padding: 10px 0; margin: 0; background: #fff; border: 1px solid #eee;
+        box-shadow: 0 8px 24px rgba(0,0,0,.08); list-style: none;
+        opacity: 0; visibility: hidden; transform: translateY(6px);
+        transition: opacity .18s ease, transform .18s ease, visibility .18s ease; z-index: 200;
+    }
+    .site-header .main-menu-item:hover > .main-submenu,
+    .site-header .main-menu-item:focus-within > .main-submenu { opacity: 1; visibility: visible; transform: translateY(0); }
+    .site-header .main-submenu li { margin: 0; padding: 0; }
+    .site-header .main-submenu a { display: block; padding: 9px 16px; white-space: nowrap; }
+    .site-header .main-submenu a:hover { opacity: 1; background: #f7f7f7; }
+</style>
+
+<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}">
     <div class="header-inner">
 
         <a href="{{ url('/') }}" class="logo">
-            <span style="font-size:28px; font-weight:700; letter-spacing:.08em; color:#222;">
-                {{ $settings['logo'] ?? 'ROBERT WOŹNIAK' }}
+            <span style="font-family:{{ $headerFamilies[$headerSettings['header_logo_font_family']] }}; font-size:{{ $headerSettings['header_logo_font_size'] }}px; font-weight:{{ $headerSettings['header_logo_font_weight'] }}; letter-spacing:{{ $headerSettings['header_logo_letter_spacing'] }}em; color:{{ $headerSettings['header_logo_color'] }};">
+                {{ $headerSettings['logo'] }}
             </span>
 
-            <span style="font-size:10px; font-weight:400; letter-spacing:.14em; color:#777;">
-                {{ $settings['logo_subtitle'] ?? 'FOTOGRAFIA' }}
+            <span style="font-family:{{ $headerFamilies[$headerSettings['header_subtitle_font_family']] }}; font-size:{{ $headerSettings['header_subtitle_font_size'] }}px; font-weight:{{ $headerSettings['header_subtitle_font_weight'] }}; letter-spacing:{{ $headerSettings['header_subtitle_letter_spacing'] }}em; color:{{ $headerSettings['header_subtitle_color'] }};">
+                {{ $headerSettings['logo_subtitle'] }}
             </span>
         </a>
 

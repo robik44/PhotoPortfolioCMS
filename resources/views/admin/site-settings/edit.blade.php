@@ -56,51 +56,10 @@
 
                     <div style="display:flex;flex-direction:column;gap:24px;">
 
-                        <div>
-                            <label
-                                for="logo"
-                                style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;"
-                            >
-                                Logo
-                            </label>
-
-                            <input
-                                id="logo"
-                                type="text"
-                                name="logo"
-                                value="{{ old('logo', $settings['logo']) }}"
-                                style="
-                                    width:100%;
-                                    padding:11px 12px;
-                                    border:1px solid #d1d5db;
-                                    border-radius:6px;
-                                    background:#fff;
-                                "
-                            >
-                        </div>
-
-                        <div>
-                            <label
-                                for="logo_subtitle"
-                                style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;"
-                            >
-                                Podtytuł logo
-                            </label>
-
-                            <input
-                                id="logo_subtitle"
-                                type="text"
-                                name="logo_subtitle"
-                                value="{{ old('logo_subtitle', $settings['logo_subtitle']) }}"
-                                style="
-                                    width:100%;
-                                    padding:11px 12px;
-                                    border:1px solid #d1d5db;
-                                    border-radius:6px;
-                                    background:#fff;
-                                "
-                            >
-                        </div>
+                        <p>
+                            Logo i podtytuł edytujesz w sekcji
+                            <a href="{{ route('header-settings.edit') }}" style="text-decoration:underline;">Wygląd → Nagłówek</a>.
+                        </p>
 
                         <div>
                             <label

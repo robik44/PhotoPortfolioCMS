@@ -369,27 +369,10 @@
 
 <body>
 
-<header class="site-header">
-    <div class="header-inner">
-        <a href="{{ url('/') }}" class="logo">
-            <span style="font-size:28px; font-weight:700; letter-spacing:.08em; color:#222;">MAGDA GUGAŁA</span><span style="font-size:10px; font-weight:400; letter-spacing:.14em; color:#777;">FOTOGRAFIA</span><span style="font-size:10px; font-weight:400; letter-spacing:.14em; color:#777;">{{ $settings['site_subtitle'] }}</span>
-        </a>
+@include('components.site-header', ['settings' => $globalHeaderSettings, 'menuItems' => $globalHeaderMenuItems])
 
-        <nav class="main-menu">
-            <a href="{{ url('/') }}">Start</a>
-            <a href="{{ url("/#portfolio") }}">Portfolio</a>
-            <a href="{{ route("about") }}">O mnie</a>
-            <a href="{{ url("/#contact") }}">Kontakt</a>
-
-            @auth
-            @else
-                <a href="{{ route('login') }}">Logowanie</a>
-            @endauth
-        </nav>
-    </div>
-</header>
-
-<main>
+@include('components.site-typography')
+<main class="site-typography">
     <section class="about-page">
         <div class="about-inner">
             <h1>{{ $settings['about_title'] }}</h1>
@@ -408,7 +391,7 @@
     </section>
 </main>
 
-<footer class="site-footer">
+<footer class="site-footer site-typography">
     {{ $settings['footer_text'] }}
 </footer>
 

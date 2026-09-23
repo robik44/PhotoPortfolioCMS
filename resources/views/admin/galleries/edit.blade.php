@@ -54,6 +54,8 @@
                             @enderror
                         </div>
 
+                        @include('admin.galleries.typography')
+
                         <div>
                             <button
                                 type="submit"

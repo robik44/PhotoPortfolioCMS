@@ -423,7 +423,8 @@
 
 @include("components.site-header", ["settings" => $settings, "menuItems" => $menuItems])
 
-<main>
+@include('components.site-typography')
+<main class="site-typography">
 
     <section class="hero">
         <div class="hero-content">
@@ -447,6 +448,7 @@
             <div class="gallery-grid">
                 @foreach($galleries as $gallery)
                     @php
+                        $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
                         $cover = $gallery->photos->firstWhere('is_cover', true)
                             ?: $gallery->photos->first();
                     @endphp
@@ -469,10 +471,10 @@
                         </div>
 
                         <div class="gallery-card-content">
-                            <h3>{{ $gallery->title }}</h3>
+                            <h3 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};">{{ $gallery->title }}</h3>
 
                             @if($gallery->description)
-                                <p>{{ $gallery->description }}</p>
+                                <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};">{{ $gallery->description }}</p>
                             @endif
                         </div>
                     </a>
@@ -487,7 +489,7 @@
 
 </main>
 
-<footer class="site-footer">
+<footer class="site-footer site-typography">
     {{ $settings['footer_text'] }}
 </footer>
 
