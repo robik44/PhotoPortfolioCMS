@@ -1,4 +1,26 @@
 <x-app-layout>
+    <x-slot name="header">Builder strony</x-slot>
+
+    <div class="cms-card" style="padding:24px;" id="builder-overview">
+        <h1 class="cms-dashboard-title">{{ $page->title }}</h1>
+        <p id="builder-launch-status" role="status" style="margin:16px 0;">
+            Edytor nie jest jeszcze gotowy. Jeśli się nie otworzy, odśwież stronę
+            lub skorzystaj z poniższych linków.
+        </p>
+        <noscript>
+            <p>Edytor wizualny wymaga włączonej obsługi JavaScript.
+                Lista stron i formularz edycji pozostają dostępne.</p>
+        </noscript>
+        <div style="display:flex; flex-wrap:wrap; gap:12px;">
+            <a href="{{ route('pages.index') }}" class="cms-button">Wróć do listy stron</a>
+            <a href="{{ $editPageUrl }}" class="cms-button">Ustawienia strony</a>
+            <a href="{{ $publicPageUrl }}" class="cms-button" target="_blank" rel="noopener">Podgląd strony ↗</a>
+            <button id="full-visual-editor-button" type="button" class="cms-button cms-button-primary" disabled>
+                Otwórz edytor wizualny
+            </button>
+        </div>
+    </div>
+
     <div class="builder-old-editor" style="padding:32px;">
 
         @php
@@ -1574,22 +1596,6 @@ document.addEventListener("DOMContentLoaded", function () {
 <style>
     /* FULL VISUAL PAGE EDITOR */
 
-    #full-visual-editor-button {
-        position: fixed;
-        top: 18px;
-        right: 180px;
-        z-index: 9990;
-        border: 0;
-        border-radius: 7px;
-        background: #171717;
-        color: #fff;
-        padding: 12px 18px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        box-shadow: 0 4px 16px rgba(0,0,0,.15);
-    }
-
     #full-visual-editor {
         position: fixed;
         inset: 0;
@@ -1862,13 +1868,6 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 </style>
 
-<button
-    id="full-visual-editor-button"
-    type="button"
->
-    Pełny edytor strony
-</button>
-
 <div id="full-visual-editor">
 
     <div class="fve-topbar">
@@ -2038,6 +2037,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const openButton =
         document.getElementById("full-visual-editor-button");
+
+    const launchStatus =
+        document.getElementById("builder-launch-status");
 
     const editor =
         document.getElementById("full-visual-editor");
@@ -3010,21 +3012,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
     openButton.addEventListener("click", function () {
 
-        editor.classList.add("open");
-
-        renderHeader();
-        render();
-
-        renderHeader();
-        render();
-
-        setTimeout(function () {
-
-            document
-                .getElementById("fve-fit")
-                .click();
-
-        }, 50);
+        try {
+            renderHeader();
+            render();
+            editor.classList.add("open");
+            document.getElementById("fve-fit").click();
+            launchStatus.textContent = "Edytor jest gotowy. Możesz otworzyć go ponownie lub wrócić do listy stron.";
+        } catch (error) {
+            editor.classList.remove("open");
+            launchStatus.textContent = "Nie udało się otworzyć edytora. Odśwież stronę lub wróć do listy stron.";
+            console.error("Nie udało się otworzyć edytora strony.", error);
+        }
     });
 
     closeButton.addEventListener("click", function () {
@@ -3102,6 +3100,9 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
     updateZoom();
+
+    openButton.disabled = false;
+    launchStatus.textContent = "Edytor jest gotowy. Możesz otworzyć go ponownie lub wrócić do listy stron.";
 
     // Otwórz pełny edytor automatycznie po wejściu na stronę
     setTimeout(function () {

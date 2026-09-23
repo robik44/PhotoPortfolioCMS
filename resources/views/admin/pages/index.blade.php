@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-slot name="header">Strony</x-slot>
 
     <div class="cms-dashboard-intro">
 
@@ -108,6 +109,11 @@
                                     color:#303030;
                                ">
                                 Edytuj
+                            </a>
+
+                            <a href="{{ route("pages.builder", $page) }}"
+                               class="cms-button cms-button-small">
+                                Builder
                             </a>
 
                             <form method="POST"

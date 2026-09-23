@@ -1,4 +1,5 @@
 <x-app-layout>
+    <x-slot name="header">Edytuj stronę</x-slot>
 
     <div class="cms-dashboard-intro">
         <div>
@@ -12,6 +13,10 @@
                 Zmień treść, adres, zdjęcie lub status publikacji tej podstrony.
             </p>
         </div>
+
+        <a href="{{ route("pages.builder", $page) }}" class="cms-button">
+            Otwórz builder
+        </a>
     </div>
 
 

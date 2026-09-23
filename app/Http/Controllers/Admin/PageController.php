@@ -72,7 +72,7 @@ class PageController extends Controller
 
     public function edit(Page $page)
     {
-        return redirect()->route("pages.builder", $page);
+        return view("admin.pages.edit", compact("page"));
     }
 
     public function builder(Page $page)
