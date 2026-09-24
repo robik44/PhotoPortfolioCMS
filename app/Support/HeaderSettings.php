@@ -21,11 +21,13 @@ class HeaderSettings
         'header_logo_letter_spacing' => 0.08,
         'header_subtitle_letter_spacing' => 0.14,
         'header_layout' => 'left',
+        'header_padding_top' => 48,
+        'header_padding_bottom' => 48,
     ];
 
     public static function keys(): array
     {
-        return [...array_keys(self::DEFAULTS), HeaderFonts::SETTING_KEY];
+        return [...array_keys(self::DEFAULTS), 'header_padding_y', HeaderFonts::SETTING_KEY];
     }
 
     public static function rules(array $fonts = []): array
@@ -43,17 +45,30 @@ class HeaderSettings
             'header_subtitle_color' => ['required', 'string', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'header_logo_letter_spacing' => ['required', 'numeric', 'between:0,1'],
             'header_subtitle_letter_spacing' => ['required', 'numeric', 'between:0,1'],
-            'header_layout' => ['required', 'in:left,center'],
+            'header_layout' => ['required', 'in:left,center,right'],
+            'header_padding_top' => ['sometimes', 'required', 'integer', 'between:0,160'],
+            'header_padding_bottom' => ['sometimes', 'required', 'integer', 'between:0,160'],
         ];
     }
 
     public static function resolve(array $settings): array
     {
+        $defaults = self::DEFAULTS;
+        // Older installations have one shared padding value. Each new field
+        // falls back independently until it is saved through the header form.
+        $legacyPadding = $settings['header_padding_y'] ?? null;
+        if (Validator::make(['padding' => $legacyPadding], [
+            'padding' => ['required', 'integer', 'between:0,160'],
+        ])->passes()) {
+            $defaults['header_padding_top'] = (int) $legacyPadding;
+            $defaults['header_padding_bottom'] = (int) $legacyPadding;
+        }
+
         $values = array_intersect_key($settings, self::DEFAULTS);
         $validator = Validator::make($values, self::rules(HeaderFonts::custom($settings)));
         $validator->passes();
 
-        foreach (self::DEFAULTS as $key => $default) {
+        foreach ($defaults as $key => $default) {
             if (!isset($values[$key]) || $validator->errors()->has($key)) {
                 $values[$key] = $default;
             }

@@ -14,6 +14,9 @@ use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Route;
 
+Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');
+Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
+
 Route::get("/", function () {
     $galleries = Gallery::with("photos")
         ->orderBy("sort_order")
@@ -39,7 +42,7 @@ Route::get("/", function () {
 
     $heroPhoto = $galleries
         ->flatMap(fn ($gallery) => $gallery->photos)
-        ->first(fn ($photo) => $photo->is_cover)
+        ->first(fn ($photo) => (bool) $photo->pivot->is_cover)
         ?? $galleries->flatMap(fn ($gallery) => $gallery->photos)->first();
 
     $heroImageUrl = null;
@@ -65,7 +68,7 @@ Route::get('/o-mnie', [ContentPageController::class, 'show'])->defaults('slug', 
 
 Route::get('/kontakt', [ContentPageController::class, 'show'])->defaults('slug', 'kontakt')->name('contact');
 
-Route::get("/portfolio/{gallery}", [GalleryController::class, "publicShow"])
+Route::get("/portfolio/{gallery:slug}", [GalleryController::class, "publicShow"])
     ->name("portfolio.gallery");
 
 Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
@@ -75,6 +78,8 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'edit'])->name('seo.edit');
+    Route::put('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'update'])->name('seo.update');
     Route::get('/admin/content-pages/{slug}', [ContentPageController::class, 'edit'])
         ->whereIn('slug', ['o-mnie', 'kontakt'])->name('content-pages.edit');
     Route::get('/admin/fonts', [FontLibraryController::class, 'index'])->name('fonts.index');
@@ -101,13 +106,22 @@ Route::middleware(["auth"])->group(function () {
     Route::post("/galleries/reorder", [GalleryController::class, "reorder"])
         ->name("galleries.reorder");
 
+    Route::get("/galleries/{gallery}/library", [GalleryController::class, "library"])
+        ->name("galleries.library");
+
+    Route::post("/galleries/{gallery}/photos", [GalleryController::class, "attachPhotos"])
+        ->name("galleries.photos.attach");
+
+    Route::delete("/galleries/{gallery}/photos/{photo}", [GalleryController::class, "detachPhoto"])
+        ->name("galleries.photos.detach");
+
+    Route::post("/galleries/{gallery}/photos/{photo}/cover", [GalleryController::class, "makeCover"])
+        ->name("galleries.photos.cover");
+
+    Route::post("/galleries/{gallery}/photos/reorder", [GalleryController::class, "reorderPhotos"])
+        ->name("galleries.photos.reorder");
+
     Route::resource("photos", PhotoController::class);
-
-    Route::post("/photos/reorder", [PhotoController::class, "reorder"])
-        ->name("photos.reorder");
-
-    Route::post("/photos/{photo}/make-cover", [PhotoController::class, "makeCover"])
-        ->name("photos.make-cover");
 
     Route::resource("pages", PageController::class);
 

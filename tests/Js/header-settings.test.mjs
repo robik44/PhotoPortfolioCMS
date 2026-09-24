@@ -20,7 +20,7 @@ function setup(FontClass) {
             setCustomValidity(message) { this.validityMessage = message; },
         };
     }
-    const fields = { logo: element('Nazwa'), logo_subtitle: element('Podtytuł'), header_layout: element('left'), font_file: element(), font_target: element('logo') };
+    const fields = { logo: element('Nazwa'), logo_subtitle: element('Podtytuł'), header_layout: element('left'), header_padding_top: element('48'), header_padding_bottom: element('48'), font_file: element(), font_target: element('logo') };
     for (const part of ['logo', 'subtitle']) {
         for (const [key, value] of Object.entries({ font_family: 'Arial', font_size: part === 'logo' ? '28' : '10', font_weight: '400', color: '#222222', letter_spacing: '0.08' })) {
             fields[`header_${part}_${key}`] = element(value);
@@ -67,6 +67,30 @@ test('stored fonts can be selected independently and arbitrary CSS falls back', 
     await form.emit('input');
     assert.equal(nodes['header-preview-logo'].style.fontFamily, 'hf_test, Arial, sans-serif');
     assert.equal(nodes['header-preview-subtitle'].style.fontFamily, 'Arial, sans-serif');
+});
+
+test('independent spacing and all layouts preserve typography and horizontal padding', async () => {
+    const { fields, nodes, form } = setup();
+    const preview = nodes['header-live-preview'];
+    assert.equal(preview.style.paddingTop, '48px');
+    assert.equal(preview.style.paddingBottom, '48px');
+    const logoStyle = { ...nodes['header-preview-logo'].style };
+    const subtitleStyle = { ...nodes['header-preview-subtitle'].style };
+    for (const layout of ['left', 'center', 'right']) {
+        fields.header_layout.value = layout;
+        for (const [top, bottom] of [['0', '48'], ['24', '48'], ['24', '72'], ['160', '0']]) {
+            fields.header_padding_top.value = top;
+            fields.header_padding_bottom.value = bottom;
+            await form.emit('input');
+            assert.equal(preview.style.paddingTop, `${top}px`);
+            assert.equal(preview.style.paddingBottom, `${bottom}px`);
+            assert.equal(preview.style.paddingLeft, undefined);
+            assert.equal(preview.style.paddingRight, undefined);
+            assert.equal(preview.dataset.layout, layout);
+            assert.deepEqual(nodes['header-preview-logo'].style, logoStyle);
+            assert.deepEqual(nodes['header-preview-subtitle'].style, subtitleStyle);
+        }
+    }
 });
 
 test('a local file loads before save, follows its target, and is removed when cancelled', async () => {

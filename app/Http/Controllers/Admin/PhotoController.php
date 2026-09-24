@@ -3,19 +3,23 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Gallery;
 use App\Models\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use RuntimeException;
+use Throwable;
 
 class PhotoController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $photos = Photo::with('gallery')
-            ->orderBy('gallery_id')
-            ->orderBy('sort_order')
+        $request->validate(['seo_filter' => ['nullable', 'in:missing_alt,missing_title,missing_description']]);
+        $filter = $request->query('seo_filter');
+        $fields = ['missing_alt' => 'alt', 'missing_title' => 'title', 'missing_description' => 'description'];
+        $photos = Photo::with('galleries')
+            ->when(isset($fields[$filter]), fn ($query) => $query->missingMetadata($fields[$filter]))
+            ->latest()
             ->get();
 
         return view('admin.photos.index', compact('photos'));
@@ -23,40 +27,52 @@ class PhotoController extends Controller
 
     public function create()
     {
-        $galleries = Gallery::orderBy('sort_order')
-            ->orderBy('title')
-            ->get();
-
-        return view('admin.photos.create', compact('galleries'));
+        return view('admin.photos.create');
     }
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'gallery_id' => ['required', 'exists:galleries,id'],
+        $request->validate([
             'images' => ['required', 'array', 'min:1'],
-            'images.*' => ['required', 'image', 'max:20480'],
+            'images.*' => ['required', 'image', 'max:51200'],
         ]);
 
-        $gallery = Gallery::findOrFail($data['gallery_id']);
+        $storedPaths = [];
 
-        $sortOrder = (int) (
-            Photo::where('gallery_id', $gallery->id)->max('sort_order') ?? -1
-        ) + 1;
+        try {
+            DB::transaction(function () use ($request, &$storedPaths) {
+                foreach ($request->file('images', []) as $image) {
+                    $filename = $image->store('photos', 'public');
 
-        foreach ($request->file('images', []) as $image) {
-            $filename = $image->store('photos', 'public');
+                    if ($filename === false) {
+                        throw new RuntimeException('Could not store an uploaded photo.');
+                    }
 
-            Photo::create([
-                'gallery_id' => $gallery->id,
-                'filename' => $filename,
-                'sort_order' => $sortOrder++,
+                    $storedPaths[] = $filename;
+                    Photo::create(['filename' => $filename]);
+                }
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+
+            foreach ($storedPaths as $path) {
+                try {
+                    if (! Storage::disk('public')->delete($path)) {
+                        throw new RuntimeException('Could not clean up uploaded photo: '.$path);
+                    }
+                } catch (Throwable $cleanupException) {
+                    report($cleanupException);
+                }
+            }
+
+            return back()->withErrors([
+                'images' => 'Nie udało się zapisać fotografii. Spróbuj ponownie.',
             ]);
         }
 
         return redirect()
-            ->route('galleries.show', $gallery)
-            ->with('success', 'Zdjęcia zostały dodane.');
+            ->route('photos.index')
+            ->with('success', 'Fotografie zostały dodane do biblioteki.');
     }
 
     public function show(Photo $photo)
@@ -66,19 +82,17 @@ class PhotoController extends Controller
 
     public function edit(Photo $photo)
     {
-        $galleries = Gallery::orderBy('title')->get();
+        $photo->load('galleries');
 
-        return view('admin.photos.edit', compact('photo', 'galleries'));
+        return view('admin.photos.edit', compact('photo'));
     }
 
     public function update(Request $request, Photo $photo)
     {
         $data = $request->validate([
-            'gallery_id' => ['required', 'exists:galleries,id'],
             'title' => ['nullable', 'string', 'max:255'],
             'alt' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'sort_order' => ['nullable', 'integer', 'min:0'],
         ]);
 
         $photo->update($data);
@@ -88,51 +102,83 @@ class PhotoController extends Controller
             ->with('success', 'Zdjęcie zostało zaktualizowane.');
     }
 
-    public function reorder(Request $request)
-    {
-        $data = $request->validate([
-            'photos' => ['required', 'array', 'min:1'],
-            'photos.*' => ['required', 'integer', 'exists:photos,id'],
-        ]);
-
-        DB::transaction(function () use ($data) {
-            foreach ($data['photos'] as $position => $photoId) {
-                Photo::where('id', $photoId)
-                    ->update([
-                        'sort_order' => $position,
-                    ]);
-            }
-        });
-
-        return response()->json([
-            'success' => true,
-        ]);
-    }
-
-    public function makeCover(Photo $photo)
-    {
-        DB::transaction(function () use ($photo) {
-            Photo::where('gallery_id', $photo->gallery_id)
-                ->update(['is_cover' => false]);
-
-            $photo->update(['is_cover' => true]);
-        });
-
-        return back()->with('success', 'Ustawiono zdjęcie okładkowe.');
-    }
-
     public function destroy(Photo $photo)
     {
-        $gallery = $photo->gallery;
+        $disk = Storage::disk('public');
+        $backups = [];
+        $attemptedPaths = [];
 
-        if ($photo->filename && Storage::disk('public')->exists($photo->filename)) {
-            Storage::disk('public')->delete($photo->filename);
+        try {
+            DB::transaction(function () use ($photo, $disk, &$backups, &$attemptedPaths) {
+                // Database transactions cannot restore files. Keep temporary streams
+                // until both the file deletions and the database commit succeed.
+                foreach ($photo->filePaths() as $path) {
+                    if (! $disk->exists($path)) {
+                        continue;
+                    }
+
+                    $backup = tmpfile();
+                    if ($backup === false) {
+                        throw new RuntimeException('Could not back up photo before deletion.');
+                    }
+
+                    $source = null;
+                    try {
+                        $source = $disk->readStream($path);
+                        if (! is_resource($source) || stream_copy_to_stream($source, $backup) === false) {
+                            throw new RuntimeException('Could not read photo before deletion: '.$path);
+                        }
+                        $backups[$path] = $backup;
+                    } finally {
+                        if (is_resource($source)) {
+                            fclose($source);
+                        }
+                        if (! isset($backups[$path])) {
+                            fclose($backup);
+                        }
+                    }
+                }
+
+                foreach ($backups as $path => $backup) {
+                    $attemptedPaths[] = $path;
+                    if (! $disk->delete($path)) {
+                        throw new RuntimeException('Could not delete photo file: '.$path);
+                    }
+                }
+
+                $photo->galleries()->detach();
+                if (! $photo->delete()) {
+                    throw new RuntimeException('Could not delete photo record.');
+                }
+            });
+        } catch (Throwable $exception) {
+            report($exception);
+            $restored = true;
+            foreach ($attemptedPaths as $path) {
+                try {
+                    rewind($backups[$path]);
+                    if (! $disk->put($path, $backups[$path])) {
+                        throw new RuntimeException('Could not restore photo after failed deletion: '.$path);
+                    }
+                } catch (Throwable $restoreException) {
+                    $restored = false;
+                    report($restoreException);
+                }
+            }
+
+            return redirect()->route('photos.index')->with(
+                'error',
+                'Nie udało się dokończyć usuwania zdjęcia. Rekord i powiązania zachowano. '
+                    .($restored ? 'Spróbuj ponownie.' : 'Nie udało się przywrócić wszystkich plików. Skontaktuj się z administratorem.')
+            );
+        } finally {
+            foreach ($backups as $backup) {
+                fclose($backup);
+            }
         }
 
-        $photo->delete();
-
         return redirect()
-            ->route('galleries.show', $gallery)
-            ->with('success', 'Zdjęcie zostało usunięte.');
+            ->route('photos.index')
+            ->with('success', 'Zdjęcie zostało usunięte z Biblioteki i wszystkich galerii.');
     }
 }

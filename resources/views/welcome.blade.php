@@ -32,7 +32,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ $settings['site_title'] }}</title>
+    @include('components.seo-meta', ['seo' => \App\Support\Seo::meta(null)])
 
     <style>
         * {
@@ -449,7 +449,8 @@
                 @foreach($galleries as $gallery)
                     @php
                         $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
-                        $cover = $gallery->photos->firstWhere('is_cover', true)
+                        $cover = $gallery->photos
+                            ->first(fn ($photo) => (bool) $photo->pivot->is_cover)
                             ?: $gallery->photos->first();
                     @endphp
 

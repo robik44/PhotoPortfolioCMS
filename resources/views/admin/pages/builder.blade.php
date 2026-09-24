@@ -2101,7 +2101,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ->get()
             ->map(function ($gallery) {
                 $cover = $gallery->photos
-                    ->firstWhere("is_cover", true)
+                    ->first(fn ($photo) => (bool) $photo->pivot->is_cover)
                     ?? $gallery->photos->first();
 
                 return [
@@ -2112,6 +2112,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         ? asset("storage/photos/" . basename($cover->filename))
                         : null,
                     "url" => route("portfolio.gallery", $gallery),
+                    "photos" => $gallery->photos->map(fn ($photo) => ["id" => $photo->id, "title" => $photo->title, "alt" => $photo->alt, "cover_url" => $photo->imageUrl()])->values()->all(),
                 ];
             })
             ->values()
@@ -2271,8 +2272,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function createElementContent(item) {
 
-        const box =
-            document.createElement("div");
+        const box = document.createElement(item.type === 'heading' && ['h1', 'h2', 'h3'].includes(item.heading_level) ? item.heading_level : 'div');
+        box.style.margin = '0';
 
         window.builderTypography.apply(box, item);
 
@@ -2350,12 +2351,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else if (item.type === "gallery") {
 
-            const galleryList =
-                item.gallery_mode === "single" && item.gallery_id
-                    ? galleries.filter(function (gallery) {
-                        return Number(gallery.id) === Number(item.gallery_id);
-                    })
-                    : galleries;
+            const selectedGallery = galleries.find(gallery => Number(gallery.id) === Number(item.gallery_id));
+            const galleryList = item.gallery_mode === "single"
+                ? (selectedGallery?.photos || []) : galleries;
 
             const grid = document.createElement("div");
 
@@ -2369,8 +2367,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const empty = document.createElement("div");
 
-                empty.textContent =
-                    "Brak galerii. Dodaj galerie w module Galerie.";
+                empty.textContent = item.gallery_mode === 'single'
+                    ? (selectedGallery ? 'Ta galeria nie zawiera jeszcze zdjęć.' : 'Wybierz galerię we właściwościach elementu.')
+                    : 'Brak galerii. Dodaj galerie w module Galerie.';
 
                 empty.style.padding = "40px";
                 empty.style.textAlign = "center";
@@ -2396,7 +2395,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             document.createElement("img");
 
                         image.src = gallery.cover_url;
-                        image.alt = gallery.title || "Galeria";
+                        image.alt = gallery.alt || gallery.title || "";
 
                         image.style.display = "block";
                         image.style.width = "100%";
@@ -2679,6 +2678,25 @@ document.addEventListener("DOMContentLoaded", function () {
         properties.appendChild(wrapper);
     }
 
+    function selectField(labelText, value, options, callback) {
+        const wrapper = document.createElement('label');
+        wrapper.className = 'fve-field';
+        wrapper.textContent = labelText;
+        const select = document.createElement('select');
+        options.forEach(([id, title]) => {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = title;
+            select.appendChild(option);
+        });
+        select.value = value;
+        select.addEventListener('change', () => { callback(select.value); render(); showProperties(itemForSelection()); });
+        wrapper.appendChild(select);
+        properties.appendChild(wrapper);
+    }
+
+    function itemForSelection() { return data.sections.find(item => item.id === selected); }
+
     function showProperties(item) {
 
         properties.innerHTML = "";
@@ -2703,6 +2721,16 @@ document.addEventListener("DOMContentLoaded", function () {
         properties.appendChild(heading);
 
         window.builderTypography.field(properties, item, render, 'fve-field');
+        if (item.type === 'heading') {
+            selectField('Poziom nagłówka', item.heading_level || 'div', [['div', 'Dotychczasowy (bez zmiany)'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3']], value => { item.heading_level = value; });
+        }
+        if (item.type === 'gallery') {
+            selectField('Tryb galerii', item.gallery_mode || 'all', [['all', 'Wszystkie galerie'], ['single', 'Wybrana galeria']], value => { item.gallery_mode = value; });
+            if (item.gallery_mode === 'single') {
+                selectField('Wybierz galerię', item.gallery_id || '', [['', 'Wybierz galerię'], ...galleries.map(gallery => [gallery.id, gallery.title])], value => { item.gallery_id = value ? Number(value) : null; });
+            }
+        }
+
 
         if (item.type !== "image") {
 
@@ -2961,6 +2989,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
 
         window.builderTypography.initialize(item);
+        if (type === 'heading') item.heading_level = 'h2';
         data.sections.push(item);
 
         selected = item.id;

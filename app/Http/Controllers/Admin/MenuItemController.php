@@ -134,23 +134,31 @@ class MenuItemController extends Controller
 
     public function reorder(Request $request)
     {
-        $data = $request->validate([
-            'items' => ['required', 'array'],
-            'items.*.id' => ['required', 'integer', 'exists:menu_items,id'],
-            'items.*.parent_id' => ['nullable', 'integer', 'exists:menu_items,id'],
-            'items.*.sort_order' => ['required', 'integer', 'min:0'],
-        ]);
+        try {
+            $data = $request->validate([
+                'parent_id' => ['present', 'nullable', 'integer', 'exists:menu_items,id'],
+                'items' => ['required', 'array', 'min:1'],
+                'items.*.id' => ['required', 'integer', 'distinct', 'exists:menu_items,id'],
+                'items.*.parent_id' => ['prohibited'],
+            ]);
 
-        foreach ($data['items'] as $item) {
-            MenuItem::where('id', $item['id'])
-                ->update([
-                    'parent_id' => $item['parent_id'] ?? null,
-                    'sort_order' => $item['sort_order'],
-                ]);
+            \Illuminate\Support\Facades\DB::transaction(function () use ($data) {
+                $siblings = MenuItem::where('parent_id', $data['parent_id'])->lockForUpdate()->get();
+                $ids = collect($data['items'])->pluck('id')->map(fn ($id) => (int) $id);
+                if ($siblings->pluck('id')->sort()->values()->all() !== $ids->sort()->values()->all()) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'items' => 'Można sortować wyłącznie wszystkie pozycje tego samego rodzica. Odśwież listę i spróbuj ponownie.',
+                    ]);
+                }
+                foreach ($ids as $position => $id) {
+                    MenuItem::whereKey($id)->update(['sort_order' => $position]);
+                }
+            });
+
+        } catch (\Illuminate\Validation\ValidationException $error) {
+            return response()->json(['message' => $error->getMessage(), 'errors' => $error->errors()], 422);
         }
 
-        return response()->json([
-            'success' => true,
-        ]);
+        return response()->json(['success' => true, 'message' => 'Kolejność została zapisana.']);
     }
 }

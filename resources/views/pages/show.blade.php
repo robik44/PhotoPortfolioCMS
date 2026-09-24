@@ -59,7 +59,7 @@
         content="width=device-width, initial-scale=1"
     >
 
-    <title>{{ $page->title }}</title>
+    @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($page)])
 
     @vite(["resources/css/app.css", "resources/js/app.js"])
 
@@ -407,9 +407,10 @@
 
                 @elseif($type === "heading")
 
-                    <div
+                    @php($headingTag = in_array($element['heading_level'] ?? '', ['h1', 'h2', 'h3'], true) ? $element['heading_level'] : 'div')
+                    <{{ $headingTag }}
                         class="page-element page-element-heading"
-                        style="
+                        style="margin:0;
                             left:{{ $x }}%;
                             top:{{ $y }}%;
                             width:{{ $width }}%;
@@ -424,7 +425,7 @@
                         "
                     >
                         {{ $content }}
-                    </div>
+                    </{{ $headingTag }}>
 
 
                 @elseif($type === "text")
@@ -520,6 +521,7 @@
 
                     <div
                         class="page-element page-element-gallery"
+                        @if(($element['gallery_mode'] ?? 'all') === 'single') data-builder-selected-gallery @endif
                         style="
                             left:{{ $x }}%;
                             top:{{ $y }}%;
@@ -534,7 +536,7 @@
                             letter-spacing:{{ $letterSpacing }}px;
                         "
                     >
-                        {{ $content ?: "Galeria" }}
+                        @include('components.builder-gallery', ['element' => $element, 'group' => 'builder-'.$loop->index])
                     </div>
 
                 @endif
@@ -558,5 +560,7 @@
     {{ $settings["footer_text"] ?? "Fotografia" }}
 </footer>
 
+@include('components.gallery-lightbox')
+<script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
 </body>
 </html>

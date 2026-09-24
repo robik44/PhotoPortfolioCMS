@@ -58,8 +58,9 @@
 
         <form method="POST"
               action="{{ route("pages.update", $page) }}"
-              enctype="multipart/form-data"
               style="padding:28px;">
+
+            @include('admin.seo.fields', ['entity' => $page])
 
             @csrf
             @method("PUT")
@@ -141,93 +142,10 @@
                 </div>
 
 
-                <div>
-
-                    <label for="featured_image"
-                           style="
-                                display:block;
-                                margin-bottom:8px;
-                                font-size:12px;
-                                font-weight:600;
-                                color:#303030;
-                           ">
-                        Zdjęcie wyróżniające
-                    </label>
-
-                    @if($page->featured_image)
-
-                        <div style="
-                            margin-bottom:14px;
-                            padding:12px;
-                            border:1px solid #e5e5e1;
-                            border-radius:6px;
-                            background:#fafafa;
-                        ">
-
-                            <img
-                                src="{{ asset("storage/" . $page->featured_image) }}"
-                                alt="{{ $page->title }}"
-                                style="
-                                    display:block;
-                                    width:100%;
-                                    max-width:500px;
-                                    max-height:320px;
-                                    object-fit:cover;
-                                    border-radius:4px;
-                                "
-                            >
-
-                        </div>
-
-                        <label style="
-                            display:flex;
-                            align-items:center;
-                            gap:10px;
-                            margin-bottom:14px;
-                            color:#555;
-                            font-size:12px;
-                        ">
-
-                            <input
-                                type="checkbox"
-                                name="remove_featured_image"
-                                value="1"
-                            >
-
-                            Usuń obecne zdjęcie
-
-                        </label>
-
-                    @endif
-
-
-                    <input
-                        id="featured_image"
-                        type="file"
-                        name="featured_image"
-                        accept=".jpg,.jpeg,.png,.webp"
-                        style="
-                            display:block;
-                            width:100%;
-                            padding:12px;
-                            border:1px solid #e5e5e1;
-                            border-radius:6px;
-                            background:#fff;
-                            color:#303030;
-                            font-size:12px;
-                        "
-                    >
-
-                    <div style="
-                        margin-top:7px;
-                        color:#858585;
-                        font-size:11px;
-                    ">
-                        JPG, JPEG, PNG lub WEBP. Maksymalny rozmiar: 10 MB.
-                    </div>
-
-                </div>
-
+                <x-photo-picker name="featured_photo_id" label="Zdjęcie wyróżniające"
+                    :selected="$page->featured_photo_id"
+                    :legacy-url="$page->featured_image ? asset('storage/'.$page->featured_image) : null"
+                    clear-name="remove_featured_image" />
 
                 <div>
 

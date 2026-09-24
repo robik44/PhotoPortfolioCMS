@@ -13,6 +13,11 @@
             padding:0 24px;
         ">
 
+            <nav aria-label="Filtry SEO Biblioteki" style="display:flex;gap:12px;margin-bottom:20px;">
+                @foreach(['' => 'Wszystkie', 'missing_alt' => 'Brak ALT', 'missing_title' => 'Brak tytułu', 'missing_description' => 'Brak opisu'] as $filter => $label)
+                    <a class="cms-button" href="{{ route('photos.index', ['seo_filter' => $filter]) }}" @if(request('seo_filter', '') === $filter) aria-current="page" @endif>{{ $label }}</a>
+                @endforeach
+            </nav>
             @if (session('success'))
                 <div style="
                     margin-bottom:24px;
@@ -22,6 +27,12 @@
                     color:#166534;
                 ">
                     {{ session('success') }}
+                </div>
+            @endif
+
+            @if (session('error'))
+                <div role="alert" style="margin-bottom:24px;padding:14px 18px;border-radius:6px;background:#fee2e2;color:#991b1b;">
+                    {{ session('error') }}
                 </div>
             @endif
 
@@ -82,7 +93,7 @@
                             ">
 
                                 <img
-                                    src="{{ asset('storage/photos/' . $photo->filename) }}"
+                                    src="{{ $photo->imageUrl() }}"
                                     alt="{{ $photo->alt ?: $photo->title ?: $photo->filename }}"
                                     style="
                                         width:100%;
@@ -91,25 +102,6 @@
                                         display:block;
                                     "
                                 >
-
-                                @if ($photo->is_cover)
-
-                                    <div style="
-                                        position:absolute;
-                                        top:12px;
-                                        left:12px;
-                                        background:#171717;
-                                        color:#fff;
-                                        padding:7px 10px;
-                                        border-radius:4px;
-                                        font-size:11px;
-                                        letter-spacing:0.08em;
-                                        text-transform:uppercase;
-                                    ">
-                                        Okładka
-                                    </div>
-
-                                @endif
 
                             </div>
 
@@ -125,59 +117,22 @@
                                 </h3>
 
 
-                                <p style="
-                                    margin:0 0 16px;
-                                    font-size:13px;
-                                    color:#777;
-                                ">
-                                    {{ $photo->gallery?->title }}
-                                </p>
-
-
-                                @if (!$photo->is_cover)
-
-                                    <form
-                                        method="POST"
-                                        action="{{ route('photos.make-cover', $photo) }}"
-                                        style="margin-bottom:14px;"
-                                    >
-
-                                        @csrf
-
-                                        <button
-                                            type="submit"
-                                            style="
-                                                width:100%;
-                                                padding:10px 12px;
-                                                background:#f3f3f3;
-                                                color:#171717;
-                                                border:1px solid #d5d5d5;
-                                                border-radius:5px;
-                                                cursor:pointer;
-                                                font-size:13px;
-                                            "
-                                        >
-                                            Ustaw jako okładkę
-                                        </button>
-
-                                    </form>
-
-                                @else
-
-                                    <div style="
-                                        margin-bottom:14px;
-                                        padding:10px 12px;
-                                        background:#f3f3f3;
-                                        border-radius:5px;
-                                        color:#555;
-                                        text-align:center;
-                                        font-size:13px;
-                                    ">
-                                        To jest okładka galerii
-                                    </div>
-
-                                @endif
-
+                                <div style="margin:0 0 16px;font-size:13px;color:#777;">
+                                    @if ($photo->galleries->isNotEmpty())
+                                        <p style="margin:0 0 6px;">Używane w galeriach:</p>
+                                        <ul style="margin:0;padding-left:18px;">
+                                            @foreach ($photo->galleries as $gallery)
+                                                <li>
+                                                    <a href="{{ route('galleries.show', $gallery) }}" style="color:#171717;text-decoration:underline;">
+                                                        {{ $gallery->title }}
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        </ul>
+                                    @else
+                                        Nie jest używane w żadnej galerii.
+                                    @endif
+                                </div>
 
                                 <div style="
                                     display:flex;
@@ -200,6 +155,7 @@
                                         method="POST"
                                         action="{{ route('photos.destroy', $photo) }}"
                                         style="display:inline;"
+                                        onsubmit="return confirm('Zdjęcie zostanie trwale usunięte z Biblioteki i wszystkich galerii, a jego plik zostanie skasowany. Kontynuować?');"
                                     >
 
                                         @csrf
@@ -207,7 +163,6 @@
 
                                         <button
                                             type="submit"
-                                            onclick="return confirm('Czy na pewno usunąć to zdjęcie?')"
                                             style="
                                                 padding:0;
                                                 border:0;
@@ -217,7 +172,7 @@
                                                 font-size:13px;
                                             "
                                         >
-                                            Usuń
+                                            Usuń z Biblioteki
                                         </button>
 
                                     </form>

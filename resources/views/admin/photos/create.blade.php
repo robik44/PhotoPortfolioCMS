@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Dodaj fotografie
+            Dodaj do biblioteki
         </h2>
     </x-slot>
 
@@ -30,7 +30,6 @@
                 </div>
             @endif
 
-
             <div style="
                 background:#fff;
                 padding:32px;
@@ -38,64 +37,36 @@
                 box-shadow:0 2px 12px rgba(0,0,0,0.08);
             ">
 
+                <div style="margin-bottom:28px;">
+                    <h3 style="
+                        margin:0 0 8px;
+                        font-size:18px;
+                        font-weight:600;
+                        color:#171717;
+                    ">
+                        Biblioteka zdjęć
+                    </h3>
+
+                    <p style="
+                        margin:0;
+                        font-size:14px;
+                        line-height:1.6;
+                        color:#6b7280;
+                    ">
+                        Dodane tutaj fotografie nie są przypisywane do żadnej galerii.
+                        Później możesz wykorzystać je w galeriach, na stronach
+                        i w innych elementach serwisu.
+                    </p>
+                </div>
+
                 <form
                     method="POST"
                     action="{{ route('photos.store') }}"
                     enctype="multipart/form-data"
                 >
-
                     @csrf
 
-
                     <div style="margin-bottom:24px;">
-
-                        <label
-                            for="gallery_id"
-                            style="
-                                display:block;
-                                font-size:14px;
-                                font-weight:600;
-                                margin-bottom:8px;
-                            "
-                        >
-                            Galeria
-                        </label>
-
-                        <select
-                            id="gallery_id"
-                            name="gallery_id"
-                            required
-                            style="
-                                width:100%;
-                                padding:11px 12px;
-                                border:1px solid #d1d5db;
-                                border-radius:6px;
-                                background:#fff;
-                            "
-                        >
-
-                            <option value="">
-                                Wybierz galerię
-                            </option>
-
-                            @foreach ($galleries as $gallery)
-
-                                <option
-                                    value="{{ $gallery->id }}"
-                                    @selected(old('gallery_id') == $gallery->id)
-                                >
-                                    {{ $gallery->title }}
-                                </option>
-
-                            @endforeach
-
-                        </select>
-
-                    </div>
-
-
-                    <div style="margin-bottom:24px;">
-
                         <label
                             for="images"
                             style="
@@ -105,7 +76,7 @@
                                 margin-bottom:8px;
                             "
                         >
-                            Fotografie
+                            Wybierz fotografie
                         </label>
 
                         <input
@@ -130,12 +101,10 @@
                             font-size:13px;
                             color:#6b7280;
                         ">
-                            Możesz zaznaczyć jednocześnie dowolną liczbę fotografii.
-                            Każda fotografia zostanie dodana do wybranej galerii.
+                            Możesz zaznaczyć jednocześnie wiele fotografii.
+                            Wszystkie zostaną zapisane w centralnej Bibliotece zdjęć.
                         </p>
-
                     </div>
-
 
                     <div
                         id="file-preview"
@@ -147,14 +116,12 @@
                         "
                     ></div>
 
-
                     <div style="
                         display:flex;
                         align-items:center;
                         gap:15px;
                         padding-top:8px;
                     ">
-
                         <button
                             type="submit"
                             style="
@@ -169,9 +136,8 @@
                                 cursor:pointer;
                             "
                         >
-                            Dodaj fotografie
+                            Dodaj do biblioteki
                         </button>
-
 
                         <a
                             href="{{ route('photos.index') }}"
@@ -183,27 +149,21 @@
                         >
                             Anuluj
                         </a>
-
                     </div>
-
                 </form>
 
             </div>
-
         </div>
     </div>
-
 
     <script>
         const imageInput = document.getElementById('images');
         const preview = document.getElementById('file-preview');
 
         imageInput.addEventListener('change', function () {
-
             preview.innerHTML = '';
 
             Array.from(this.files).forEach(function (file) {
-
                 if (!file.type.startsWith('image/')) {
                     return;
                 }
@@ -211,35 +171,31 @@
                 const reader = new FileReader();
 
                 reader.onload = function (event) {
-
                     const item = document.createElement('div');
 
                     item.style.background = '#f1f1f1';
                     item.style.borderRadius = '6px';
                     item.style.overflow = 'hidden';
 
-                    item.innerHTML = `
-                        <img
-                            src="${event.target.result}"
-                            style="
-                                width:100%;
-                                aspect-ratio:1/1;
-                                object-fit:cover;
-                                display:block;
-                            "
-                        >
-                        <div style="
-                            padding:8px;
-                            font-size:11px;
-                            color:#555;
-                            white-space:nowrap;
-                            overflow:hidden;
-                            text-overflow:ellipsis;
-                        ">
-                            ${file.name}
-                        </div>
-                    `;
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    img.alt = '';
+                    img.style.width = '100%';
+                    img.style.aspectRatio = '1/1';
+                    img.style.objectFit = 'cover';
+                    img.style.display = 'block';
 
+                    const name = document.createElement('div');
+                    name.style.padding = '8px';
+                    name.style.fontSize = '11px';
+                    name.style.color = '#555';
+                    name.style.whiteSpace = 'nowrap';
+                    name.style.overflow = 'hidden';
+                    name.style.textOverflow = 'ellipsis';
+                    name.textContent = file.name;
+
+                    item.appendChild(img);
+                    item.appendChild(name);
                     preview.appendChild(item);
                 };
 
@@ -247,5 +203,4 @@
             });
         });
     </script>
-
 </x-app-layout>

@@ -11,6 +11,11 @@
 </head>
 
 <body class="cms-body">
+@php
+    $viewSiteUrl = request()->routeIs('galleries.edit')
+        ? route('portfolio.gallery', request()->route('gallery'))
+        : url('/');
+@endphp
 
 <div class="cms-shell">
 
@@ -75,6 +80,8 @@
             </a>
 
 
+            <a href="{{ route('seo.edit') }}" class="cms-nav-item {{ request()->routeIs('seo.*') ? 'active' : '' }}"><span>SEO</span></a>
+
             <div class="cms-nav-label">WYGLĄD</div>
 
             <a href="{{ route('fonts.index') }}" class="cms-nav-item {{ request()->routeIs('fonts.*') ? 'active' : '' }}">
@@ -98,7 +105,7 @@
 
         <div class="cms-sidebar-bottom">
 
-            <a href="{{ url("/") }}"
+            <a href="{{ $viewSiteUrl }}"
                target="_blank"
                class="cms-nav-item">
                 <span>↗</span>
@@ -138,7 +145,7 @@
 
             <div class="cms-topbar-right">
 
-                <a href="{{ url("/") }}"
+                <a href="{{ $viewSiteUrl }}"
                    target="_blank"
                    class="cms-view-site">
                     Zobacz stronę ↗

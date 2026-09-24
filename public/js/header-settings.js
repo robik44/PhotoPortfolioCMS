@@ -35,7 +35,10 @@
             node.style.color = /^#[0-9a-f]{6}$/i.test(color) ? color : (part === 'logo' ? '#222222' : '#777777');
             node.style.letterSpacing = `${number(`${prefix}letter_spacing`, 0, 0, 1)}em`;
         }
-        preview.dataset.layout = value('header_layout') === 'center' ? 'center' : 'left';
+        const layout = value('header_layout');
+        preview.dataset.layout = ['left', 'center', 'right'].includes(layout) ? layout : 'left';
+        preview.style.paddingTop = `${number('header_padding_top', 48, 0, 160)}px`;
+        preview.style.paddingBottom = `${number('header_padding_bottom', 48, 0, 160)}px`;
     }
 
     async function loadLocalFont() {

@@ -1,0 +1,24 @@
+.photo-picker { margin: 16px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; }
+.photo-picker legend { padding: 0 6px; font-weight: 600; }
+.photo-picker [data-photo-image] { display: block; width: 240px; max-width: 100%; height: 160px; object-fit: contain; background: #f2f2f2; border-radius: 6px; }
+.photo-picker p { margin: 8px 0; color: #555; }
+.photo-picker-actions, .photo-library-header, .photo-library-footer { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.photo-library-dialog { width: min(1100px, 94vw); max-width: 94vw; max-height: 90dvh; margin: auto; padding: 24px; border: 0; border-radius: 12px; background: #fff; color: #202020; box-shadow: 0 16px 60px #0005; }
+.photo-library-dialog[open] { display: flex; flex-direction: column; gap: 16px; }
+.photo-library-dialog::backdrop { background: #0009; }
+.photo-library-header { justify-content: space-between; }
+.photo-library-header h2 { margin: 0; font-size: 22px; }
+.photo-library-dialog input { width: 100%; padding: 10px; border: 1px solid #aaa; border-radius: 6px; }
+.photo-library-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 14px; overflow-y: auto; min-height: 80px; padding: 4px; }
+.photo-library-card { position: relative; padding: 5px; border: 3px solid transparent; border-radius: 8px; background: #f3f3f3; color: #202020; cursor: pointer; text-align: left; }
+.photo-library-card img { display: block; width: 100%; height: 150px; object-fit: contain; }
+.photo-library-card [data-library-caption] { display: block; padding: 6px; overflow-wrap: anywhere; }
+.photo-library-card[aria-pressed="true"] { border-color: #1d4ed8; background: #eff6ff; }
+.photo-library-mark { display: none; position: absolute; top: 8px; right: 8px; background: #1d4ed8; color: #fff; padding: 4px 8px; border-radius: 4px; }
+.photo-library-card[aria-pressed="true"] .photo-library-mark { display: block; }
+.photo-library-footer { border-top: 1px solid #ddd; padding-top: 16px; }
+.photo-library-footer [role="status"] { flex: 1; }
+.photo-library-dialog [aria-pressed="true"] { outline: 2px solid #1d4ed8; }
+.photo-library-dialog button:focus-visible, .photo-picker button:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 2px; }
+.photo-picker [hidden], .photo-library-dialog [hidden] { display: none !important; }
+@media (max-width: 500px) { .photo-library-dialog { padding: 14px; } .photo-library-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

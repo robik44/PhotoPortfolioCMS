@@ -45,6 +45,7 @@ class HomeBuilderController extends Controller
         ]);
 
         try {
+            \App\Support\BuilderContent::validate($data['content']);
             app(\App\Services\SiteFontLibrary::class)->validateContent($data['content']);
         } catch (\Illuminate\Validation\ValidationException $error) {
             return response()->json(['message' => $error->getMessage(), 'errors' => $error->errors()], 422);

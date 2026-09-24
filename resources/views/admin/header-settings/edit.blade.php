@@ -115,8 +115,24 @@
             <select id="header_layout" name="header_layout" required>
                 <option value="left" @selected(old('header_layout', $settings['header_layout']) === 'left')>Logo po lewej / menu po prawej</option>
                 <option value="center" @selected(old('header_layout', $settings['header_layout']) === 'center')>Logo wyśrodkowane / menu poniżej</option>
+                <option value="right" @selected(old('header_layout', $settings['header_layout']) === 'right')>Menu po lewej / logo po prawej</option>
             </select>
             <p>Na małych ekranach elementy mogą układać się jeden pod drugim.</p>
+
+            <div class="header-settings-grid">
+                @foreach (['header_padding_top' => 'Odstęp nad logo i menu (px)', 'header_padding_bottom' => 'Odstęp pod logo i menu (px)'] as $key => $label)
+                    <div>
+                        <label for="{{ $key }}">{{ $label }}</label>
+                        <input id="{{ $key }}" name="{{ $key }}" type="number" min="0" max="160" step="1" required
+                               value="{{ old($key, $settings[$key]) }}" aria-describedby="header-padding-help">
+                        @error($key)
+                            <p role="alert">{{ $message }}</p>
+                        @enderror
+                    </div>
+                @endforeach
+            </div>
+            <p id="header-padding-help">Odstępy u góry i u dołu są niezależne i dotyczą wszystkich publicznych stron.
+                Rozmiary logo i tekstu pozostają bez zmian.</p>
 
             <button type="submit" class="cms-button cms-button-primary" style="margin-top:20px;">Zapisz nagłówek</button>
         </form>
@@ -137,6 +153,8 @@
         .header-live-preview[data-layout="center"] { flex-direction: column; }
         .header-live-preview[data-layout="center"] .header-preview-brand { text-align: center; }
         .header-live-preview[data-layout="center"] .header-preview-menu { justify-content: center; }
+        .header-live-preview[data-layout="right"] .header-preview-menu { order: -1; }
+        .header-live-preview[data-layout="right"] .header-preview-brand { margin-left: auto; text-align: right; }
     </style>
-    <script src="{{ asset('js/header-settings.js') }}" defer></script>
+    <script src="{{ asset('js/header-settings.js') }}?v={{ filemtime(public_path('js/header-settings.js')) }}" defer></script>
 </x-app-layout>

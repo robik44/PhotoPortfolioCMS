@@ -32,7 +32,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <title>{{ $settings['about_title'] }} — {{ $settings['site_title'] }}</title>
+    @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($page ?? null, 'O mnie', url('/o-mnie'))])
 
     <style>
         * {

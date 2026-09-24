@@ -84,7 +84,7 @@
                         @php
                             $cover = $gallery->photos
                                 ->filter(function ($photo) {
-                                    return $photo->is_cover
+                                    return (bool) $photo->pivot->is_cover
                                         && $photo->filename
                                         && file_exists(
                                             public_path('storage/photos/' . basename($photo->filename))

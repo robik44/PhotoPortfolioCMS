@@ -37,9 +37,9 @@ function slice(start, end, offset = 0) {
     assert.ok(a >= 0 && b > a);
     return builder.slice(a, b);
 }
-function setup(mode, item) {
+function setup(mode, item, galleryList = []) {
     const document = { createElement: node, addEventListener() {} };
-    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: [], photos: [], selectedElement: null,
+    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: [], selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
     if (mode === 'full') {
@@ -129,4 +129,38 @@ test('new blocks use global defaults, old blocks remain untouched and unknown CS
     assert.equal(context.api.css('Arial; background:url(bad)'), 'Arial, sans-serif');
     assert.equal(context.api.css('__proto__'), 'Arial, sans-serif');
     assert.equal(context.api.css(['Georgia']), 'Arial, sans-serif');
+});
+
+
+test('gallery properties switch between all cards and one live gallery photo preview', () => {
+    const item = textItem('gallery');
+    const galleries = [
+        { id: 1, title: 'Food', cover_url: 'cover.jpg', photos: [{ title: 'Pierwsze', cover_url: 'first.jpg' }, { title: 'Drugie', cover_url: 'second.jpg' }] },
+        { id: 2, title: 'Other', cover_url: 'other.jpg', photos: [] },
+    ];
+    const { context, preview } = setup('full', item, galleries);
+    assert.equal(preview().children[0].children.length, 2);
+    const mode = find(context.properties, element => element.textContent === 'Tryb galerii').children[0];
+    mode.value = 'single'; mode.emit('change');
+    assert.equal(item.gallery_mode, 'single');
+    const choice = find(context.properties, element => element.textContent === 'Wybierz galerię').children[0];
+    choice.value = '1'; choice.emit('change');
+    assert.equal(item.gallery_id, 1);
+    assert.deepEqual(Array.from(preview().children[0].children, card => card.children[0].src), ['first.jpg', 'second.jpg']);
+    assert.equal(item.photos, undefined);
+});
+
+test('heading properties change H1/H2/H3 tags while preserving visual styles and legacy div', () => {
+    const item = textItem('heading');
+    const { context, preview } = setup('full', item);
+    assert.equal(preview().tag, 'div');
+    const before = JSON.stringify(item.style);
+    for (const tag of ['h1', 'h2', 'h3']) {
+        const select = find(context.properties, element => element.textContent === 'Poziom nagłówka').children[0];
+        select.value = tag; select.emit('change');
+        assert.equal(item.heading_level, tag);
+        assert.equal(preview().tag, tag);
+        assert.equal(preview().style.margin, '0');
+        assert.equal(JSON.stringify(item.style), before);
+    }
 });

@@ -47,6 +47,8 @@
               action="{{ route("pages.store") }}"
               style="padding:28px;">
 
+            @include('admin.seo.fields', ['entity' => null])
+
             @csrf
 
 
@@ -124,6 +126,8 @@
 
                 </div>
 
+
+                <x-photo-picker name="featured_photo_id" label="Zdjęcie wyróżniające" />
 
                 <div>
 

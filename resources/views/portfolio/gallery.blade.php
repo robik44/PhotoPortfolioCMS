@@ -1,15 +1,22 @@
-@extends('layouts.app')
-
-@section('content')
 @php
     $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
 @endphp
+
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($gallery)])
+
 @include('components.site-typography')
 <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; color: #222; background: {{ $settings['background_color'] ?? '#ffffff' }}; }
+    a { color: inherit; text-decoration: none; }
     #lightbox .lightbox-title, #lightbox .lightbox-description { font-family: {{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }}; }
     .gallery-page {
         min-height: 100vh;
-        background: #fff;
         color: #222;
     }
 
@@ -169,117 +176,6 @@
         color: #777;
     }
 
-    /* LIGHTBOX */
-
-    .lightbox {
-        position: fixed;
-        inset: 0;
-        z-index: 1000;
-        display: none;
-        align-items: center;
-        justify-content: center;
-        padding: 40px;
-        background: rgba(0,0,0,.94);
-    }
-
-    .lightbox.is-open {
-        display: flex;
-    }
-
-    .lightbox-image {
-        position: relative;
-        z-index: 1;
-        max-width: calc(100vw - 150px);
-        max-height: calc(100vh - 150px);
-        width: auto;
-        height: auto;
-        object-fit: contain;
-        object-position: center;
-        user-select: none;
-        display: block;
-    }
-
-    .lightbox-close {
-        position: fixed !important;
-        top: 22px !important;
-        right: 28px !important;
-        left: auto !important;
-        transform: none !important;
-        z-index: 2147483647 !important;
-        display: block !important;
-        width: 50px !important;
-        height: 50px !important;
-        padding: 0 !important;
-        border: 0 !important;
-        background: transparent !important;
-        color: #fff !important;
-        font-size: 34px !important;
-        line-height: 50px !important;
-        text-align: center !important;
-        cursor: pointer !important;
-    }
-
-    .lightbox-prev,
-    .lightbox-next {
-        position: fixed !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
-        z-index: 2147483647 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        visibility: visible !important;
-        opacity: 1 !important;
-        width: 56px !important;
-        height: 56px !important;
-        padding: 0 !important;
-        border: 0 !important;
-        border-radius: 50% !important;
-        background: rgba(255,255,255,.18) !important;
-        color: #fff !important;
-        font-family: Arial, sans-serif !important;
-        font-size: 38px !important;
-        font-weight: 300 !important;
-        line-height: 1 !important;
-        text-align: center !important;
-        cursor: pointer !important;
-        transition: background .2s ease, transform .2s ease !important;
-    }
-
-    .lightbox-prev:hover,
-    .lightbox-next:hover {
-        background: rgba(255,255,255,.32) !important;
-    }
-
-    .lightbox-prev {
-        left: 6vw !important;
-        right: auto !important;
-    }
-
-    .lightbox-next {
-        right: 6vw !important;
-        left: auto !important;
-    }
-
-    .lightbox-info {
-        position: fixed;
-        left: 0;
-        right: 0;
-        bottom: 22px;
-        text-align: center;
-        color: #fff;
-        font-size: 13px;
-    }
-
-    .lightbox-title {
-        font-weight: 500;
-    }
-
-    .lightbox-description {
-        margin-top: 5px;
-        opacity: .7;
-    }
-
     @media (max-width: 800px) {
         .header-inner {
             padding: 18px 20px;
@@ -304,23 +200,7 @@
             gap: 10px;
         }
 
-        .lightbox {
-            padding: 20px;
-        }
 
-        .lightbox-image {
-            max-width: calc(100vw - 40px);
-            max-height: calc(100vh - 140px);
-            width: auto;
-            height: auto;
-            object-fit: contain;
-        }
-
-        .lightbox-prev,
-        .lightbox-next {
-            font-size: 32px;
-            padding: 10px;
-        }
     }
 
     @media (max-width: 480px) {
@@ -333,6 +213,8 @@
         }
     }
 </style>
+</head>
+<body class="site-typography">
 
 <div class="gallery-page">
 
@@ -346,19 +228,23 @@
         @endif
 
         <a href="{{ url('/') }}#portfolio" class="back-link">
-            ← Powrót do portfolio
+            ← Powrót do galerii
         </a>
     </section>
 
     @if($gallery->photos->count())
         <section class="gallery-grid">
-            @foreach($gallery->photos->take(12) as $photo)
+            @foreach($gallery->photos as $photo)
                 <article
                     class="gallery-item"
+                    role="button"
+                    tabindex="0"
+                    aria-label="{{ 'Otwórz zdjęcie: ' . ($photo->title ?: $photo->alt ?: $gallery->title) }}"
                     data-photo-index="{{ $loop->index }}"
-                    data-photo-url="{{ asset('storage/photos/' . basename($photo->filename)) }}"
-                    data-photo-title="{{ e($photo->title ?? '') }}"
-                    data-photo-description="{{ e($photo->description ?? '') }}"
+                    data-photo-url="{{ $photo->imageUrl() }}"
+                    data-photo-alt="{{ $photo->alt ?: $photo->title ?: $gallery->title }}"
+                    data-photo-title="{{ $photo->title ?? '' }}"
+                    data-photo-description="{{ $photo->description ?? '' }}"
                 >
                     <img
                         src="{{ asset('storage/photos/' . basename($photo->thumbnail ?: $photo->filename)) }}"
@@ -388,112 +274,6 @@
 
 </div>
 
-<div class="lightbox" id="lightbox" aria-hidden="true">
-    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Zamknij">×</button>
-
-    <img class="lightbox-image" id="lightboxImage" src="" alt="">
-
-    <button
-    class="lightbox-prev"
-    id="lightboxPrev"
-    type="button"
-    aria-label="Poprzednie zdjęcie"
->‹</button>
-
-    <button
-    class="lightbox-next"
-    id="lightboxNext"
-    type="button"
-    aria-label="Następne zdjęcie"
->›</button>
-
-    <div class="lightbox-info">
-        <div class="lightbox-title" id="lightboxTitle"></div>
-        <div class="lightbox-description" id="lightboxDescription"></div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-    const items = Array.from(document.querySelectorAll('.gallery-item'));
-    const lightbox = document.getElementById('lightbox');
-    const image = document.getElementById('lightboxImage');
-    const title = document.getElementById('lightboxTitle');
-    const description = document.getElementById('lightboxDescription');
-    const closeButton = document.getElementById('lightboxClose');
-    const prevButton = document.getElementById('lightboxPrev');
-    const nextButton = document.getElementById('lightboxNext');
-
-    let currentIndex = 0;
-
-    function showPhoto(index) {
-        if (!items.length) return;
-
-        currentIndex = (index + items.length) % items.length;
-
-        const item = items[currentIndex];
-
-        image.src = item.dataset.photoUrl;
-        image.alt = item.dataset.photoTitle || 'Zdjęcie';
-        title.textContent = item.dataset.photoTitle || '';
-        description.textContent = item.dataset.photoDescription || '';
-
-        lightbox.classList.add('is-open');
-        lightbox.setAttribute('aria-hidden', 'false');
-
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeLightbox() {
-        lightbox.classList.remove('is-open');
-        lightbox.setAttribute('aria-hidden', 'true');
-        image.src = '';
-        document.body.style.overflow = '';
-    }
-
-    items.forEach(function (item, index) {
-        item.addEventListener('click', function () {
-            showPhoto(index);
-        });
-    });
-
-    document.addEventListener('click', function (event) {
-        if (event.target === closeButton || closeButton.contains(event.target)) {
-            event.preventDefault();
-            event.stopPropagation();
-            closeLightbox();
-        }
-    }, true);
-
-    prevButton.addEventListener('click', function () {
-        showPhoto(currentIndex - 1);
-    });
-
-    nextButton.addEventListener('click', function () {
-        showPhoto(currentIndex + 1);
-    });
-
-    lightbox.addEventListener('click', function (event) {
-        if (event.target === lightbox) {
-            closeLightbox();
-        }
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (!lightbox.classList.contains('is-open')) return;
-
-        if (event.key === 'Escape') {
-            closeLightbox();
-        }
-
-        if (event.key === 'ArrowLeft') {
-            showPhoto(currentIndex - 1);
-        }
-
-        if (event.key === 'ArrowRight') {
-            showPhoto(currentIndex + 1);
-        }
-    });
-});
-</script>
-@endsection
+@include('components.gallery-lightbox')
+</body>
+</html>

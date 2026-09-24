@@ -7,11 +7,14 @@
 @include('components.header-font-faces', ['fonts' => $headerFonts])
 
 <style>
+    .site-header .header-inner { padding-top: var(--header-padding-top); padding-bottom: var(--header-padding-bottom); }
     .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
     .site-header .logo span { display: block; }
-    .site-header.header-layout-center .header-inner { flex-direction: column; align-items: center; gap: 16px; padding-top: 20px; padding-bottom: 20px; }
+    .site-header.header-layout-center .header-inner { flex-direction: column; align-items: center; gap: 16px; }
     .site-header.header-layout-center .logo { text-align: center; }
     .site-header.header-layout-center .main-menu { justify-content: center; flex-wrap: wrap; }
+    .site-header.header-layout-right .main-menu { order: -1; flex-wrap: wrap; }
+    .site-header.header-layout-right .logo { margin-left: auto; text-align: right; }
     .site-header .main-menu-item { position: relative; }
     .site-header .main-menu-link { display: inline-flex; align-items: center; gap: 6px; padding: 10px 0; }
     .site-header .main-menu-arrow { font-size: 9px; line-height: 1; }
@@ -29,7 +32,7 @@
     .site-header .main-submenu a:hover { opacity: 1; background: #f7f7f7; }
 </style>
 
-<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}">
+<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}" style="--header-padding-top: {{ $headerSettings['header_padding_top'] }}px; --header-padding-bottom: {{ $headerSettings['header_padding_bottom'] }}px;">
     <div class="header-inner">
 
         <a href="{{ url('/') }}" class="logo">

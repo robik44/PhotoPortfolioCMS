@@ -7,7 +7,6 @@ use App\Models\Page;
 use App\Models\PageBuilder;
 use App\Support\ContentPages;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PageController extends Controller
@@ -32,14 +31,10 @@ class PageController extends Controller
             "title" => ["required", "string", "max:255"],
             "slug" => ["nullable", "string", "max:255", "unique:pages,slug"],
             "content" => ["nullable", "string"],
-            "featured_image" => [
-                "nullable",
-                "image",
-                "mimes:jpg,jpeg,png,webp",
-                "max:10240",
-            ],
+            "featured_photo_id" => ["nullable", "integer", "exists:photos,id"],
+            "featured_image" => ["prohibited"],
             "published" => ["nullable", "boolean"],
-        ]);
+        ] + \App\Support\Seo::rules());
 
         $slug = $data["slug"] ?? "";
 
@@ -52,12 +47,6 @@ class PageController extends Controller
         $data["slug"] = $slug;
         $data["published"] = $request->boolean("published");
         $data["sort_order"] = ((int) Page::max("sort_order")) + 1;
-
-        if ($request->hasFile("featured_image")) {
-            $data["featured_image"] = $request
-                ->file("featured_image")
-                ->store("pages", "public");
-        }
 
         Page::create($data);
 
@@ -118,6 +107,7 @@ class PageController extends Controller
         ]);
 
         try {
+            \App\Support\BuilderContent::validate($data['content']);
             app(\App\Services\SiteFontLibrary::class)->validateContent($data['content']);
         } catch (\Illuminate\Validation\ValidationException $error) {
             return response()->json(['message' => $error->getMessage(), 'errors' => $error->errors()], 422);
@@ -152,36 +142,24 @@ class PageController extends Controller
                 "unique:pages,slug," . $page->id,
             ],
             "content" => ["nullable", "string"],
-            "featured_image" => [
-                "nullable",
-                "image",
-                "mimes:jpg,jpeg,png,webp",
-                "max:10240",
-            ],
+            "featured_photo_id" => ["nullable", "integer", "exists:photos,id"],
+            "featured_image" => ["prohibited"],
             "remove_featured_image" => ["nullable", "boolean"],
             "published" => ["nullable", "boolean"],
-        ]);
+        ] + \App\Support\Seo::rules());
 
         $data["slug"] = Str::slug($data["slug"]);
         $data["published"] = $request->boolean("published");
 
-        if ($request->boolean("remove_featured_image")) {
-            if ($page->featured_image) {
-                Storage::disk("public")->delete($page->featured_image);
-            }
-
+        // Ordinary saves retain legacy paths. Explicit replacement/removal detaches
+        // the old reference, but never deletes its file or a library Photo.
+        if ($request->boolean("remove_featured_image") || !empty($data["featured_photo_id"])) {
             $data["featured_image"] = null;
         }
-
-        if ($request->hasFile("featured_image")) {
-            if ($page->featured_image) {
-                Storage::disk("public")->delete($page->featured_image);
-            }
-
-            $data["featured_image"] = $request
-                ->file("featured_image")
-                ->store("pages", "public");
+        if ($request->boolean("remove_featured_image")) {
+            $data["featured_photo_id"] = null;
         }
+        unset($data["remove_featured_image"]);
 
         $page->update($data);
 
@@ -192,10 +170,6 @@ class PageController extends Controller
 
     public function destroy(Page $page)
     {
-        if ($page->featured_image) {
-            Storage::disk("public")->delete($page->featured_image);
-        }
-
         $page->delete();
 
         return redirect()

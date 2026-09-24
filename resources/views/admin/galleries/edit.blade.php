@@ -54,6 +54,11 @@
                             @enderror
                         </div>
 
+                        <label style="display:block;margin:16px 0;">Slug galerii
+                            <input name="slug" value="{{ old('slug', $gallery->slug) }}" style="display:block;width:100%;padding:10px;border:1px solid #ddd;">
+                        </label>
+                        @include('admin.seo.fields', ['entity' => $gallery])
+
                         @include('admin.galleries.typography')
 
                         <div>

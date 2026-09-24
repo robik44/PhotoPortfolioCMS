@@ -49,7 +49,7 @@ class HeaderSettingsTest extends TestCase
                 'background_color' => '#000000', 'hero_text' => 'Nie zapisuj',
             ]))->assertSessionHasNoErrors()->assertRedirect(route('header-settings.edit'));
 
-        $this->assertDatabaseCount('site_settings', 15);
+        $this->assertDatabaseCount('site_settings', count(HeaderSettings::DEFAULTS) + 2);
         $this->assertDatabaseHas('site_settings', ['key' => 'background_color', 'value' => '#abcdef']);
         $this->assertDatabaseHas('site_settings', ['key' => 'hero_text', 'value' => 'Treść hero']);
         $this->assertDatabaseHas('site_settings', ['key' => 'header_layout', 'value' => 'center']);
@@ -92,6 +92,125 @@ class HeaderSettingsTest extends TestCase
         $this->assertStringContainsString('&lt;script&gt;', $html);
         $this->assertStringNotContainsString('red;display:none', $html);
         $this->assertDatabaseCount('site_settings', 0);
+    }
+
+    public function test_padding_defaults_and_legacy_values_are_resolved_independently(): void
+    {
+        foreach ([null, -1, 161, '48px;display:none', ['48']] as $padding) {
+            $settings = ['header_padding_y' => $padding];
+            $resolved = HeaderSettings::resolve($settings);
+            $this->assertSame(48, $resolved['header_padding_top']);
+            $this->assertSame(48, $resolved['header_padding_bottom']);
+            $html = view('components.site-header', compact('settings'))->render();
+            $this->assertStringContainsString('--header-padding-top: 48px;', $html);
+            $this->assertStringContainsString('--header-padding-bottom: 48px;', $html);
+            $this->assertStringNotContainsString('48px;display:none', $html);
+        }
+        foreach ([0, 48, 100, 160] as $legacy) {
+            $settings = HeaderSettings::resolve(['header_padding_y' => (string) $legacy]);
+            $this->assertSame($legacy, $settings['header_padding_top']);
+            $this->assertSame($legacy, $settings['header_padding_bottom']);
+        }
+        $settings = HeaderSettings::resolve(['header_padding_y' => 100, 'header_padding_top' => 0]);
+        $this->assertSame(0, $settings['header_padding_top']);
+        $this->assertSame(100, $settings['header_padding_bottom']);
+        $settings = HeaderSettings::resolve(['header_padding_y' => 100, 'header_padding_bottom' => 12]);
+        $this->assertSame(100, $settings['header_padding_top']);
+        $this->assertSame(12, $settings['header_padding_bottom']);
+        $this->actingAs(User::factory()->create())->get(route('header-settings.edit'))->assertOk()
+            ->assertSee('Odstęp nad logo i menu (px)')->assertSee('Odstęp pod logo i menu (px)')
+            ->assertSee('Menu po lewej / logo po prawej')
+            ->assertDontSee('name="header_padding_y"', false);
+        $this->assertDatabaseCount('site_settings', 0);
+    }
+
+    public function test_independent_padding_and_all_three_layouts_apply_to_every_public_page(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $page = Page::create(['title' => 'Nowa strona', 'slug' => 'nowa', 'published' => true]);
+        $gallery = Gallery::create(['title' => 'Galeria', 'slug' => 'galeria']);
+        $menu = MenuItem::create(['title' => 'Portfolio', 'type' => 'url', 'url' => '/#portfolio', 'published' => true]);
+        MenuItem::create(['title' => 'Moja galeria', 'type' => 'gallery', 'gallery_id' => $gallery->id, 'parent_id' => $menu->id, 'published' => true]);
+        $urls = ['/', '/o-mnie', '/kontakt', route('page.public', $page), route('portfolio.gallery', $gallery)];
+
+        foreach (['left', 'center', 'right'] as $layout) {
+            $previousHeaders = [];
+            foreach ([[72, 24], [0, 24], [0, 80]] as [$top, $bottom]) {
+                $this->put(route('header-settings.update'), array_replace(HeaderSettings::DEFAULTS, [
+                    'header_layout' => $layout, 'header_padding_top' => $top, 'header_padding_bottom' => $bottom,
+                    'header_logo_font_size' => 34, 'header_subtitle_font_size' => 12,
+                ]))->assertRedirect(route('header-settings.edit'))->assertSessionHasNoErrors();
+                $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_top', 'value' => (string) $top]);
+                $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_bottom', 'value' => (string) $bottom]);
+                $this->get(route('header-settings.edit'))->assertOk()
+                    ->assertSee('value="'.$top.'" aria-describedby="header-padding-help"', false)
+                    ->assertSee('value="'.$bottom.'" aria-describedby="header-padding-help"', false);
+
+                foreach ($urls as $url) {
+                    $response = $this->get($url)->assertOk()
+                        ->assertSee('--header-padding-top: '.$top.'px;', false)
+                        ->assertSee('--header-padding-bottom: '.$bottom.'px;', false)
+                        ->assertSee('header-layout-'.$layout)
+                        ->assertSee('font-size:34px;', false)->assertSee('font-size:12px;', false)
+                        ->assertSee('Moja galeria')->assertSee('main-submenu');
+                    preg_match('/<header\b.*?<\/header>/s', $response->getContent(), $header);
+                    $this->assertNotEmpty($header);
+                    $normalized = str_replace([
+                        '--header-padding-top: '.$top.'px;', '--header-padding-bottom: '.$bottom.'px;',
+                    ], ['--header-padding-top: value;', '--header-padding-bottom: value;'], $header[0]);
+                    if (isset($previousHeaders[$url])) {
+                        $this->assertSame($previousHeaders[$url], $normalized);
+                    }
+                    $previousHeaders[$url] = $normalized;
+                }
+            }
+        }
+    }
+
+    public function test_legacy_padding_is_preserved_until_each_side_is_saved_independently(): void
+    {
+        $this->actingAs(User::factory()->create());
+        SiteSetting::create(['key' => 'header_padding_y', 'value' => '100']);
+        $response = $this->get(route('header-settings.edit'))->assertOk();
+        $this->assertSame(2, substr_count($response->getContent(), 'value="100" aria-describedby="header-padding-help"'));
+        $this->assertDatabaseCount('site_settings', 1);
+        $this->get('/')->assertOk()->assertSee('--header-padding-top: 100px;', false)
+            ->assertSee('--header-padding-bottom: 100px;', false);
+
+        $oldForm = HeaderSettings::DEFAULTS;
+        unset($oldForm['header_padding_top'], $oldForm['header_padding_bottom']);
+        $this->put(route('header-settings.update'), $oldForm)->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_top', 'value' => '100']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_bottom', 'value' => '100']);
+
+        $this->put(route('header-settings.update'), $oldForm + ['header_padding_top' => 20])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_top', 'value' => '20']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_bottom', 'value' => '100']);
+        $this->put(route('header-settings.update'), $oldForm + ['header_padding_bottom' => 0])->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_top', 'value' => '20']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_bottom', 'value' => '0']);
+        $this->put(route('header-settings.update'), $oldForm + ['header_padding_y' => 48])->assertSessionHasNoErrors();
+        $this->get('/')->assertOk()->assertSee('--header-padding-top: 20px;', false)
+            ->assertSee('--header-padding-bottom: 0px;', false);
+        $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_y', 'value' => '100']);
+    }
+
+    public function test_invalid_padding_is_rejected_without_partial_changes(): void
+    {
+        $this->actingAs(User::factory()->create());
+        SiteSetting::create(['key' => 'header_padding_top', 'value' => '60']);
+        SiteSetting::create(['key' => 'header_padding_bottom', 'value' => '25']);
+        SiteSetting::create(['key' => 'logo', 'value' => 'Zachowaj logo']);
+        foreach (['header_padding_top', 'header_padding_bottom'] as $key) {
+            foreach ([-1, 161, 12.5, '', 'auto', '48px;display:none', ['48']] as $padding) {
+                $this->put(route('header-settings.update'), array_replace(HeaderSettings::DEFAULTS, [
+                    $key => $padding,
+                ]))->assertSessionHasErrors($key);
+                $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_top', 'value' => '60']);
+                $this->assertDatabaseHas('site_settings', ['key' => 'header_padding_bottom', 'value' => '25']);
+                $this->assertDatabaseHas('site_settings', ['key' => 'logo', 'value' => 'Zachowaj logo']);
+            }
+        }
     }
 
     public function test_all_public_views_and_future_pages_use_global_header_and_submenus(): void

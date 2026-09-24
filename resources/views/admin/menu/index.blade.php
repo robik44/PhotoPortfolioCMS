@@ -4,6 +4,18 @@
         Menu strony
     </x-slot>
 
+    <style>
+        .cms-menu-list [data-menu-id] { position: relative; }
+        .cms-menu-list [data-menu-dragging] { opacity: .55; }
+        .cms-menu-list [data-menu-drop]::after {
+            content: ''; position: absolute; left: 0; right: 0; height: 4px;
+            background: #2563eb; border-radius: 2px; pointer-events: none; z-index: 2;
+        }
+        .cms-menu-list [data-menu-drop="before"]::after { top: -4px; }
+        .cms-menu-list [data-menu-drop="after"]::after { bottom: -4px; }
+        .cms-menu-list[aria-busy="true"] .cms-menu-drag { cursor: wait !important; }
+    </style>
+
     <div class="cms-page">
 
         <div class="cms-page-header">
@@ -23,15 +35,17 @@
 
             @if($menuItems->count())
 
-                <div class="cms-menu-list">
+                <p id="menu-order-status" role="status" aria-live="polite"></p>
+                <div class="cms-menu-list" data-menu-sort data-parent="" data-url="{{ route('menu.reorder') }}">
 
                     @foreach($menuItems as $item)
+                        <div data-menu-id="{{ $item->id }}">
 
                         <div class="cms-menu-item">
 
                             <div class="cms-menu-item-main">
 
-                                <div class="cms-menu-drag">
+                                <div class="cms-menu-drag" draggable="true" title="Przeciągnij, aby zmienić kolejność" style="cursor:grab;" role="button" tabindex="0" aria-label="Zmień kolejność: przeciągnij lub użyj strzałek góra/dół">
                                     ⋮⋮
                                 </div>
 
@@ -101,16 +115,16 @@
 
                         @if($item->children->count())
 
-                            <div class="cms-menu-children">
+                            <div class="cms-menu-children" data-menu-sort data-parent="{{ $item->id }}">
 
                                 @foreach($item->children as $child)
 
-                                    <div class="cms-menu-item cms-menu-child">
+                                    <div class="cms-menu-item cms-menu-child" data-menu-id="{{ $child->id }}">
 
                                         <div class="cms-menu-item-main">
 
-                                            <div class="cms-menu-drag">
-                                                ↳
+                                            <div class="cms-menu-drag" draggable="true" title="Przeciągnij, aby zmienić kolejność" style="cursor:grab;" role="button" tabindex="0" aria-label="Zmień kolejność: przeciągnij lub użyj strzałek góra/dół">
+                                                ☰
                                             </div>
 
                                             <div>
@@ -183,6 +197,7 @@
 
                         @endif
 
+                        </div>
                     @endforeach
 
                 </div>
@@ -214,4 +229,5 @@
 
     </div>
 
+<script src="{{ asset('js/menu-order.js') }}?v={{ filemtime(public_path('js/menu-order.js')) }}" defer></script>
 </x-app-layout>
