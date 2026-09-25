@@ -1,8 +1,17 @@
+// Public thumbnail blocks are passive, including for delegated image handlers.
+for (const type of ['click', 'dblclick', 'auxclick']) {
+    window.addEventListener(type, event => {
+        if (!event.target.closest?.('[data-builder-thumbnail-gallery]')) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+    }, true);
+}
+
 // Absolute PageBuilder elements do not expand their canvas by themselves.
 // Keep a selected gallery's final rows above the footer, also after image loading.
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = document.querySelector('.page-canvas');
-    const galleries = Array.from(document.querySelectorAll('[data-builder-selected-gallery]'));
+    const galleries = Array.from(document.querySelectorAll('[data-builder-selected-gallery], [data-builder-thumbnail-gallery]'));
     if (!canvas || !galleries.length) return;
     const minimum = canvas.offsetHeight;
     const positions = galleries.map(gallery => ({ gallery, top: parseFloat(gallery.style.top) || 0 }));

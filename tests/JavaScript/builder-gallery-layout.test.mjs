@@ -4,6 +4,22 @@ import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
 
 const script = readFileSync(new URL('../../public/js/builder-gallery-layout.js', import.meta.url), 'utf8');
+test('thumbnail grids share canvas sizing with existing galleries and are included in resize calculations', () => {
+    const canvas = { offsetHeight: 900, style: {} };
+    const blocks = [
+        { offsetHeight: 300, style: { top: '5%' }, querySelectorAll: () => [] },
+        { offsetHeight: 2400, style: { top: '20%' }, querySelectorAll: () => [] },
+    ];
+    runInNewContext(script, {
+        document: { querySelector: () => canvas, querySelectorAll: selector => {
+            assert.ok(selector.includes('[data-builder-selected-gallery]'));
+            assert.ok(selector.includes('[data-builder-thumbnail-gallery]'));
+            return blocks;
+        }, addEventListener: (_, callback) => callback() },
+        window: { addEventListener() {} },
+    });
+    assert.equal(canvas.style.minHeight, '3025px');
+});
 test('large selected gallery expands the canvas enough to show final rows and adapts on resize', () => {
     const canvas = { offsetHeight: 900, style: {} };
     const gallery = { offsetHeight: 2400, style: { top: '20%' }, querySelectorAll: () => [] };
@@ -23,6 +39,7 @@ test('pages without a selected gallery keep their existing canvas dimensions', (
     const canvas = { offsetHeight: 900, style: {} };
     runInNewContext(script, {
         document: { querySelector: () => canvas, querySelectorAll: () => [], addEventListener: (_, callback) => callback() },
+        window: { addEventListener() {} },
     });
     assert.deepEqual(canvas.style, {});
 });

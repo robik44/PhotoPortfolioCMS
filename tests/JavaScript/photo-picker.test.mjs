@@ -50,11 +50,12 @@ function setup({ legacy = false, empty = false } = {}) {
     });
     document.getElementById = () => dialog;
     document.querySelectorAll = () => pickers;
-    runInNewContext(script, { document, Event: class { constructor(type) { this.type = type; } } });
+    const window = {};
+    runInNewContext(script, { document, window, Event: class { constructor(type) { this.type = type; } } });
     const field = (name, index = 0) => pickers[index].querySelector(`[data-photo-${name}]`);
     const control = name => dialog.querySelector(`[data-library-${name}]`);
     const open = (index = 0) => field('open', index).dispatch('click');
-    return { document, dialog, cards, cancel, field, control, open };
+    return { document, dialog, cards, cancel, field, control, open, library: window.PhotoLibrary };
 }
 
 test('select and change commit Photo IDs and thumbnails only after confirmation', () => {
@@ -156,4 +157,49 @@ test('empty library and no search results allow cancelling or explicitly choosin
     assert.equal(ui.control('confirm').disabled, false);
     ui.control('confirm').dispatch('click');
     assert.equal(ui.field('value').value, '');
+});
+
+test('multi select preserves existing order, appends photos and commits numeric IDs only on confirmation', () => {
+    const ui = setup();
+    const selected = [2];
+    let result;
+    ui.library.open({ multiple: true, selected, onConfirm: ids => { result = Array.from(ids); } });
+    assert.equal(ui.cards[1].attributes['aria-pressed'], 'true');
+    ui.cards[0].dispatch('click');
+    assert.equal(ui.cards[0].attributes['aria-pressed'], 'true');
+    assert.equal(result, undefined);
+    assert.deepEqual(selected, [2]);
+    ui.control('confirm').dispatch('click');
+    assert.deepEqual(result, [2, 1]);
+    ui.library.open({ multiple: true, selected: result, onConfirm: ids => { result = Array.from(ids); } });
+    ui.cards[1].dispatch('click');
+    ui.control('confirm').dispatch('click');
+    assert.deepEqual(result, [1]);
+});
+
+test('multi select cancellation, search and clear do not mutate the caller or single-select fields', () => {
+    const ui = setup();
+    const selected = [2, 1];
+    ui.field('value').value = '1';
+    ui.library.open({ multiple: true, selected, onConfirm: () => assert.fail('Cancelled selection committed') });
+    ui.control('search').value = 'espresso'; ui.control('search').dispatch('input');
+    assert.equal(ui.cards[0].hidden, true);
+    assert.equal(ui.cards[0].attributes['aria-pressed'], 'true');
+    ui.control('none').dispatch('click'); ui.cancel.dispatch('click');
+    assert.deepEqual(selected, [2, 1]);
+    assert.equal(ui.field('value').value, '1');
+    ui.open(); ui.cards[1].dispatch('click'); ui.control('confirm').dispatch('click');
+    assert.equal(ui.field('value').value, '2');
+    assert.deepEqual(selected, [2, 1]);
+});
+
+test('multi select safely keeps stale IDs until explicit removal and allows empty confirmation', () => {
+    const ui = setup();
+    let result;
+    ui.library.open({ multiple: true, selected: [999, 1, 1], onConfirm: ids => { result = Array.from(ids); } });
+    ui.control('confirm').dispatch('click');
+    assert.deepEqual(result, [999, 1]);
+    ui.library.open({ multiple: true, selected: result, onConfirm: ids => { result = Array.from(ids); } });
+    ui.control('none').dispatch('click'); ui.control('confirm').dispatch('click');
+    assert.deepEqual(result, []);
 });

@@ -53,6 +53,8 @@
                     return [
                         "id" => $photo->id,
                         "title" => $photo->title,
+                        "alt" => $photo->alt,
+                        "thumbnail_url" => $photo->thumbnailUrl(),
                         "filename" => $filename,
                         "url" => asset("storage/" . $storagePath),
                     ];
@@ -166,6 +168,7 @@
                         + Zdjęcie
                     </button>
 
+                    <button type="button" class="builder-add" data-type="thumbnail_gallery">Galeria miniaturek</button>
                     <button type="button" class="builder-add" data-type="gallery">
                         + Galeria
                     </button>
@@ -417,6 +420,7 @@
                     heading: "Nagłówek",
                     image: "Zdjęcie",
                     gallery: "Galeria",
+            thumbnail_gallery: "Galeria miniaturek",
                     button: "Przycisk",
                     section: "Sekcja",
                     separator: "Separator"
@@ -471,6 +475,12 @@
                     };
                 }
 
+
+                if (type === "thumbnail_gallery") {
+                    window.ThumbnailGallery.initialize(base);
+                    base.element_width = 90;
+                    return base;
+                }
 
                 if (type === "gallery") {
                     return {
@@ -618,6 +628,10 @@
                         element.style.minWidth = "80px";
                     }
 
+                    if (item.type === "thumbnail_gallery") {
+                        element.style.width = (item.element_width || 90) + "%";
+                        element.dataset.thumbnailBlock = '';
+                    }
                     if (item.type === "image") {
                         element.style.width =
                             Math.min(item.image_width || 100, 85) + "%";
@@ -652,7 +666,9 @@
                         item.style.letter_spacing + "px";
 
 
-                    if (item.type === "separator") {
+                    if (item.type === "thumbnail_gallery") {
+                        content.appendChild(window.ThumbnailGallery.preview(item, photos));
+                    } else if (item.type === "separator") {
 
                         content.innerHTML = `
                             <div style="
@@ -822,6 +838,7 @@
 
                     page.appendChild(element);
                 });
+                if (builderData.sections.some(item => item.type === 'thumbnail_gallery')) window.ThumbnailGallery.fitCanvas(page);
             }
 
 
@@ -1238,6 +1255,11 @@
 
                 properties.appendChild(title);
 
+
+                if (item.type === "thumbnail_gallery") {
+                    window.ThumbnailGallery.properties(properties, item, photos, render, 'builder-field');
+                    return;
+                }
 
                 if (item.type === "image") {
 
@@ -1971,6 +1993,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 + Zdjęcie
             </button>
 
+            <button class="fve-tool" data-fve-add="thumbnail_gallery">+ Galeria miniaturek</button>
+
             <button class="fve-tool" data-fve-add="gallery">
                 + Galeria
             </button>
@@ -2218,6 +2242,7 @@ document.addEventListener("DOMContentLoaded", function () {
             heading: "Nagłówek",
             image: "Zdjęcie",
             gallery: "Galeria",
+            thumbnail_gallery: "Galeria miniaturek",
             button: "Przycisk",
             separator: "Separator"
         };
@@ -2295,7 +2320,9 @@ document.addEventListener("DOMContentLoaded", function () {
         box.style.letterSpacing =
             item.style.letter_spacing + "px";
 
-        if (item.type === "image") {
+        if (item.type === "thumbnail_gallery") {
+            box.appendChild(window.ThumbnailGallery.preview(item, photos));
+        } else if (item.type === "image") {
 
             if (item.photo_url) {
 
@@ -2473,6 +2500,8 @@ document.addEventListener("DOMContentLoaded", function () {
             element.className =
                 "fve-element";
 
+            if (item.type === "thumbnail_gallery") element.dataset.thumbnailBlock = '';
+
             element.dataset.id =
                 item.id;
 
@@ -2497,6 +2526,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 image: 10,
                 separator: 20,
                 gallery: 30,
+                thumbnail_gallery: 30,
                 text: 100,
                 heading: 110,
                 button: 120
@@ -2620,6 +2650,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 element.style.cursor = "move";
 
+                if (item.type === 'thumbnail_gallery') window.ThumbnailGallery.fitCanvas(content);
                 showProperties(item);
             });
 
@@ -2634,6 +2665,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             content.appendChild(element);
         });
+        window.ThumbnailGallery.fitCanvas(content);
     }
 
     function field(labelText, type, value, callback) {
@@ -2732,7 +2764,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
 
-        if (item.type !== "image") {
+        if (item.type === 'thumbnail_gallery') {
+            window.ThumbnailGallery.properties(properties, item, photos, render, 'fve-field');
+        }
+
+        if (item.type !== "image" && item.type !== "thumbnail_gallery") {
 
             field(
                 "Treść",
@@ -2990,6 +3026,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         window.builderTypography.initialize(item);
         if (type === 'heading') item.heading_level = 'h2';
+        if (type === 'thumbnail_gallery') {
+            window.ThumbnailGallery.initialize(item);
+            item.element_width = 90;
+        }
         data.sections.push(item);
 
         selected = item.id;
@@ -3077,6 +3117,7 @@ document.addEventListener("DOMContentLoaded", function () {
             renderHeader();
             render();
             editor.classList.add("open");
+            window.ThumbnailGallery.fitCanvas(content);
             document.getElementById("fve-fit").click();
             launchStatus.textContent = "Edytor jest gotowy. Możesz otworzyć go ponownie lub wrócić do listy stron.";
         } catch (error) {
@@ -3160,6 +3201,7 @@ document.addEventListener("DOMContentLoaded", function () {
             button.disabled = false;
         });
 
+    window.addEventListener('resize', () => window.ThumbnailGallery.fitCanvas(content));
     updateZoom();
 
     openButton.disabled = false;
@@ -3173,4 +3215,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
+<link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
+<script src="{{ asset('js/builder-thumbnail-gallery.js') }}" defer></script>
+@include('components.photo-library-dialog')
 </x-app-layout>

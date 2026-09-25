@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
 const moduleSource = readFileSync(new URL('../../public/js/site-typography.js', import.meta.url), 'utf8');
+const thumbnailSource = readFileSync(new URL('../../public/js/builder-thumbnail-gallery.js', import.meta.url), 'utf8');
 const builder = readFileSync(new URL('../../resources/views/admin/pages/builder.blade.php', import.meta.url), 'utf8');
 const custom = `hf_${'a'.repeat(32)}`;
 const catalog = {
@@ -16,7 +17,8 @@ const catalog = {
 function node(tag = 'div') {
     const listeners = new Map();
     return {
-        tag, children: [], style: {}, dataset: {}, classList: { add() {} }, textContent: '', value: '',
+        tag, children: [], style: { setProperty(key, value) { this[key] = value; } }, dataset: {}, classList: { add() {} }, textContent: '', value: '',
+        replaceChildren() { this.children = []; },
         set innerHTML(value) { this.children = []; },
         appendChild(child) { this.children.push(child); return child; },
         setAttribute(key, value) { this[key] = value; },
@@ -37,11 +39,12 @@ function slice(start, end, offset = 0) {
     assert.ok(a >= 0 && b > a);
     return builder.slice(a, b);
 }
-function setup(mode, item, galleryList = []) {
+function setup(mode, item, galleryList = [], photoList = []) {
     const document = { createElement: node, addEventListener() {} };
-    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: [], selectedElement: null, data: { sections: [item] }, selected: item.id,
+    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
+    vm.runInContext(thumbnailSource, context);
     if (mode === 'full') {
         const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
         const functions = slice('    function createElementContent(item)', '    function render()', offset)
@@ -83,6 +86,27 @@ for (const mode of ['full', 'legacy']) {
     }
 }
 
+test('thumbnail canvas sizing follows moved blocks and resets after their removal', () => {
+    const context = vm.createContext({ window: {}, document: {} });
+    vm.runInContext(thumbnailSource, context);
+    const block = { offsetHeight: 1200, style: { top: '5%' }, dataset: {} };
+    let blocks = [block];
+    const canvas = { offsetHeight: 900, style: {}, dataset: {}, querySelectorAll: () => blocks };
+    context.window.ThumbnailGallery.fitCanvas(canvas);
+    assert.equal(canvas.style.minHeight, '1285px');
+    block.style.top = '50%';
+    context.window.ThumbnailGallery.fitCanvas(canvas);
+    assert.equal(canvas.style.minHeight, '2440px');
+    block.style.top = '120%';
+    context.window.ThumbnailGallery.fitCanvas(canvas);
+    assert.equal(block.style.top, '1080px');
+    context.window.ThumbnailGallery.fitCanvas(canvas);
+    assert.equal(canvas.style.minHeight, '2300px');
+    blocks = [];
+    context.window.ThumbnailGallery.fitCanvas(canvas);
+    assert.equal(canvas.style.minHeight, '900px');
+});
+
 test('full builder existing text controls update content, size, weight, color and spacing without save', () => {
     const item = textItem('text');
     const { context, preview } = setup('full', item);
@@ -104,7 +128,7 @@ test('full builder existing text controls update content, size, weight, color an
 test('graphic blocks do not get font fields or new font properties', () => {
     const context = vm.createContext({ window: {}, document: { createElement: node }, catalog });
     vm.runInContext(moduleSource + '\napi = window.SiteTypography.create(catalog);', context);
-    for (const type of ['image', 'separator']) {
+    for (const type of ['image', 'separator', 'thumbnail_gallery']) {
         const item = { type };
         const properties = node();
         const preview = node();
@@ -116,6 +140,35 @@ test('graphic blocks do not get font fields or new font properties', () => {
         assert.equal(preview.style.fontFamily, undefined);
     }
 });
+
+for (const mode of ['full', 'legacy']) {
+    test(`${mode}: thumbnail block renders ordered live Photo references and its own settings without text fields`, () => {
+        const item = { ...textItem('thumbnail_gallery'), photo_ids: [2, 999, 1], image_fit: 'cover', thumbnail_height: 180 };
+        const photos = [{ id: 1, url: '/one.png', alt: 'Logo one' }, { id: 2, thumbnail_url: '/two-small.png', title: 'Firma two' }];
+        const { context, preview } = setup(mode, item, [], photos);
+        const grid = find(preview(), element => element.className === 'thumbnail-gallery-grid');
+        assert.deepEqual(grid.children.map(image => image.src), ['/two-small.png', '/one.png']);
+        assert.deepEqual(grid.children.map(image => image.alt), ['Firma two', 'Logo one']);
+        assert.equal(grid.style['--tg-desktop'], '5');
+        assert.equal(grid.style['--tg-fit'], undefined);
+        assert.equal(grid.style['--tg-height'], undefined);
+        assert.equal(find(context.properties, element => element['aria-label'] === 'Rodzaj czcionki'), undefined);
+        assert.equal(find(context.properties, element => element['data-thumbnail-setting'] === 'image_fit'), undefined);
+        assert.equal(find(context.properties, element => element['data-thumbnail-setting'] === 'thumbnail_height'), undefined);
+        for (const [key, value, variable, expected] of [
+            ['columns_desktop', '6', '--tg-desktop', '6'], ['columns_tablet', '4', '--tg-tablet', '4'],
+            ['columns_mobile', '1', '--tg-mobile', '1'], ['gap', '12', '--tg-gap', '12px'],
+        ]) {
+            const input = find(context.properties, element => element['data-thumbnail-setting'] === key);
+            input.value = value; input.emit('change');
+            assert.equal(item[key], Number(value));
+            assert.equal(find(preview(), element => element.className === 'thumbnail-gallery-grid').style[variable], expected);
+        }
+        assert.equal(item.image_fit, 'cover');
+        assert.equal(item.thumbnail_height, 180);
+        assert.deepEqual(item.photo_ids, [2, 999, 1]);
+    });
+}
 
 test('new blocks use global defaults, old blocks remain untouched and unknown CSS is never used', () => {
     const context = vm.createContext({ window: {}, document: { createElement: node }, catalog });

@@ -27,6 +27,7 @@
         "image" => 10,
         "separator" => 20,
         "gallery" => 30,
+        "thumbnail_gallery" => 30,
         "section" => 40,
         "text" => 100,
         "heading" => 110,
@@ -58,6 +59,10 @@
         name="viewport"
         content="width=device-width, initial-scale=1"
     >
+
+    @if(collect($sections)->contains('type', 'thumbnail_gallery'))
+        <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
+    @endif
 
     @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($page)])
 
@@ -517,6 +522,12 @@
                     </div>
 
 
+                @elseif($type === "thumbnail_gallery")
+                    <div class="page-element page-element-thumbnail-gallery" data-builder-thumbnail-gallery
+                        style="left:{{ $x }}%;top:{{ $y }}%;width:{{ $width }}%;z-index:{{ $zIndex }};">
+                        @include('components.builder-thumbnail-gallery', ['element' => $element])
+                    </div>
+
                 @elseif($type === "gallery")
 
                     <div
@@ -560,7 +571,9 @@
     {{ $settings["footer_text"] ?? "Fotografia" }}
 </footer>
 
-@include('components.gallery-lightbox')
+@if(collect($sections)->contains('type', 'gallery'))
+    @include('components.gallery-lightbox')
+@endif
 <script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
 </body>
 </html>

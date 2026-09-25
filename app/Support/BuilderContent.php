@@ -9,6 +9,17 @@ class BuilderContent
     public static function validate(array $content): void
     {
         foreach ($content['sections'] ?? [] as $element) {
+            if (($element['type'] ?? null) === 'thumbnail_gallery') {
+                Validator::make($element, [
+                    'photo_ids' => ['present', 'array', 'list', 'max:2000'],
+                    // Deleted library records may remain in saved JSON; rendering skips them.
+                    'photo_ids.*' => ['integer', 'min:1', 'distinct'],
+                    'columns_desktop' => ['sometimes', 'integer', 'between:1,12'],
+                    'columns_tablet' => ['sometimes', 'integer', 'between:1,12'],
+                    'columns_mobile' => ['sometimes', 'integer', 'between:1,12'],
+                    'gap' => ['sometimes', 'integer', 'between:0,100'],
+                ])->validate();
+            }
             if (($element['type'] ?? null) === 'heading') {
                 Validator::make($element, ['heading_level' => ['sometimes', 'in:div,h1,h2,h3']])->validate();
             }
