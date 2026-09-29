@@ -2,13 +2,12 @@
 
 namespace App\Support;
 
-use App\Models\SiteSetting;
 use App\Services\SiteFontLibrary;
 use Illuminate\Validation\Rule;
 
 class GalleryTypography
 {
-    public const FIELDS = ['title_font_family', 'description_font_family', 'caption_font_family'];
+    public const FIELDS = ['title_font_family', 'description_font_family', 'caption_font_family', 'title_font_size', 'description_font_size', 'caption_font_size'];
 
     public static function key(int $id): string
     {
@@ -24,20 +23,14 @@ class GalleryTypography
 
     public static function rules(): array
     {
-        return array_fill_keys(self::FIELDS, [
-            'sometimes', 'required', 'string', Rule::in(array_keys(app(SiteFontLibrary::class)->catalog()['families'])),
-        ]);
+        return TypographySettings::rules() + ['caption_font_family' => [
+            'sometimes', 'nullable', 'string', Rule::in(array_keys(app(SiteFontLibrary::class)->catalog()['families'])),
+        ], 'caption_font_size' => ['sometimes', 'nullable', 'numeric', 'between:1,200']];
     }
 
     public static function save(int $id, array $data): void
     {
-        $fonts = array_intersect_key($data, array_flip(self::FIELDS));
-        if (!$fonts) {
-            return;
-        }
-        $key = self::key($id);
-        $current = self::read([$key => SiteSetting::where('key', $key)->value('value')], $id);
-        SiteSetting::updateOrCreate(['key' => $key], ['value' => json_encode(array_replace($current, $fonts), JSON_THROW_ON_ERROR)]);
+        TypographySettings::save(self::key($id), array_intersect_key($data, array_flip(self::FIELDS)), ['title', 'description', 'caption']);
     }
 
     public static function css(array $fonts, string $field, array $catalog): string

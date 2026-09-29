@@ -1,6 +1,19 @@
 <x-app-layout>
     @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <script src="{{ asset('js/site-typography.js') }}"></script>
+    <script src="{{ asset('js/builder-button.js') }}"></script>
+    @php
+        $buttonTargets = collect([
+            ['url' => url('/'), 'label' => 'START'],
+            ['url' => url('/').'#portfolio', 'label' => 'Portfolio'],
+        ])->concat(\App\Models\Page::where('published', true)->orderBy('title')->get()->map(fn ($target) => [
+            'url' => isset(\App\Support\ContentPages::PAGES[$target->slug]) ? url('/'.$target->slug) : route('page.public', $target),
+            'label' => 'Strona: '.$target->title,
+        ]))->concat(\App\Models\Gallery::where('published', true)->orderBy('title')->get()->map(fn ($target) => [
+            'url' => route('portfolio.gallery', $target), 'label' => 'Galeria: '.$target->title,
+        ]));
+    @endphp
+    <script>window.builderButtonTargets = @json($buttonTargets->values());</script>
     <script>
         window.builderTypography = window.SiteTypography.create({
             families: @json($siteFonts['families']),
@@ -722,6 +735,7 @@
                     }
 
 
+                    window.builderTypography.imageCaption(content, item);
                     element.appendChild(content);
 
 
@@ -1244,6 +1258,8 @@
 
                 properties.innerHTML = "";
                 if (item) window.builderTypography.field(properties, item, render, 'builder-field');
+                if (item) window.builderTypography.captionFields(properties, item, render, 'builder-field');
+                if (item) window.BuilderButton.fields(properties, item, render, 'builder-field');
 
 
                 const title = document.createElement("div");
@@ -2373,6 +2389,7 @@ document.addEventListener("DOMContentLoaded", function () {
             button.style.padding = "12px 22px";
             button.style.background = "#171717";
             button.style.color = item.style.color;
+            window.BuilderButton.apply(button, item);
 
             box.appendChild(button);
 
@@ -2473,6 +2490,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 item.content || label(item.type);
         }
 
+        window.builderTypography.imageCaption(box, item);
         return box;
     }
 
@@ -2753,6 +2771,8 @@ document.addEventListener("DOMContentLoaded", function () {
         properties.appendChild(heading);
 
         window.builderTypography.field(properties, item, render, 'fve-field');
+        window.builderTypography.captionFields(properties, item, render, 'fve-field');
+        window.BuilderButton.fields(properties, item, render, 'fve-field');
         if (item.type === 'heading') {
             selectField('Poziom nagłówka', item.heading_level || 'div', [['div', 'Dotychczasowy (bez zmiany)'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3']], value => { item.heading_level = value; });
         }
@@ -2771,7 +2791,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (item.type !== "image" && item.type !== "thumbnail_gallery") {
 
             field(
-                "Treść",
+                item.type === 'button' ? 'Tekst przycisku' : "Treść",
                 item.type === "text"
                     ? "textarea"
                     : "text",
@@ -2839,10 +2859,13 @@ document.addEventListener("DOMContentLoaded", function () {
                     Math.max(
                         5,
                         Math.min(
-                            90,
+                            item.type === "image" ? 100 : 90,
                             Number(value) || 5
                         )
                     );
+                if (item.type === "image") {
+                    item.position_x = Math.max(0, Math.min(item.position_x || 0, 100 - item.element_width));
+                }
             }
         );
 

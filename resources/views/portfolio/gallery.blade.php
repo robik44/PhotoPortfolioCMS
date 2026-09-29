@@ -1,4 +1,5 @@
 @php
+    $backLink = \App\Support\GalleryBackLink::read($settings, $gallery->id);
     $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
 @endphp
 
@@ -15,6 +16,10 @@
     body { margin: 0; color: #222; background: {{ $settings['background_color'] ?? '#ffffff' }}; }
     a { color: inherit; text-decoration: none; }
     #lightbox .lightbox-title, #lightbox .lightbox-description { font-family: {{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }}; }
+    @if(isset($galleryFonts['caption_font_size']))
+        .gallery-page .gallery-caption strong, .gallery-page .gallery-caption span,
+        #lightbox .lightbox-title, #lightbox .lightbox-description { font-size: {{ (float) $galleryFonts['caption_font_size'] }}px; }
+    @endif
     .gallery-page {
         min-height: 100vh;
         color: #222;
@@ -221,25 +226,27 @@
     @include('components.site-header', ['settings' => $globalHeaderSettings, 'menuItems' => $globalHeaderMenuItems])
 
     <section class="gallery-heading">
-        <h1 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};">{{ $gallery->title }}</h1>
+        <h1 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};@if(isset($galleryFonts['title_font_size']))font-size:{{ (float) $galleryFonts['title_font_size'] }}px;@endif">{{ $gallery->title }}</h1>
 
         @if($gallery->description)
-            <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};">{{ $gallery->description }}</p>
+            <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};@if(isset($galleryFonts['description_font_size']))font-size:{{ (float) $galleryFonts['description_font_size'] }}px;@endif">{{ $gallery->description }}</p>
         @endif
 
-        <a href="{{ url('/') }}#portfolio" class="back-link">
-            ← Powrót do galerii
+        <a href="{{ url('/') }}#portfolio" class="back-link" @if($backLink) style="{{ \App\Support\TypographySettings::css($backLink, 'back', $siteFonts) }}@if(!empty($backLink['back_color']))color:{{ $backLink['back_color'] }};@endif" @endif>
+            ← {{ $backLink['back_text'] ?? 'Powrót do galerii' }}
         </a>
     </section>
 
     @if($gallery->photos->count())
         <section class="gallery-grid">
             @foreach($gallery->photos as $photo)
+                @php($photoTypography = \App\Support\TypographySettings::read($settings, 'photo_'.$photo->id.'_typography'))
                 <article
                     class="gallery-item"
                     role="button"
                     tabindex="0"
                     aria-label="{{ 'Otwórz zdjęcie: ' . ($photo->title ?: $photo->alt ?: $gallery->title) }}"
+                    @include('components.photo-typography-attributes', ['typography' => $photoTypography])
                     data-photo-index="{{ $loop->index }}"
                     data-photo-url="{{ $photo->imageUrl() }}"
                     data-photo-alt="{{ $photo->alt ?: $photo->title ?: $gallery->title }}"
@@ -255,11 +262,11 @@
                     @if($photo->title || $photo->description)
                         <div class="gallery-caption" style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }};">
                             @if($photo->title)
-                                <strong>{{ $photo->title }}</strong>
+                                <strong @if($css = \App\Support\TypographySettings::css($photoTypography, 'title', $siteFonts)) style="{{ $css }}" @endif>{{ $photo->title }}</strong>
                             @endif
 
                             @if($photo->description)
-                                <span>{{ $photo->description }}</span>
+                                <span @if($css = \App\Support\TypographySettings::css($photoTypography, 'description', $siteFonts)) style="{{ $css }}" @endif>{{ $photo->description }}</span>
                             @endif
                         </div>
                     @endif

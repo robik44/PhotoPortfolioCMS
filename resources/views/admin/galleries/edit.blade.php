@@ -60,6 +60,7 @@
                         @include('admin.seo.fields', ['entity' => $gallery])
 
                         @include('admin.galleries.typography')
+                        @include('admin.galleries.back-link')
 
                         <div>
                             <button

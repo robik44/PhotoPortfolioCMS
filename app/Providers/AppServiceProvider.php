@@ -26,7 +26,7 @@ class AppServiceProvider extends ServiceProvider
     {
         View::composer([
             'admin.pages.builder', 'pages.show', 'welcome', 'about', 'contact',
-            'portfolio.gallery', 'admin.galleries.create', 'admin.galleries.edit',
+            'portfolio.gallery', 'admin.galleries.create', 'admin.galleries.edit', 'admin.photos.edit',
         ], function ($view) {
             $view->with('siteFonts', app(SiteFontLibrary::class)->catalog());
         });

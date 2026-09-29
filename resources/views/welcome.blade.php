@@ -248,15 +248,16 @@
         }
 
         .gallery-card-image {
+            aspect-ratio: 4 / 5;
             overflow: hidden;
             background: #f7f7f7;
         }
 
         .gallery-card-image img {
             width: 100%;
-            height: auto;
+            height: 100%;
             display: block;
-            object-fit: contain;
+            object-fit: cover;
             transition: transform .45s ease;
         }
 

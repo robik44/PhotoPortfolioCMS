@@ -7,9 +7,17 @@
 <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;width:100%;">
     @if($single)
         @foreach($galleries->first()?->photos ?? [] as $photo)
+            @php
+                $photoTypography = \App\Support\TypographySettings::read($settings, 'photo_'.$photo->id.'_typography');
+                // A local Builder override takes precedence over the photo defaults.
+                foreach (['family', 'size'] as $property) {
+                    if (!empty($element['caption_font_'.$property])) $photoTypography['description_font_'.$property] = $element['caption_font_'.$property];
+                }
+            @endphp
             <article class="gallery-item" role="button" tabindex="0" style="cursor:zoom-in;background:#fff;overflow:hidden;"
                 aria-label="{{ 'Otwórz zdjęcie: '.($photo->title ?: $photo->alt) }}"
                 data-gallery-group="{{ $group }}"
+                @include('components.photo-typography-attributes', ['typography' => $photoTypography])
                 data-photo-url="{{ $photo->imageUrl() }}" data-photo-alt="{{ $photo->alt ?? '' }}"
                 data-photo-title="{{ $photo->title ?? '' }}" data-photo-description="{{ $photo->description ?? '' }}">
                 <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?? '' }}" loading="lazy" style="display:block;width:100%;aspect-ratio:1 / .7;object-fit:cover;">

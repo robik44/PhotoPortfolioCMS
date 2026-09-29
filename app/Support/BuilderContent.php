@@ -9,6 +9,13 @@ class BuilderContent
     public static function validate(array $content): void
     {
         foreach ($content['sections'] ?? [] as $element) {
+            if (($element['type'] ?? null) === 'button') BuilderButton::validate($element);
+            if (in_array($element['type'] ?? null, ['image', 'gallery'], true)) {
+                Validator::make($element, [
+                    'caption' => ['sometimes', 'nullable', 'string'],
+                    'caption_font_size' => ['sometimes', 'nullable', 'numeric', 'between:1,200'],
+                ])->validate();
+            }
             if (($element['type'] ?? null) === 'thumbnail_gallery') {
                 Validator::make($element, [
                     'photo_ids' => ['present', 'array', 'list', 'max:2000'],

@@ -16,8 +16,9 @@ class HeaderSettingController extends Controller
     {
         $stored = SiteSetting::whereIn('key', HeaderSettings::keys())->pluck('value', 'key')->all();
         $settings = HeaderSettings::resolve($stored);
-        $customFonts = HeaderFonts::custom($stored);
-        $fontFamilies = HeaderFonts::families($customFonts);
+        $catalog = app(SiteFontLibrary::class)->catalog();
+        $customFonts = $catalog['fonts'];
+        $fontFamilies = $catalog['families'];
 
         return view('admin.header-settings.edit', compact('settings', 'customFonts', 'fontFamilies'));
     }

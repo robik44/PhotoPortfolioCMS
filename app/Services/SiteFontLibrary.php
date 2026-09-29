@@ -85,6 +85,14 @@ class SiteFontLibrary
     {
         $catalog = $this->catalog();
         foreach (($content['sections'] ?? []) as $index => $element) {
+            if (in_array($element['type'] ?? '', ['image', 'gallery'], true) && isset($element['caption_font_family'])) {
+                $id = $element['caption_font_family'];
+                if (!is_string($id) || !isset($catalog['families'][$id])) {
+                    throw ValidationException::withMessages([
+                        "content.sections.$index.caption_font_family" => 'Wybierz rodzaj czcionki z biblioteki.',
+                    ]);
+                }
+            }
             if (!is_array($element) || !in_array($element['type'] ?? '', self::TEXT_BLOCKS, true)) {
                 continue;
             }

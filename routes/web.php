@@ -55,6 +55,25 @@ Route::get("/", function () {
         );
     }
 
+    $homeBuilder = \App\Models\PageBuilder::whereNull('page_id')
+        ->where('type', 'home')->where('published', true)->first();
+    $homeImages = collect($homeBuilder?->content['sections'] ?? [])
+        ->where('type', 'image');
+    $homeImage = $homeImages->firstWhere('id', 'hero-image') ?? $homeImages->first();
+    if ($homeImage) {
+        $selectedPhoto = \App\Models\Photo::find($homeImage['photo_id'] ?? null);
+        $heroImageUrl = $selectedPhoto?->imageUrl() ?: ($homeImage['photo_url'] ?? $heroImageUrl);
+    }
+
+    $homeSections = collect($homeBuilder?->content['sections'] ?? []);
+    foreach (['hero_title' => ['heading', 'hero-heading'], 'hero_subtitle' => ['text', 'hero-text']] as $key => [$type, $id]) {
+        $elements = $homeSections->where('type', $type);
+        $element = $elements->firstWhere('id', $id) ?? $elements->first();
+        if ($element && array_key_exists('content', $element)) {
+            $settings[$key] = $element['content'] ?? '';
+        }
+    }
+
     return view("welcome", compact(
         "galleries",
         "settings",

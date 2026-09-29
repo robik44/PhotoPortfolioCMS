@@ -227,6 +227,10 @@
             box-sizing: border-box;
         }
 
+        @if($page->slug === 'o-mnie')
+            .page-canvas { overflow: visible; }
+        @endif
+
         .page-element-image {
             overflow: hidden;
         }
@@ -405,6 +409,10 @@
                                 "
                             >
 
+                            @if(trim($element['caption'] ?? '') !== '')
+                                <div class="page-image-caption" style="font:16px Arial,sans-serif;color:#222;letter-spacing:normal;text-align:left;white-space:pre-line;@if(!empty($element['caption_font_family']))font-family:{{ \App\Services\SiteFontLibrary::css($element['caption_font_family'], $fontCatalog) }};@endif @if(!empty($element['caption_font_size']))font-size:{{ (float) $element['caption_font_size'] }}px;@endif">{{ $element['caption'] }}</div>
+                            @endif
+
                         </div>
 
                     @endif
@@ -473,7 +481,8 @@
                             letter-spacing:{{ $letterSpacing }}px;
                         "
                     >
-                        <a href="#" style="color:{{ $color }};">
+                        @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
+                        <a @if($buttonHref) href="{{ $buttonHref }}" @if($element['button_new_tab'] ?? false) target="_blank" rel="noopener noreferrer" @endif @endif style="color:{{ $color }};{{ \App\Support\BuilderButton::css($element) }}">
                             {{ $content }}
                         </a>
                     </div>
@@ -575,5 +584,21 @@
     @include('components.gallery-lightbox')
 @endif
 <script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
+@if($page->slug === 'o-mnie')
+<script>
+    // Reserve space for overflowing text without moving percentage-positioned elements.
+    const aboutCanvas = document.querySelector('.page-canvas');
+    const aboutText = [...aboutCanvas.querySelectorAll('.page-element-text')];
+    function fitAboutText() {
+        const bottom = aboutCanvas.getBoundingClientRect().bottom;
+        const overflow = Math.max(0, ...aboutText.map(text => text.getBoundingClientRect().bottom - bottom));
+        aboutCanvas.parentElement.style.paddingBottom = `${Math.ceil(overflow)}px`;
+    }
+    const aboutTextObserver = new ResizeObserver(fitAboutText);
+    aboutTextObserver.observe(aboutCanvas);
+    aboutText.forEach(text => aboutTextObserver.observe(text));
+    fitAboutText();
+</script>
+@endif
 </body>
 </html>

@@ -45,6 +45,7 @@ function setup(mode, item, galleryList = [], photoList = []) {
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
     vm.runInContext(thumbnailSource, context);
+    vm.runInContext(readFileSync(new URL('../../public/js/builder-button.js', import.meta.url), 'utf8'), context);
     if (mode === 'full') {
         const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
         const functions = slice('    function createElementContent(item)', '    function render()', offset)
@@ -89,6 +90,7 @@ for (const mode of ['full', 'legacy']) {
 test('thumbnail canvas sizing follows moved blocks and resets after their removal', () => {
     const context = vm.createContext({ window: {}, document: {} });
     vm.runInContext(thumbnailSource, context);
+    vm.runInContext(readFileSync(new URL('../../public/js/builder-button.js', import.meta.url), 'utf8'), context);
     const block = { offsetHeight: 1200, style: { top: '5%' }, dataset: {} };
     let blocks = [block];
     const canvas = { offsetHeight: 900, style: {}, dataset: {}, querySelectorAll: () => blocks };
@@ -215,5 +217,122 @@ test('heading properties change H1/H2/H3 tags while preserving visual styles and
         assert.equal(preview().tag, tag);
         assert.equal(preview().style.margin, '0');
         assert.equal(JSON.stringify(item.style), before);
+    }
+});
+
+for (const type of ['image', 'gallery']) {
+    test(`${type}: caption controls preserve defaults and reopen saved font settings`, () => {
+        const item = { ...textItem(type), photo_url: '/photo.jpg' };
+        const before = JSON.stringify(item);
+        const { context, preview } = setup('full', item);
+        assert.equal(JSON.stringify(item), before);
+        const prefix = type === 'gallery' ? 'Opis zdjęcia w podglądzie' : 'Podpis zdjęcia';
+        const font = find(context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`);
+        const size = find(context.properties, el => el['aria-label'] === `${prefix} — rozmiar czcionki (px)`);
+        assert.equal(font.value, '');
+        assert.equal(size.value, '');
+        const imageBefore = type === 'image' ? JSON.stringify(preview().children[0]) : null;
+        if (type === 'image') {
+            assert.equal(preview().children.length, 1);
+            const caption = find(context.properties, el => el['aria-label'] === 'Podpis / opis zdjęcia');
+            caption.value = 'Podpis\nDrugi akapit'; caption.emit('input');
+        }
+        font.value = custom; font.emit('change');
+        size.value = '27'; size.emit('input');
+        assert.equal(item.caption_font_family, custom);
+        assert.equal(item.caption_font_size, 27);
+        const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+        assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`).value, custom);
+        assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rozmiar czcionki (px)`).value, 27);
+        if (type === 'image') {
+            assert.equal(JSON.stringify(preview().children[0]), imageBefore);
+            assert.equal(preview().children[1].textContent, 'Podpis\nDrugi akapit');
+            assert.equal(preview().children[1].style.fontFamily, catalog.families[custom]);
+            assert.equal(preview().children[1].style.fontSize, '27px');
+            const caption = find(context.properties, el => el['aria-label'] === 'Podpis / opis zdjęcia');
+            caption.value = '  '; caption.emit('input');
+            assert.equal(preview().children.length, 1);
+        }
+        font.value = ''; font.emit('change');
+        size.value = ''; size.emit('input');
+        assert.equal(Object.hasOwn(item, 'caption_font_family'), false);
+        assert.equal(Object.hasOwn(item, 'caption_font_size'), false);
+    });
+}
+
+test('lightbox description typography changes per photo and resets for legacy galleries', () => {
+    const source = readFileSync(new URL('../../resources/views/components/gallery-lightbox.blade.php', import.meta.url), 'utf8');
+    const show = source.slice(source.indexOf('    function showPhoto(index)'), source.indexOf('    function closeLightbox()'));
+    const context = vm.createContext({
+        items: [{dataset: {photoUrl: '/one.jpg', photoDescription: 'Opis', descriptionFontFamily: 'Georgia, serif', descriptionFontSize: '28px', titleFontFamily: 'Verdana, sans-serif', titleFontSize: '21px'}}, {dataset: {photoUrl: '/two.jpg', photoDescription: 'Drugi opis'}}],
+        currentIndex: 0, image: {}, title: {style: {}}, description: {style: {}},
+        lightbox: {classList: {contains: () => true, add() {}}, setAttribute() {}},
+        document: {body: {style: {}}},
+    });
+    vm.runInContext(show + '\nshowPhoto(0);', context);
+    assert.equal(context.description.style.fontFamily, 'Georgia, serif');
+    assert.equal(context.description.style.fontSize, '28px');
+    assert.equal(context.description.textContent, 'Opis');
+    assert.equal(context.title.style.fontFamily, 'Verdana, sans-serif');
+    assert.equal(context.title.style.fontSize, '21px');
+    vm.runInContext('showPhoto(1);', context);
+    assert.equal(context.description.style.fontFamily, '');
+    assert.equal(context.description.style.fontSize, '');
+    assert.equal(context.description.textContent, 'Drugi opis');
+    assert.equal(context.title.style.fontFamily, '');
+    assert.equal(context.title.style.fontSize, '');
+    assert.equal(context.image.src, '/two.jpg');
+});
+
+
+test('button fields update appearance without changing legacy defaults or geometry', () => {
+    const item = textItem('button');
+    const before = JSON.stringify(item);
+    const { context, preview } = setup('full', item);
+    assert.equal(JSON.stringify(item), before);
+    for (const [label, value, property, expected] of [
+        ['Kolor tła przycisku', '#abcdef', 'backgroundColor', '#abcdef'],
+        ['Kolor obramowania', '#123456', 'borderColor', '#123456'],
+        ['Grubość obramowania (px)', '3', 'borderWidth', '3px'],
+        ['Zaokrąglenie narożników (px)', '9', 'borderRadius', '9px'],
+        ['Odstęp wewnętrzny pionowy (px)', '15', 'paddingTop', '15px'],
+        ['Odstęp wewnętrzny poziomy (px)', '31', 'paddingLeft', '31px'],
+    ]) {
+        const input = find(context.properties, el => el['aria-label'] === label);
+        input.value = value; input.emit('input');
+        assert.equal(preview().children[0].style[property], expected);
+    }
+    const link = find(context.properties, el => el['aria-label'] === 'Akcja / link');
+    link.value = 'mailto:test@example.com'; link.emit('input');
+    assert.equal(item.button_link, link.value);
+    const wrapper = context.properties.children.find(el => el.textContent === 'Otwórz w nowej karcie');
+    wrapper.children[0].value = '1'; wrapper.children[0].emit('change');
+    assert.equal(item.button_new_tab, true);
+    const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+    assert.equal(find(reopened.context.properties, el => el['aria-label'] === 'Akcja / link').value, link.value);
+    assert.equal(item.position_x, 12);
+    assert.equal(item.position_y, 20);
+});
+
+
+test('button existing typography and target picker update independently', () => {
+    const item = textItem('button');
+    const { context, preview } = setup('full', item);
+    for (const [label, value, property, expected] of [
+        ['Tekst przycisku', 'Nowy tekst', null, 'Nowy tekst'],
+        ['Rozmiar czcionki', '32', 'fontSize', '32px'],
+        ['Kolor tekstu', '#abcdef', 'color', '#abcdef'],
+        ['Grubość czcionki', '700', 'fontWeight', 700],
+    ]) {
+        const wrapper = context.properties.children.find(el => el.children[0]?.textContent === label);
+        wrapper.children[1].value = value; wrapper.children[1].emit('input');
+        assert.equal(property ? preview().style[property] : preview().children[0].textContent, expected);
+    }
+    context.window.builderButtonTargets = [{url: '/strona/test', label: 'Strona: Test'}, {url: '/portfolio/test', label: 'Galeria: Test'}];
+    vm.runInContext('showProperties(item);', context);
+    const wrapper = context.properties.children.find(el => el.textContent === 'Wybierz stronę lub galerię');
+    for (const url of ['/strona/test', '/portfolio/test']) {
+        wrapper.children[0].value = url; wrapper.children[0].emit('change');
+        assert.equal(item.button_link, url);
     }
 });

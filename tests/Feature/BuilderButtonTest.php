@@ -1,0 +1,110 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\{Gallery, Page, Photo, SiteSetting, User};
+use App\Services\SiteFontLibrary;
+use App\Support\{GalleryTypography, TypographySettings};
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\{DB, Storage};
+use Tests\TestCase;
+
+class BuilderButtonTest extends TestCase
+{
+    private string $databaseCopy;
+    private string $sourceHash;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Integration tests use a disposable copy; no migrations or writes to the source.
+        $this->sourceHash = hash_file('sha256', database_path('database.sqlite'));
+        $this->databaseCopy = tempnam(sys_get_temp_dir(), 'typography-db-');
+        copy(database_path('database.sqlite'), $this->databaseCopy);
+        config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => $this->databaseCopy, 'database.connections.sqlite.url' => null]);
+        DB::purge('sqlite');
+        Storage::fake('public');
+        $this->withoutVite();
+        $this->actingAs(User::firstOrFail());
+    }
+
+    protected function tearDown(): void
+    {
+        DB::disconnect('sqlite');
+        unlink($this->databaseCopy);
+        $this->assertSame($this->sourceHash, hash_file('sha256', database_path('database.sqlite')));
+        parent::tearDown();
+    }
+
+    public function test_button_links_appearance_and_legacy_defaults(): void
+    {
+        $page = Page::create(['title' => 'Buttons', 'slug' => 'test-buttons', 'published' => true]);
+        $gallery = Gallery::create(['title' => 'Button target', 'slug' => 'test-button-target', 'published' => true]);
+        $button = ['type' => 'button', 'content' => 'Stary przycisk', 'position_x' => 12, 'position_y' => 20, 'element_width' => 40,
+            'style' => ['font_family' => 'Georgia', 'font_size' => 24, 'font_weight' => 700, 'color' => '#123456']];
+        $save = route('pages.builder.save', $page);
+        $public = route('page.public', $page);
+        $this->postJson($save, ['content' => ['sections' => [$button]]])->assertOk();
+        $legacy = $this->get($public)->assertOk();
+        $legacy->assertSee('padding: 13px 24px;', false)->assertSee('background: #222;', false)->assertSee('border-radius: 4px;', false);
+        $legacy->assertDontSee('<a href="#" style="color:#123456;', false);
+        $button['content'] = 'Nowy przycisk';
+        $button += ['button_background' => '#abcdef', 'button_border_color' => '#654321', 'button_border_width' => 3,
+            'button_radius' => 9, 'button_padding_y' => 15, 'button_padding_x' => 31];
+        foreach (['/o-mnie', route('portfolio.gallery', $gallery), 'https://example.com/path?a=1&b=2', 'mailto:test@example.com', 'tel:+48123456789'] as $url) {
+            $button['button_link'] = $url;
+            $button['button_new_tab'] = true;
+            $layout = ['sections' => [$button]];
+            $this->postJson($save, ['content' => $layout])->assertOk();
+            $this->assertSame($layout, $page->fresh()->builder->content);
+            $editor = $this->get(route('pages.builder', $page))->assertOk()->assertSee('Galeria: Button target');
+            $this->assertSame($layout, $editor->viewData('builder')->content);
+            $response = $this->get($public)->assertOk()->assertSee('Nowy przycisk')
+                ->assertSee('href="'.e($url).'"', false)->assertSee('target="_blank" rel="noopener noreferrer"', false)
+                ->assertSee('font-family:Georgia, serif;', false)->assertSee('font-size:24px;', false)->assertSee('font-weight:700;', false)
+                ->assertSee('color:#123456;', false)->assertSee('background-color:#abcdef;', false)
+                ->assertSee('border-color:#654321;', false)->assertSee('border-width:3px;', false)
+                ->assertSee('border-radius:9px;', false)->assertSee('padding-top:15px;', false)->assertSee('padding-left:31px;', false);
+        }
+        $button['button_new_tab'] = false;
+        $this->postJson($save, ['content' => ['sections' => [$button]]])->assertOk();
+        $this->get($public)->assertDontSee('target="_blank"', false);
+        $button['button_link'] = '';
+        $this->postJson($save, ['content' => ['sections' => [$button]]])->assertOk();
+        $this->get($public)->assertOk()->assertDontSee('href=""', false);
+        foreach (['javascript:alert(1)', 'data:text/html,bad', '//example.com', '/\\example.com'] as $url) {
+            $button['button_link'] = $url;
+            $this->postJson($save, ['content' => ['sections' => [$button]]])->assertStatus(422);
+        }
+    }
+
+    public function test_gallery_back_link_saves_and_keeps_automatic_destination(): void
+    {
+        $gallery = Gallery::create(['title' => 'Back test', 'slug' => 'test-back-link', 'published' => true]);
+        $public = route('portfolio.gallery', $gallery);
+        $baseline = $this->get($public)->assertOk()->assertSee('← Powrót do galerii')->getContent();
+        $data = ['title' => $gallery->title, 'back_text' => 'Wróć do portfolio', 'back_font_family' => 'Georgia', 'back_font_size' => 20, 'back_color' => '#654321'];
+        $this->put(route('galleries.update', $gallery), $data)->assertSessionHasNoErrors();
+        $form = $this->get(route('galleries.edit', $gallery))->assertOk()->assertSee('Przycisk / link Powrót do galerii');
+        foreach (array_diff_key($data, ['title' => true]) as $key => $value) $this->assertSame($value, $form->viewData('backLink')[$key]);
+        $this->get($public)->assertOk()->assertSee('← Wróć do portfolio')
+            ->assertSee('href="'.url('/').'#portfolio"', false)
+            ->assertSee('font-family:Georgia, serif;font-size:20px;color:#654321;', false);
+        $this->put(route('galleries.update', $gallery), ['title' => $gallery->title, 'back_text' => '', 'back_font_family' => '', 'back_font_size' => '', 'back_color' => ''])->assertSessionHasNoErrors();
+        $this->assertSame($baseline, $this->get($public)->assertOk()->getContent());
+    }
+    public function test_uploaded_central_font_is_available_for_button_and_back_link(): void
+    {
+        $before = app(SiteFontLibrary::class)->catalog()['fonts'];
+        $this->post(route('fonts.store'), ['font_file' => UploadedFile::fake()->createWithContent('Button font.ttf', file_get_contents(__DIR__.'/../Fixtures/header-test.ttf'))])->assertSessionHasNoErrors();
+        $id = array_key_first(array_diff_key(app(SiteFontLibrary::class)->catalog()['fonts'], $before));
+        $page = Page::create(['title' => 'Font button', 'slug' => 'font-button', 'published' => true]);
+        $gallery = Gallery::create(['title' => 'Font back', 'slug' => 'font-back', 'published' => true]);
+        $this->get(route('pages.builder', $page))->assertOk()->assertSee($id);
+        $this->get(route('galleries.edit', $gallery))->assertOk()->assertSee($id)->assertSee('name="back_font_family"', false);
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [['type' => 'button', 'content' => 'Własny font', 'style' => ['font_family' => $id]]]]])->assertOk();
+        $this->get(route('page.public', $page))->assertOk()->assertSee('font-family:'.$id, false)->assertSee('storage/fonts/'.$id.'.ttf', false);
+        $this->put(route('galleries.update', $gallery), ['title' => $gallery->title, 'back_font_family' => $id])->assertSessionHasNoErrors();
+        $this->get(route('portfolio.gallery', $gallery))->assertOk()->assertSee('font-family:'.$id, false)->assertSee('storage/fonts/'.$id.'.ttf', false);
+    }
+}

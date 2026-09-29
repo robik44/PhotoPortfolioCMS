@@ -2,7 +2,7 @@
     <x-slot name="header">Biblioteka czcionek</x-slot>
     <div class="cms-card" style="padding:24px;max-width:960px;">
         <h1 class="cms-dashboard-title">Biblioteka czcionek</h1>
-        <p>Jedna biblioteka dla nagłówka, stron, galerii i obu builderów. Czcionkę wystarczy wgrać raz.</p>
+        <p>Jedna biblioteka dla nagłówka, stron, galerii, zdjęć i obu builderów. Czcionkę wystarczy wgrać raz.</p>
         @if ($errors->any())
             <div class="cms-alert cms-alert-error" role="alert">
                 @foreach ($errors->all() as $error)<p>{{ $error }}</p>@endforeach
@@ -11,7 +11,7 @@
         @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
         <form method="POST" action="{{ route('fonts.store') }}" enctype="multipart/form-data" style="margin:24px 0;">
             @csrf
-            <label for="font_file">Wgraj własną czcionkę — WOFF2, WOFF, TTF lub OTF, maks. 5 MB</label>
+            <label for="font_file">Wgraj własną czcionkę — zalecany WOFF2; również WOFF, TTF lub OTF, maks. 5 MB</label>
             <input id="font_file" type="file" name="font_file" accept=".woff2,.woff,.ttf,.otf" required>
             <button class="cms-button cms-button-primary" type="submit">Dodaj czcionkę</button>
         </form>

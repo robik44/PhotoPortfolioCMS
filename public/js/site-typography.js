@@ -7,6 +7,59 @@
                 ? catalog.families[id] : catalog.families.Arial;
             return {
                 css,
+                captionFields(container, item, render, className) {
+                    if (!['image', 'gallery'].includes(item.type)) return;
+                    const add = (labelText, input) => {
+                        const wrapper = document.createElement('label');
+                        wrapper.className = className;
+                        wrapper.textContent = labelText;
+                        input.setAttribute('aria-label', labelText);
+                        wrapper.appendChild(input);
+                        container.appendChild(wrapper);
+                    };
+                    if (item.type === 'image') {
+                        const text = document.createElement('textarea');
+                        text.value = item.caption ?? '';
+                        text.addEventListener('input', () => { item.caption = text.value; render(); });
+                        add('Podpis / opis zdjęcia', text);
+                    }
+                    const prefix = item.type === 'gallery' ? 'Opis zdjęcia w podglądzie' : 'Podpis zdjęcia';
+                    const select = document.createElement('select');
+                    for (const choice of [{ value: '', label: 'Domyślna (bez zmiany)' }, ...catalog.choices]) {
+                        const option = document.createElement('option');
+                        option.value = choice.value;
+                        option.textContent = choice.label;
+                        select.appendChild(option);
+                    }
+                    select.value = item.caption_font_family ?? '';
+                    select.addEventListener('change', () => {
+                        if (select.value) item.caption_font_family = select.value;
+                        else delete item.caption_font_family;
+                        render();
+                    });
+                    add(`${prefix} — rodzaj czcionki`, select);
+                    const size = document.createElement('input');
+                    size.type = 'number';
+                    size.min = '1';
+                    size.max = '200';
+                    size.placeholder = 'Domyślny (bez zmiany)';
+                    size.value = item.caption_font_size ?? '';
+                    size.addEventListener('input', () => {
+                        if (size.value === '') delete item.caption_font_size;
+                        else item.caption_font_size = Math.max(1, Math.min(200, Number(size.value) || 1));
+                        render();
+                    });
+                    add(`${prefix} — rozmiar czcionki (px)`, size);
+                },
+                imageCaption(container, item) {
+                    if (item.type !== 'image' || !item.photo_url || !item.caption?.trim()) return;
+                    const caption = document.createElement('div');
+                    caption.textContent = item.caption;
+                    caption.style.cssText = 'font:16px Arial,sans-serif;color:#222;letter-spacing:normal;text-align:left;white-space:pre-line;';
+                    if (item.caption_font_family) caption.style.fontFamily = css(item.caption_font_family);
+                    if (item.caption_font_size) caption.style.fontSize = `${item.caption_font_size}px`;
+                    container.appendChild(caption);
+                },
                 isText: (item) => textTypes.has(item.type),
                 initialize(item) {
                     if (!textTypes.has(item.type)) return;

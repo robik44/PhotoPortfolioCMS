@@ -205,7 +205,11 @@ document.addEventListener('DOMContentLoaded', function () {
         image.src = item.dataset.photoUrl;
         image.alt = item.dataset.photoAlt || item.dataset.photoTitle || 'Zdjęcie';
         title.textContent = item.dataset.photoTitle || '';
+        title.style.fontFamily = item.dataset.titleFontFamily || '';
+        title.style.fontSize = item.dataset.titleFontSize || '';
         description.textContent = item.dataset.photoDescription || '';
+        description.style.fontFamily = item.dataset.descriptionFontFamily || '';
+        description.style.fontSize = item.dataset.descriptionFontSize || '';
 
         lightbox.classList.add('is-open');
         lightbox.setAttribute('aria-hidden', 'false');

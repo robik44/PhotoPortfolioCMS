@@ -3,6 +3,7 @@
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">Edytuj zdjęcie</h2>
     </x-slot>
 
+    @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <div style="padding:32px 0;">
         <div style="max-width:900px;margin:0 auto;padding:0 24px;">
             <div style="background:#fff;padding:32px;border-radius:10px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
@@ -43,6 +44,7 @@
                         <input id="title" name="title" type="text" maxlength="255" value="{{ old('title', $photo->title) }}"
                                style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;">
                         @error('title')<p role="alert" style="color:#991b1b;margin-top:6px;">{{ $message }}</p>@enderror
+                        @include('components.typography-fields', ['field' => 'title', 'label' => 'Tytuł', 'typography' => $photoTypography])
                     </div>
 
                     <div style="margin-bottom:24px;">
@@ -57,8 +59,10 @@
                         <textarea id="description" name="description" rows="5"
                                   style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;">{{ old('description', $photo->description) }}</textarea>
                         @error('description')<p role="alert" style="color:#991b1b;margin-top:6px;">{{ $message }}</p>@enderror
+                        @include('components.typography-fields', ['field' => 'description', 'label' => 'Opis', 'typography' => $photoTypography])
                     </div>
 
+                    <p><a href="{{ route('fonts.index') }}">Biblioteka czcionek</a> — wspólna lista dla całej witryny.</p>
                     <div style="display:flex;align-items:center;gap:18px;">
                         <button type="submit" style="padding:13px 20px;border:0;border-radius:6px;background:#171717;color:#fff;cursor:pointer;">
                             Zapisz zmiany

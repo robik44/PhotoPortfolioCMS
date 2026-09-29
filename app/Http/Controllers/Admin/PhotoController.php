@@ -65,9 +65,17 @@ class PhotoController extends Controller
                 }
             }
 
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Nie udało się zapisać fotografii. Spróbuj ponownie.'], 500);
+            }
+
             return back()->withErrors([
                 'images' => 'Nie udało się zapisać fotografii. Spróbuj ponownie.',
             ]);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Fotografie zostały dodane do biblioteki.'], 201);
         }
 
         return redirect()
@@ -83,8 +91,12 @@ class PhotoController extends Controller
     public function edit(Photo $photo)
     {
         $photo->load('galleries');
+        $key = 'photo_'.$photo->id.'_typography';
+        $photoTypography = \App\Support\TypographySettings::read([
+            $key => \App\Models\SiteSetting::where('key', $key)->value('value'),
+        ], $key);
 
-        return view('admin.photos.edit', compact('photo'));
+        return view('admin.photos.edit', compact('photo', 'photoTypography'));
     }
 
     public function update(Request $request, Photo $photo)
@@ -93,9 +105,12 @@ class PhotoController extends Controller
             'title' => ['nullable', 'string', 'max:255'],
             'alt' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ]);
+        ] + \App\Support\TypographySettings::rules());
 
-        $photo->update($data);
+        DB::transaction(function () use ($photo, $data) {
+            $photo->update(\Illuminate\Support\Arr::only($data, ['title', 'alt', 'description']));
+            \App\Support\TypographySettings::save('photo_'.$photo->id.'_typography', $data);
+        });
 
         return redirect()
             ->route('photos.index')

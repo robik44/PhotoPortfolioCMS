@@ -131,9 +131,11 @@ class GalleryController extends Controller
             )->value('value'),
         ], $gallery->id);
 
+        $backLink = \App\Support\GalleryBackLink::read(SiteSetting::pluck('value', 'key')->all(), $gallery->id);
+
         return view(
             'admin.galleries.edit',
-            compact('gallery', 'galleryFonts')
+            compact('gallery', 'galleryFonts', 'backLink')
         );
     }
 
@@ -142,7 +144,7 @@ class GalleryController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-        ] + GalleryTypography::rules() + \App\Support\Seo::rules() + [
+        ] + \App\Support\GalleryBackLink::rules() + GalleryTypography::rules() + \App\Support\Seo::rules() + [
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::when($request->input('slug') !== $gallery->slug, ['not_regex:/^[0-9]+$/']), \Illuminate\Validation\Rule::unique('galleries', 'slug')->ignore($gallery->id)],
         ]);
 
@@ -154,6 +156,7 @@ class GalleryController extends Controller
 
         $gallery->update(\Illuminate\Support\Arr::only($data, array_keys(\App\Support\Seo::rules())));
         GalleryTypography::save($gallery->id, $data);
+        \App\Support\GalleryBackLink::save($gallery->id, $data);
 
         return redirect()
             ->route('galleries.index')
