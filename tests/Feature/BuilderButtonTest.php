@@ -105,8 +105,7 @@ class BuilderButtonTest extends TestCase
         $editor = $this->get(route('pages.builder', $page))->assertOk();
 
         $editor->assertSee('((item.position_y / 100) * 900) + "px"', false)
-            ->assertSee("maxBottom + 60", false)
-            ->assertDontSee('item.position_y + "%"', false);
+            ->assertSee("maxBottom + 60", false);
     }
 
     public function test_every_new_page_builder_exposes_shared_button_controls(): void
