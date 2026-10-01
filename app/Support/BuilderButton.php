@@ -40,7 +40,7 @@ class BuilderButton
                 if ($key === 'background' && isset($element['button_background_opacity']) && is_numeric($element['button_background_opacity'])) {
                     $hex = ltrim($element['button_background'], '#');
                     $alpha = max(0, min(100, (float) $element['button_background_opacity'])) / 100;
-                    $css .= 'background-color:rgba('.hexdec(substr($hex, 0, 2)).','.hexdec(substr($hex, 2, 2)).','.hexdec(substr($hex, 4, 2)).','.$alpha.');';
+                    $css .= 'background:rgba('.hexdec(substr($hex, 0, 2)).','.hexdec(substr($hex, 2, 2)).','.hexdec(substr($hex, 4, 2)).','.$alpha.') !important;';
                 } else {
                     $css .= $property.':'.$element['button_'.$key].';';
                 }
