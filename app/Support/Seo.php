@@ -95,7 +95,11 @@ class Seo
         $issues = [];
         if (!trim($entity->seo_title ?? '')) $issues[] = 'Brak tytułu SEO';
         if (!trim($entity->seo_description ?? '')) $issues[] = 'Brak opisu SEO';
-        if (!self::meta($entity)['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
+
+        $meta = self::meta($entity);
+        $issues = array_merge($issues, self::metaLengthIssues($meta['title'], $meta['description']));
+
+        if (!$meta['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
         if (!$entity->indexable) $issues[] = 'noindex';
 
         if ($entity instanceof Page && $entity->builder) {
@@ -116,13 +120,32 @@ class Seo
         if (!trim((string) ($settings['home_seo_description'] ?? '')) && !trim((string) ($settings['seo_default_description'] ?? ''))) {
             $issues[] = 'Brak opisu SEO';
         }
-        if (!self::meta(null)['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
+        $meta = self::meta(null);
+        $issues = array_merge($issues, self::metaLengthIssues($meta['title'], $meta['description']));
+        if (!$meta['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
         if (!self::homeIndexing($settings)) $issues[] = 'noindex';
 
         $builder = PageBuilder::whereNull('page_id')->where('type', 'home')->where('published', true)->first();
         $sections = $builder?->content['sections'] ?? [];
 
         return array_merge($issues, self::headingIssues($sections));
+    }
+
+    /**
+     * These are editorial warnings, not search-engine hard limits.
+     *
+     * @return list<string>
+     */
+    public static function metaLengthIssues(string $title, string $description): array
+    {
+        $issues = [];
+        $titleLength = mb_strlen(trim($title));
+        $descriptionLength = mb_strlen(trim($description));
+
+        if ($titleLength > 65) $issues[] = 'Długi tytuł SEO ('.$titleLength.' znaków)';
+        if ($descriptionLength > 170) $issues[] = 'Długi opis SEO ('.$descriptionLength.' znaków)';
+
+        return $issues;
     }
 
     /**

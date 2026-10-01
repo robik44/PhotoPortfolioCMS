@@ -229,6 +229,31 @@ class SeoTest extends TestCase
         $this->get(route('seo.edit'))->assertOk()->assertSee('Wszystkie Photo: 2')->assertSee('Posiadające ALT: 1')->assertSee('Brak ALT: 1')->assertSee('Brak tytułu: 1')->assertSee('Brak opisu: 1');
     }
 
+    public function test_seo_audit_warns_about_unusually_long_effective_metadata(): void
+    {
+        $title = str_repeat('T', 66);
+        $description = str_repeat('O', 171);
+
+        $page = $this->page([
+            'seo_title' => $title,
+            'seo_description' => $description,
+            'indexable' => true,
+        ]);
+
+        $issues = Seo::issues($page);
+
+        $this->assertContains('Długi tytuł SEO (66 znaków)', $issues);
+        $this->assertContains('Długi opis SEO (171 znaków)', $issues);
+
+        $this->settings([
+            'home_seo_title' => $title,
+            'home_seo_description' => $description,
+        ]);
+
+        $this->assertContains('Długi tytuł SEO (66 znaków)', Seo::homeIssues());
+        $this->assertContains('Długi opis SEO (171 znaków)', Seo::homeIssues());
+    }
+
     public function test_audit_reports_facts_with_edit_links_and_effective_social_fallback(): void
     {
         $this->actingAs(User::factory()->create());
