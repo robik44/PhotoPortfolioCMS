@@ -433,6 +433,18 @@
 
             <p>{{ $settings['hero_subtitle'] }}</p>
 
+            @foreach(($homeButtons ?? collect()) as $homeButton)
+                @php
+                    $buttonHref = \App\Support\BuilderButton::href($homeButton['button_link'] ?? null);
+                    $buttonColor = $homeButton['style']['color'] ?? '#ffffff';
+                @endphp
+                <a class="button"
+                   @if($buttonHref) href="{{ $buttonHref }}" @if($homeButton['button_new_tab'] ?? false) target="_blank" rel="noopener noreferrer" @endif @endif
+                   style="color:{{ $buttonColor }};{{ \App\Support\BuilderButton::css($homeButton) }}">
+                    {{ $homeButton['content'] ?? '' }}
+                </a>
+            @endforeach
+
         </div>
     </section>
 
