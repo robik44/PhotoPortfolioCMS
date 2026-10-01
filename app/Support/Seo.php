@@ -75,7 +75,7 @@ class Seo
             : ($entity instanceof Page ? self::pageUrl($entity) : ($url ?? url('/')));
         return [
             'title' => $resolvedTitle, 'description' => $description, 'canonical' => $canonical,
-            'image' => $photo?->imageUrl(), 'type' => 'website',
+            'image' => $photo?->imageUrl(), 'type' => 'website', 'site_name' => $site,
             'robots' => ($entity === null ? self::homeIndexing($settings) : self::indexing($settings) && ($entity?->indexable ?? true)) ? 'index, follow' : 'noindex, nofollow',
         ];
     }
