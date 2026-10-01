@@ -417,9 +417,8 @@ class PhotoLibraryTest extends TestCase
             'thumbnail' => 'photos/complete-thumb.webp',
         ]);
 
-        Storage::disk('public')->put('photos/legacy.png', base64_decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='
-        ));
+        $legacyImage = UploadedFile::fake()->image('legacy.png', 20, 20);
+        Storage::disk('public')->put('photos/legacy.png', $legacyImage->getContent());
         Storage::disk('public')->put('photos/complete.png', 'original');
         Storage::disk('public')->put('photos/complete-web.webp', 'web');
         Storage::disk('public')->put('photos/complete-thumb.webp', 'thumb');
