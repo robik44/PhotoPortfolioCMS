@@ -98,6 +98,16 @@ class BuilderButtonTest extends TestCase
     }
 
 
+
+    public function test_visual_builder_uses_stable_vertical_coordinates_and_appends_new_elements_below_content(): void
+    {
+        $page = Page::create(['title' => 'Long page', 'slug' => 'long-page', 'published' => true]);
+        $editor = $this->get(route('pages.builder', $page))->assertOk();
+
+        $editor->assertSee('((item.position_y / 100) * 900) + "px"', false)
+            ->assertSee("maxBottom + 60", false);
+    }
+
     public function test_every_new_page_builder_exposes_shared_button_controls(): void
     {
         $page = Page::create(['title' => 'Future page', 'slug' => 'future-page', 'published' => true]);
