@@ -51,7 +51,7 @@ class SiteSettingController extends Controller
             'hero_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'background_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'site_under_construction' => ['required', 'boolean'],
+            'site_under_construction' => ['sometimes', 'boolean'],
         ]);
 
         foreach ([
