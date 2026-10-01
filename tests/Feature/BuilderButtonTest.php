@@ -186,11 +186,8 @@ class BuilderButtonTest extends TestCase
         $home = file_get_contents(resource_path('views/welcome.blade.php'));
         $page = file_get_contents(resource_path('views/pages/show.blade.php'));
 
-        $this->assertStringContainsString('desktop 4, tablet 2, phone 1', $home);
-        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $home);
-        $this->assertStringContainsString('@media (max-width: 520px)', $home);
-        $this->assertStringContainsString('grid-template-columns: 1fr;', $home);
-        $this->assertStringNotContainsString('@media (max-width: 1400px)', $home);
+        $this->assertStringContainsString("components.public-builder-canvas", $home);
+        $this->assertStringContainsString("components.public-builder-canvas", $page);
         $shared = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
         $this->assertStringContainsString('@media (max-width: 900px)', $shared);
         $this->assertStringContainsString('overflow-x: hidden;', $shared);
@@ -223,7 +220,7 @@ class BuilderButtonTest extends TestCase
     public function test_visual_builder_supports_free_element_resize(): void
     {
         $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
-        $public = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $public = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
 
         $this->assertStringContainsString('fve-resize-handle', $builder);
         $this->assertStringContainsString('resizeStartWidth', $builder);
@@ -231,7 +228,7 @@ class BuilderButtonTest extends TestCase
         $this->assertStringContainsString('Minimalna wysokość boksu (px)', $builder);
         $this->assertStringContainsString('white-space: normal', $builder);
 
-        $this->assertStringContainsString('$heightStyle', $public);
+        $this->assertStringContainsString('min-height:{{ $height }}px;', $public);
         $this->assertStringContainsString('min-height: inherit', $public);
         $this->assertStringContainsString('overflow-wrap: anywhere', $public);
     }
