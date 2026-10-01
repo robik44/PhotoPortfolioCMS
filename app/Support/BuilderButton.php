@@ -44,7 +44,7 @@ class BuilderButton
                 } else {
                     $css .= $property.':'.$element['button_'.$key].';';
                 }
-            }';
+            }
         }
         foreach (['border_width' => ['border-width'], 'radius' => ['border-radius'], 'padding_y' => ['padding-top', 'padding-bottom'], 'padding_x' => ['padding-left', 'padding-right']] as $key => $properties) {
             $value = $element['button_'.$key] ?? null;
