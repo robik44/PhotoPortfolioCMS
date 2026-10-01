@@ -101,6 +101,14 @@
                 <span>Ustawienia</span>
             </a>
 
+            <div class="cms-nav-label">KONTO</div>
+
+            <a href="{{ route('profile.edit') }}"
+               class="cms-nav-item {{ request()->routeIs('profile.*') ? 'active' : '' }}">
+                <span>●</span>
+                <span>Moje konto</span>
+            </a>
+
         </nav>
 
 
