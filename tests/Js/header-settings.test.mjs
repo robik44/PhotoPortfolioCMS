@@ -20,13 +20,14 @@ function setup(FontClass) {
             setCustomValidity(message) { this.validityMessage = message; },
         };
     }
-    const fields = { logo: element('Nazwa'), logo_subtitle: element('Podtytuł'), header_layout: element('left'), header_padding_top: element('48'), header_padding_bottom: element('48'), font_file: element(), font_target: element('logo') };
+    const fields = { logo: element('Nazwa'), logo_subtitle: element('Podtytuł'), header_layout: element('left'), header_padding_top: element('48'), header_padding_bottom: element('48'), header_logo_subtitle_gap: element('4'), font_file: element(), font_target: element('logo') };
     for (const part of ['logo', 'subtitle']) {
         for (const [key, value] of Object.entries({ font_family: 'Arial', font_size: part === 'logo' ? '28' : '10', font_weight: '400', color: '#222222', letter_spacing: '0.08' })) {
             fields[`header_${part}_${key}`] = element(value);
         }
     }
     const nodes = Object.fromEntries(['header-settings-form', 'header-live-preview', 'header-font-status', 'header-clear-font', 'header-preview-logo', 'header-preview-subtitle'].map(id => [id, element()]));
+    nodes['header-live-preview'].style.setProperty = function (name, value) { this[name] = value; };
     const form = nodes['header-settings-form'];
     form.elements = { namedItem: name => fields[name] };
     form.dataset.fontFamilies = JSON.stringify({ Arial: 'Arial, sans-serif', Georgia: 'Georgia, serif', hf_test: 'hf_test, Arial, sans-serif' });
@@ -74,6 +75,7 @@ test('independent spacing and all layouts preserve typography and horizontal pad
     const preview = nodes['header-live-preview'];
     assert.equal(preview.style.paddingTop, '48px');
     assert.equal(preview.style.paddingBottom, '48px');
+    assert.equal(preview.style['--header-logo-subtitle-gap'], '4px');
     const logoStyle = { ...nodes['header-preview-logo'].style };
     const subtitleStyle = { ...nodes['header-preview-subtitle'].style };
     for (const layout of ['left', 'center', 'right']) {
@@ -84,6 +86,7 @@ test('independent spacing and all layouts preserve typography and horizontal pad
             await form.emit('input');
             assert.equal(preview.style.paddingTop, `${top}px`);
             assert.equal(preview.style.paddingBottom, `${bottom}px`);
+            assert.equal(preview.style['--header-logo-subtitle-gap'], '4px');
             assert.equal(preview.style.paddingLeft, undefined);
             assert.equal(preview.style.paddingRight, undefined);
             assert.equal(preview.dataset.layout, layout);

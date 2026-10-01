@@ -9,8 +9,9 @@
 <style>
     .site-header { z-index: 5000 !important; background: #fff !important; }
     .site-header .header-inner { padding-top: var(--header-padding-top); padding-bottom: var(--header-padding-bottom); }
-    .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
-    .site-header .logo span { display: block; }
+    .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-transform: none !important; }
+    .site-header .logo span { display: block; text-transform: none !important; }
+    .site-header .logo > span:last-child { margin-top: var(--header-logo-subtitle-gap); }
     .site-header.header-layout-center .header-inner { flex-direction: column; align-items: center; gap: 16px; }
     .site-header.header-layout-center .logo { text-align: center; }
     .site-header.header-layout-center .main-menu { justify-content: center; flex-wrap: wrap; }
@@ -57,7 +58,6 @@
             letter-spacing: .04em !important;
         }
         .site-header .logo > span:last-child {
-            margin-top: 1px;
             line-height: 1.1;
             white-space: nowrap;
             overflow-wrap: normal;
@@ -85,7 +85,7 @@
     }
 </style>
 
-<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}" style="--header-padding-top: {{ $headerSettings['header_padding_top'] }}px; --header-padding-bottom: {{ $headerSettings['header_padding_bottom'] }}px;">
+<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}" style="--header-padding-top: {{ $headerSettings['header_padding_top'] }}px; --header-padding-bottom: {{ $headerSettings['header_padding_bottom'] }}px; --header-logo-subtitle-gap: {{ $headerSettings['header_logo_subtitle_gap'] }}px;">
     <div class="header-inner">
 
         <a href="{{ url('/') }}" class="logo">
