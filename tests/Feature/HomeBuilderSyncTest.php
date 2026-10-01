@@ -46,9 +46,10 @@ class HomeBuilderSyncTest extends TestCase
                             'font_size' => 40,
                             'font_weight' => 400,
                             'color' => '#000000',
-                            'text_align' => 'left',
-                            'line_height' => 1.2,
+                            'text_align' => 'center',
+                            'line_height' => 0.8,
                             'letter_spacing' => 1,
+                            'word_spacing' => 12,
                         ],
                     ],
                     [
@@ -89,6 +90,9 @@ class HomeBuilderSyncTest extends TestCase
             ->assertSee('font-size:40px;', false)
             ->assertSee('font-weight:400;', false)
             ->assertSee('color:#000000;', false)
+            ->assertSee('text-align:center;', false)
+            ->assertSee('line-height:0.8;', false)
+            ->assertSee('word-spacing:12px;', false)
             ->assertSee('left:7%;', false)
             ->assertSee('width:24%;', false)
             ->assertSee('min-height:150px;', false)
