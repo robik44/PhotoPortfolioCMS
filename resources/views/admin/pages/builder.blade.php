@@ -48,6 +48,27 @@
         </div>
     </div>
 
+@php
+    $photosForBuilder = \App\Models\Photo::orderBy("sort_order")
+        ->orderBy("id")
+        ->get()
+        ->map(function ($photo) {
+            $filename = ltrim($photo->filename, "/");
+            $storagePath = str_starts_with($filename, "photos/") ? $filename : "photos/" . $filename;
+
+            return [
+                "id" => $photo->id,
+                "title" => $photo->title,
+                "alt" => $photo->alt,
+                "thumbnail_url" => $photo->thumbnailUrl(),
+                "filename" => $filename,
+                "url" => asset("storage/" . $storagePath),
+            ];
+        })
+        ->values()
+        ->all();
+@endphp
+
 <style>
     /* FULL VISUAL PAGE EDITOR */
 
