@@ -39,37 +39,33 @@ function slice(start, end, offset = 0) {
     assert.ok(a >= 0 && b > a);
     return builder.slice(a, b);
 }
-function setup(mode, item, galleryList = [], photoList = []) {
+function setup(item, galleryList = [], photoList = []) {
+    if (!item.style) item.style = {};
+    if (item.element_width === undefined) item.element_width = item.type === 'image' ? 55 : (item.type === 'heading' ? 50 : 38);
+    if (item.z_index === undefined) item.z_index = 1;
     const document = { createElement: node, addEventListener() {} };
     const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
     vm.runInContext(thumbnailSource, context);
     vm.runInContext(readFileSync(new URL('../../public/js/builder-button.js', import.meta.url), 'utf8'), context);
-    if (mode === 'full') {
-        const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
-        const functions = slice('    function createElementContent(item)', '    function render()', offset)
-            + slice('    function field(', '    function showProperties(item)', offset)
-            + slice('    function showProperties(item)', '    function addElement(type)', offset);
-        vm.runInContext(functions + '\nfunction render() { preview = createElementContent(item); }\nshowProperties(item); render();', context);
-    } else {
-        const functions = slice('            function ensureElementStyle(item)', '            function createField(')
-            + slice('            function createField(', '            function showImageProperties(')
-            + slice('            function showProperties(item)', '            document.querySelectorAll(".builder-add")');
-        vm.runInContext(functions + '\nshowProperties(item); render();', context);
-    }
-    return { context, preview: () => mode === 'full' ? context.preview : context.page.children[0].children[0] };
+    const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
+    const functions = slice('    function ensureItem(item, index)', '    function label(type)', offset)
+        + slice('    function createElementContent(item)', '    function render()', offset)
+        + slice('    function field(', '    function showProperties(item)', offset)
+        + slice('    function showProperties(item)', '    function addElement(type)', offset);
+    vm.runInContext(functions + '\nensureItem(item, 0);\nfunction render() { preview = createElementContent(item); }\nshowProperties(item); render();', context);
+    return { context, preview: () => context.preview };
 }
 function textItem(type) {
     return { id: 'element-1', type, content: 'Tekst', position_x: 12, position_y: 20,
         style: { color: '#123456', font_size: 24, font_weight: 400, text_align: 'left', line_height: 1.6, letter_spacing: 0 }, other: { keep: true } };
 }
 
-for (const mode of ['full', 'legacy']) {
-    for (const type of catalog.textTypes) {
-        test(`${mode}: ${type} changes system and custom font immediately in the actual renderer`, () => {
+for (const type of catalog.textTypes) {
+        test(`full: ${type} changes system and custom font immediately in the actual renderer`, () => {
             const item = textItem(type);
-            const { context, preview } = setup(mode, item);
+            const { context, preview } = setup(item);
             const before = JSON.stringify(item);
             const select = find(context.properties, element => element.tag === 'select' && element['aria-label'] === 'Rodzaj czcionki');
             assert.ok(select);
@@ -84,7 +80,6 @@ for (const mode of ['full', 'legacy']) {
             delete item.style.font_family;
             assert.equal(JSON.stringify(item), before);
         });
-    }
 }
 
 test('thumbnail canvas sizing follows moved blocks and resets after their removal', () => {
@@ -111,7 +106,7 @@ test('thumbnail canvas sizing follows moved blocks and resets after their remova
 
 test('full builder existing text controls update content, size, weight, color and spacing without save', () => {
     const item = textItem('text');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     for (const [label, value, styleKey, expected] of [
         ['Treść', 'Nowa treść', null, 'Nowa treść'],
         ['Rozmiar czcionki', '36', 'fontSize', '36px'],
@@ -143,11 +138,10 @@ test('graphic blocks do not get font fields or new font properties', () => {
     }
 });
 
-for (const mode of ['full', 'legacy']) {
-    test(`${mode}: thumbnail block renders ordered live Photo references and its own settings without text fields`, () => {
+test('full: thumbnail block renders ordered live Photo references and its own settings without text fields', () => {
         const item = { ...textItem('thumbnail_gallery'), photo_ids: [2, 999, 1], image_fit: 'cover', thumbnail_height: 180 };
         const photos = [{ id: 1, url: '/one.png', alt: 'Logo one' }, { id: 2, thumbnail_url: '/two-small.png', title: 'Firma two' }];
-        const { context, preview } = setup(mode, item, [], photos);
+        const { context, preview } = setup(item, [], photos);
         const grid = find(preview(), element => element.className === 'thumbnail-gallery-grid');
         assert.deepEqual(grid.children.map(image => image.src), ['/two-small.png', '/one.png']);
         assert.deepEqual(grid.children.map(image => image.alt), ['Firma two', 'Logo one']);
@@ -170,7 +164,6 @@ for (const mode of ['full', 'legacy']) {
         assert.equal(item.thumbnail_height, 180);
         assert.deepEqual(item.photo_ids, [2, 999, 1]);
     });
-}
 
 test('new blocks use global defaults, old blocks remain untouched and unknown CSS is never used', () => {
     const context = vm.createContext({ window: {}, document: { createElement: node }, catalog });
@@ -193,7 +186,7 @@ test('gallery properties switch between all cards and one live gallery photo pre
         { id: 1, title: 'Food', cover_url: 'cover.jpg', photos: [{ title: 'Pierwsze', cover_url: 'first.jpg' }, { title: 'Drugie', cover_url: 'second.jpg' }] },
         { id: 2, title: 'Other', cover_url: 'other.jpg', photos: [] },
     ];
-    const { context, preview } = setup('full', item, galleries);
+    const { context, preview } = setup(item, galleries);
     assert.equal(preview().children[0].children.length, 2);
     const mode = find(context.properties, element => element.textContent === 'Tryb galerii').children[0];
     mode.value = 'single'; mode.emit('change');
@@ -207,7 +200,7 @@ test('gallery properties switch between all cards and one live gallery photo pre
 
 test('heading properties change H1/H2/H3 tags while preserving visual styles and legacy div', () => {
     const item = textItem('heading');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     assert.equal(preview().tag, 'div');
     const before = JSON.stringify(item.style);
     for (const tag of ['h1', 'h2', 'h3']) {
@@ -223,8 +216,8 @@ test('heading properties change H1/H2/H3 tags while preserving visual styles and
 for (const type of ['image', 'gallery']) {
     test(`${type}: caption controls preserve defaults and reopen saved font settings`, () => {
         const item = { ...textItem(type), photo_url: '/photo.jpg' };
+        const { context, preview } = setup(item);
         const before = JSON.stringify(item);
-        const { context, preview } = setup('full', item);
         assert.equal(JSON.stringify(item), before);
         const prefix = type === 'gallery' ? 'Opis zdjęcia w podglądzie' : 'Podpis zdjęcia';
         const font = find(context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`);
@@ -241,7 +234,7 @@ for (const type of ['image', 'gallery']) {
         size.value = '27'; size.emit('input');
         assert.equal(item.caption_font_family, custom);
         assert.equal(item.caption_font_size, 27);
-        const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+        const reopened = setup(JSON.parse(JSON.stringify(item)));
         assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`).value, custom);
         assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rozmiar czcionki (px)`).value, 27);
         if (type === 'image') {
@@ -287,8 +280,8 @@ test('lightbox description typography changes per photo and resets for legacy ga
 
 test('button fields update appearance without changing legacy defaults or geometry', () => {
     const item = textItem('button');
+    const { context, preview } = setup(item);
     const before = JSON.stringify(item);
-    const { context, preview } = setup('full', item);
     assert.equal(JSON.stringify(item), before);
     for (const [label, value, property, expected] of [
         ['Kolor tła przycisku', '#abcdef', 'backgroundColor', '#abcdef'],
@@ -308,7 +301,7 @@ test('button fields update appearance without changing legacy defaults or geomet
     const wrapper = context.properties.children.find(el => el.textContent === 'Otwórz w nowej karcie');
     wrapper.children[0].value = '1'; wrapper.children[0].emit('change');
     assert.equal(item.button_new_tab, true);
-    const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+    const reopened = setup(JSON.parse(JSON.stringify(item)));
     assert.equal(find(reopened.context.properties, el => el['aria-label'] === 'Akcja / link').value, link.value);
     assert.equal(item.position_x, 12);
     assert.equal(item.position_y, 20);
@@ -317,7 +310,7 @@ test('button fields update appearance without changing legacy defaults or geomet
 
 test('button existing typography and target picker update independently', () => {
     const item = textItem('button');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     for (const [label, value, property, expected] of [
         ['Tekst przycisku', 'Nowy tekst', null, 'Nowy tekst'],
         ['Rozmiar czcionki', '32', 'fontSize', '32px'],
