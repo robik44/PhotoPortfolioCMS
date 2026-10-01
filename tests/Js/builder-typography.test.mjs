@@ -184,7 +184,7 @@ test('gallery properties switch between all cards and one live gallery photo pre
         { id: 1, title: 'Food', cover_url: 'cover.jpg', photos: [{ title: 'Pierwsze', cover_url: 'first.jpg' }, { title: 'Drugie', cover_url: 'second.jpg' }] },
         { id: 2, title: 'Other', cover_url: 'other.jpg', photos: [] },
     ];
-    const { context, preview } = setup('full', item, galleries);
+    const { context, preview } = setup(item, galleries);
     assert.equal(preview().children[0].children.length, 2);
     const mode = find(context.properties, element => element.textContent === 'Tryb galerii').children[0];
     mode.value = 'single'; mode.emit('change');
@@ -198,7 +198,7 @@ test('gallery properties switch between all cards and one live gallery photo pre
 
 test('heading properties change H1/H2/H3 tags while preserving visual styles and legacy div', () => {
     const item = textItem('heading');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     assert.equal(preview().tag, 'div');
     const before = JSON.stringify(item.style);
     for (const tag of ['h1', 'h2', 'h3']) {
@@ -215,7 +215,7 @@ for (const type of ['image', 'gallery']) {
     test(`${type}: caption controls preserve defaults and reopen saved font settings`, () => {
         const item = { ...textItem(type), photo_url: '/photo.jpg' };
         const before = JSON.stringify(item);
-        const { context, preview } = setup('full', item);
+        const { context, preview } = setup(item);
         assert.equal(JSON.stringify(item), before);
         const prefix = type === 'gallery' ? 'Opis zdjęcia w podglądzie' : 'Podpis zdjęcia';
         const font = find(context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`);
@@ -232,7 +232,7 @@ for (const type of ['image', 'gallery']) {
         size.value = '27'; size.emit('input');
         assert.equal(item.caption_font_family, custom);
         assert.equal(item.caption_font_size, 27);
-        const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+        const reopened = setup(JSON.parse(JSON.stringify(item)));
         assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`).value, custom);
         assert.equal(find(reopened.context.properties, el => el['aria-label'] === `${prefix} — rozmiar czcionki (px)`).value, 27);
         if (type === 'image') {
@@ -279,7 +279,7 @@ test('lightbox description typography changes per photo and resets for legacy ga
 test('button fields update appearance without changing legacy defaults or geometry', () => {
     const item = textItem('button');
     const before = JSON.stringify(item);
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     assert.equal(JSON.stringify(item), before);
     for (const [label, value, property, expected] of [
         ['Kolor tła przycisku', '#abcdef', 'backgroundColor', '#abcdef'],
@@ -299,7 +299,7 @@ test('button fields update appearance without changing legacy defaults or geomet
     const wrapper = context.properties.children.find(el => el.textContent === 'Otwórz w nowej karcie');
     wrapper.children[0].value = '1'; wrapper.children[0].emit('change');
     assert.equal(item.button_new_tab, true);
-    const reopened = setup('full', JSON.parse(JSON.stringify(item)));
+    const reopened = setup(JSON.parse(JSON.stringify(item)));
     assert.equal(find(reopened.context.properties, el => el['aria-label'] === 'Akcja / link').value, link.value);
     assert.equal(item.position_x, 12);
     assert.equal(item.position_y, 20);
@@ -308,7 +308,7 @@ test('button fields update appearance without changing legacy defaults or geomet
 
 test('button existing typography and target picker update independently', () => {
     const item = textItem('button');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     for (const [label, value, property, expected] of [
         ['Tekst przycisku', 'Nowy tekst', null, 'Nowy tekst'],
         ['Rozmiar czcionki', '32', 'fontSize', '32px'],
