@@ -118,7 +118,31 @@ class BuilderButtonTest extends TestCase
 
         $this->get('/')->assertOk()
             ->assertSee('Portfolio')
-            ->assertSee('background-color:rgba(18,52,86,0.4);', false);
+            ->assertSee('background-color:rgba(18,52,86,0.4);', false)
+            ->assertDontSee('.button:hover {\n            background: #fff;', false);
+    }
+
+    public function test_home_builder_save_persists_zero_and_partial_button_opacity(): void
+    {
+        $payload = [
+            'version' => 1,
+            'settings' => [],
+            'sections' => [[
+                'type' => 'button',
+                'content' => 'Opacity',
+                'button_background' => '#336699',
+                'button_background_opacity' => 0,
+                'style' => ['color' => '#ffffff'],
+            ]],
+        ];
+
+        $this->postJson(route('home-builder.save'), ['content' => $payload])->assertOk();
+        $this->assertSame(0, \App\Models\PageBuilder::whereNull('page_id')->where('type', 'home')->firstOrFail()->content['sections'][0]['button_background_opacity']);
+        $this->get('/')->assertOk()->assertSee('background-color:rgba(51,102,153,0);', false);
+
+        $payload['sections'][0]['button_background_opacity'] = 35;
+        $this->postJson(route('home-builder.save'), ['content' => $payload])->assertOk();
+        $this->get('/')->assertOk()->assertSee('background-color:rgba(51,102,153,0.35);', false);
     }
 
 }
