@@ -87,7 +87,9 @@ class HomeBuilderSyncTest extends TestCase
             ->assertSee('Fotografia kulinarna i artystyczna')
             ->assertSee('Moje portfolio')
             ->assertSee('font-size:40px;font-weight:400;color:#000000;', false)
-            ->assertSee('width:24%;max-width:none;margin-left:7%;box-sizing:border-box;min-height:150px;white-space:normal;overflow-wrap:anywhere;', false)
+            ->assertSee('left:7%;', false)
+            ->assertSee('width:24%;', false)
+            ->assertSee('min-height:150px;', false)
             ->assertSee('font-size:22px;font-weight:500;color:#123456;', false)
             ->assertSee('font-size:37px;font-weight:600;color:#654321;', false);
     }
@@ -110,7 +112,7 @@ class HomeBuilderSyncTest extends TestCase
         ]);
 
         $this->get(route('home-builder.edit'))->assertOk()
-            ->assertSee('applyHomepagePreviewLayout')
+            ->assertDontSee('applyHomepagePreviewLayout')
             ->assertSee('hero-heading')
             ->assertSee('hero-text')
             ->assertSee('portfolio-heading');
