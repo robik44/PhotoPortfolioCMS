@@ -41,6 +41,8 @@ function slice(start, end, offset = 0) {
 }
 function setup(item, galleryList = [], photoList = []) {
     if (!item.style) item.style = {};
+    if (item.element_width === undefined) item.element_width = item.type === 'image' ? 55 : (item.type === 'heading' ? 50 : 38);
+    if (item.z_index === undefined) item.z_index = 1;
     const document = { createElement: node, addEventListener() {} };
     const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
