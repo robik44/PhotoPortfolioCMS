@@ -39,6 +39,7 @@
         preview.dataset.layout = ['left', 'center', 'right'].includes(layout) ? layout : 'left';
         preview.style.paddingTop = `${number('header_padding_top', 48, 0, 160)}px`;
         preview.style.paddingBottom = `${number('header_padding_bottom', 48, 0, 160)}px`;
+        preview.style.setProperty('--header-logo-subtitle-gap', `${number('header_logo_subtitle_gap', 4, 0, 80)}px`);
     }
 
     async function loadLocalFont() {
