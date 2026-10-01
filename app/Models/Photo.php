@@ -36,12 +36,17 @@ class Photo extends Model
 
     public function imageUrl(): string
     {
+        return asset('storage/'.self::storagePath($this->webp ?: $this->filename));
+    }
+
+    public function originalUrl(): string
+    {
         return asset('storage/'.self::storagePath($this->filename));
     }
 
     public function thumbnailUrl(): string
     {
-        return asset('storage/'.self::storagePath($this->thumbnail ?: $this->filename));
+        return asset('storage/'.self::storagePath($this->thumbnail ?: $this->webp ?: $this->filename));
     }
 
     /** @return list<string> */
