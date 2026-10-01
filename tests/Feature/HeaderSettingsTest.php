@@ -124,6 +124,29 @@ class HeaderSettingsTest extends TestCase
         $this->assertDatabaseCount('site_settings', 0);
     }
 
+    public function test_logo_keeps_entered_case_and_gap_is_editable_everywhere(): void
+    {
+        $this->actingAs(User::factory()->create())
+            ->put(route('header-settings.update'), array_replace(HeaderSettings::DEFAULTS, [
+                'logo' => 'Magda Gugała',
+                'logo_subtitle' => 'Fotografia i stylizacja żywności',
+                'header_logo_subtitle_gap' => 18,
+            ]))->assertSessionHasNoErrors();
+
+        $this->get(route('header-settings.edit'))->assertOk()
+            ->assertSee('Odstęp między logo a podtytułem (px)')
+            ->assertSee('value="18"', false);
+
+        foreach (['/', '/o-mnie', '/kontakt'] as $url) {
+            $response = $this->get($url)->assertOk()
+                ->assertSee('Magda Gugała')
+                ->assertSee('Fotografia i stylizacja żywności')
+                ->assertSee('--header-logo-subtitle-gap: 18px;', false)
+                ->assertSee('text-transform: none !important;', false);
+            $this->assertStringNotContainsString('MAGDA GUGAŁA', $response->getContent());
+        }
+    }
+
     public function test_independent_padding_and_all_three_layouts_apply_to_every_public_page(): void
     {
         $this->actingAs(User::factory()->create());
