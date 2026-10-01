@@ -14,7 +14,7 @@ class SeoController extends Controller
     {
         return view('admin.seo.edit', [
             'settings' => Seo::settings(),
-            'pages' => Page::with('socialPhoto')->orderBy('title')->get(),
+            'pages' => Page::with(['socialPhoto', 'builder'])->orderBy('title')->get(),
             'galleries' => Gallery::with(['socialPhoto', 'photos'])->orderBy('title')->get(),
             'photoCount' => Photo::count(),
             'missingAlt' => Photo::missingMetadata('alt')->count(),
