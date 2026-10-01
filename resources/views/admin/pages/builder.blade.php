@@ -2769,6 +2769,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(heading);
 
+        const actions = document.createElement("div");
+        actions.style.display = "grid";
+        actions.style.gridTemplateColumns = "1fr 1fr";
+        actions.style.gap = "8px";
+        actions.style.marginBottom = "18px";
+
+        function actionButton(text, callback) {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.className = "fve-button";
+            button.textContent = text;
+            button.addEventListener("click", callback);
+            actions.appendChild(button);
+        }
+
+        actionButton("Duplikuj", function () {
+            const copy = JSON.parse(JSON.stringify(item));
+            copy.id = "element-" + Date.now() + "-" + Math.floor(Math.random() * 100000);
+            copy.position_y = (Number(item.position_y) || 0) + 5;
+            data.sections.push(copy);
+            selected = copy.id;
+            render();
+            showProperties(copy);
+        });
+
+        actionButton("↑ Wyżej", function () {
+            item.position_y = Math.max(0, (Number(item.position_y) || 0) - 5);
+            render();
+            showProperties(item);
+        });
+
+        actionButton("↓ Niżej", function () {
+            item.position_y = (Number(item.position_y) || 0) + 5;
+            render();
+            showProperties(item);
+        });
+
+        properties.appendChild(actions);
+
         window.builderTypography.field(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
