@@ -203,6 +203,25 @@ class SeoTest extends TestCase
         $this->assertNotFalse(simplexml_load_string($response->getContent()));
     }
 
+    public function test_sitemap_includes_gallery_images_for_image_search(): void
+    {
+        $gallery = $this->gallery();
+        $photo = Photo::create([
+            'filename' => 'dish.jpg',
+            'webp' => 'dish-web.webp',
+            'title' => 'Fotografia dania',
+            'alt' => 'Danie na talerzu',
+            'description' => 'Zdjęcie reklamowe potrawy',
+        ]);
+        $gallery->photos()->attach($photo, ['sort_order' => 0, 'is_cover' => true]);
+
+        $this->get('/sitemap.xml')->assertOk()
+            ->assertSee('xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"', false)
+            ->assertSee('<image:loc>'.$photo->imageUrl().'</image:loc>', false)
+            ->assertSee('<image:title>Fotografia dania</image:title>', false)
+            ->assertSee('<image:caption>Zdjęcie reklamowe potrawy</image:caption>', false);
+    }
+
     public function test_global_noindex_overrides_pages_galleries_robots_and_sitemap(): void
     {
         $page = $this->page(); $gallery = $this->gallery();
