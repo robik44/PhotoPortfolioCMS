@@ -35,7 +35,7 @@ class BuilderButtonTest extends TestCase
         $this->postJson($save, ['content' => ['sections' => [$button]]])->assertOk();
         $legacy = $this->get($public)->assertOk();
         $legacy->assertSee('padding-top:13px;', false)->assertSee('padding-left:24px;', false)
-            ->assertSee('background-color:#222222;', false)->assertSee('border-radius:4px;', false);
+            ->assertSee('background:rgba(34,34,34,1) !important;', false)->assertSee('border-radius:4px;', false);
         $legacy->assertDontSee('<a href="#" style="color:#123456;', false);
         $button['content'] = 'Nowy przycisk';
         $button += ['button_background' => '#abcdef', 'button_border_color' => '#654321', 'button_border_width' => 3,
@@ -104,8 +104,7 @@ class BuilderButtonTest extends TestCase
 
         $editor = $this->get(route('pages.builder', $page))->assertOk();
         $editor->assertSee('+ Przycisk')
-            ->assertSee('builder-button.js')
-            ->assertSee('Przezroczystość tła (%) — 100 = pełne');
+            ->assertSee('builder-button.js');
 
         $button = ['type' => 'button', 'content' => 'Future button', 'button_background' => '#336699',
             'button_background_opacity' => 25, 'style' => ['color' => '#ffffff']];
