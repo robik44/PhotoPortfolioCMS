@@ -257,14 +257,23 @@
         .page-element-button,
         .page-element-section,
         .page-element-separator,
-        .page-element-gallery {
+        .page-element-gallery,
+        .page-element-thumbnail-gallery {
             overflow-wrap: anywhere;
+            white-space: normal;
         }
 
         .page-element-button a {
-            display: inline-block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            min-height: inherit;
+            box-sizing: border-box;
             color: #fff;
             text-decoration: none;
+            white-space: normal;
+            overflow-wrap: anywhere;
         }
 
         .page-element-gallery {
@@ -455,7 +464,9 @@
                             $element["image_radius"] ?? 0
                         );
                         $imageHeight = (int) (
-                            $element["image_height"] ?? 0
+                            $element["image_height"]
+                            ?? $element["element_height"]
+                            ?? 0
                         );
                     @endphp
 
@@ -467,6 +478,7 @@
                                 margin-left:{{ $x }}%;
                                 width:{{ $width }}%;
                                 z-index:{{ $zIndex }};
+                                {{ $heightStyle }}
                                 border-radius:{{ $imageRadius }}px;
                             "
                         >
@@ -503,6 +515,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                             color:{{ $color }};
                             font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
@@ -524,6 +537,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                             color:{{ $color }};
                             font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
@@ -569,6 +583,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                         "
                     >
                         <div
@@ -604,7 +619,7 @@
 
                 @elseif($type === "thumbnail_gallery")
                     <div class="page-element page-element-thumbnail-gallery" data-builder-thumbnail-gallery
-                        style="margin-left:{{ $x }}%;width:{{ $width }}%;z-index:{{ $zIndex }};">
+                        style="margin-left:{{ $x }}%;width:{{ $width }}%;z-index:{{ $zIndex }};{{ $heightStyle }}">
                         @include('components.builder-thumbnail-gallery', ['element' => $element])
                     </div>
 
