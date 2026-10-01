@@ -7,6 +7,7 @@
 @include('components.header-font-faces', ['fonts' => $headerFonts])
 
 <style>
+    .site-header { z-index: 5000 !important; background: #fff !important; }
     .site-header .header-inner { padding-top: var(--header-padding-top); padding-bottom: var(--header-padding-bottom); }
     .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
     .site-header .logo span { display: block; }
