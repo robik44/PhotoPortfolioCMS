@@ -100,18 +100,21 @@ class BuilderButtonTest extends TestCase
 
 
 
-    public function test_builder_and_public_page_use_the_same_non_overlapping_vertical_flow(): void
+    public function test_builder_and_public_pages_use_the_same_absolute_geometry_model(): void
     {
         $builderView = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
-        $publicView = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $publicView = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
+        $pageView = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $homeView = file_get_contents(resource_path('views/welcome.blade.php'));
 
-        $this->assertStringContainsString('position: relative;', $builderView);
-        $this->assertStringContainsString('margin-bottom: 36px;', $builderView);
-        $this->assertStringContainsString("sort((a, b) => (Number(a.position_y) || 0) - (Number(b.position_y) || 0))", $builderView);
-        $this->assertStringContainsString('position: relative;', $publicView);
-        $this->assertStringContainsString('margin-bottom: 36px;', $publicView);
-        $this->assertStringContainsString("sortBy(fn (\$element) => (float) (\$element['position_y'] ?? 0))", $publicView);
-        $this->assertStringNotContainsString('top:{{ ($y / 100) * $designHeight }}px;', $publicView);
+        $this->assertStringContainsString('position: absolute;', $builderView);
+        $this->assertStringContainsString('element.style.left', $builderView);
+        $this->assertStringContainsString('element.style.top', $builderView);
+        $this->assertStringContainsString('position: absolute;', $publicView);
+        $this->assertStringContainsString('left:{{ $x }}%;', $publicView);
+        $this->assertStringContainsString('top:{{ $top }}px;', $publicView);
+        $this->assertStringContainsString("components.public-builder-canvas", $pageView);
+        $this->assertStringContainsString("components.public-builder-canvas", $homeView);
     }
 
     public function test_every_new_page_builder_exposes_shared_button_controls(): void
@@ -188,8 +191,9 @@ class BuilderButtonTest extends TestCase
         $this->assertStringContainsString('@media (max-width: 520px)', $home);
         $this->assertStringContainsString('grid-template-columns: 1fr;', $home);
         $this->assertStringNotContainsString('@media (max-width: 1400px)', $home);
-        $this->assertStringContainsString('margin-left: 0 !important;', $page);
-        $this->assertStringContainsString('max-width: 100%;', $page);
+        $shared = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
+        $this->assertStringContainsString('@media (max-width: 900px)', $shared);
+        $this->assertStringContainsString('overflow-x: hidden;', $shared);
     }
 
 
