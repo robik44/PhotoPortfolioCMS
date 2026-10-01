@@ -6,6 +6,23 @@ use Illuminate\Support\Facades\Validator;
 
 class BuilderButton
 {
+    public static function defaults(): array
+    {
+        return [
+            'button_background' => '#222222',
+            'button_background_opacity' => 100,
+            'button_border_color' => '#222222',
+            'button_border_width' => 0,
+            'button_radius' => 4,
+            'button_padding_y' => 13,
+            'button_padding_x' => 24,
+        ];
+    }
+
+    public static function normalize(array $element): array
+    {
+        return array_replace(self::defaults(), $element);
+    }
     public static function href(mixed $value): ?string
     {
         if (!is_string($value) || trim($value) === '') return null;
@@ -34,10 +51,11 @@ class BuilderButton
 
     public static function css(array $element): string
     {
+        $element = self::normalize($element);
         $css = '';
         foreach (['background' => 'background-color', 'border_color' => 'border-color'] as $key => $property) {
             if (preg_match('/^#[0-9a-fA-F]{6}$/', $element['button_'.$key] ?? '')) {
-                if ($key === 'background' && isset($element['button_background_opacity']) && is_numeric($element['button_background_opacity'])) {
+                if ($key === 'background' && array_key_exists('button_background_opacity', $element) && is_numeric($element['button_background_opacity'])) {
                     $hex = ltrim($element['button_background'], '#');
                     $alpha = max(0, min(100, (float) $element['button_background_opacity'])) / 100;
                     $css .= 'background:rgba('.hexdec(substr($hex, 0, 2)).','.hexdec(substr($hex, 2, 2)).','.hexdec(substr($hex, 4, 2)).','.$alpha.') !important;';

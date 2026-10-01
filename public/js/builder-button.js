@@ -1,17 +1,38 @@
 (() => {
     window.BuilderButton = {
+        defaults: {
+            button_background: '#222222',
+            button_background_opacity: 100,
+            button_border_color: '#222222',
+            button_border_width: 0,
+            button_radius: 4,
+            button_padding_y: 13,
+            button_padding_x: 24,
+        },
+        initialize(item) {
+            return item;
+        },
+        value(item, key) {
+            const value = item[key];
+            return value === undefined || value === null || value === '' ? this.defaults[key] : value;
+        },
         apply(node, item) {
+            this.initialize(item);
             for (const [key, property] of [['background', 'backgroundColor'], ['border_color', 'borderColor']]) {
-                if (item[`button_${key}`]) node.style[property] = item[`button_${key}`];
+                const value = this.value(item, `button_${key}`);
+                if (value !== undefined && value !== null && value !== '') node.style[property] = value;
             }
-            if (item.button_background && item.button_background_opacity !== undefined && item.button_background_opacity !== '') {
-                const hex = item.button_background.replace('#', '');
+            const background = this.value(item, 'button_background');
+            const hasExplicitOpacity = item.button_background_opacity !== undefined && item.button_background_opacity !== null && item.button_background_opacity !== '';
+            const opacity = this.value(item, 'button_background_opacity');
+            if (background && hasExplicitOpacity) {
+                const hex = background.replace('#', '');
                 const rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
-                const alpha = Math.max(0, Math.min(100, Number(item.button_background_opacity))) / 100;
+                const alpha = Math.max(0, Math.min(100, Number(opacity))) / 100;
                 node.style.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
             }
             for (const [key, properties] of Object.entries({border_width: ['borderWidth'], radius: ['borderRadius'], padding_y: ['paddingTop', 'paddingBottom'], padding_x: ['paddingLeft', 'paddingRight']})) {
-                const value = item[`button_${key}`];
+                const value = this.value(item, `button_${key}`);
                 if (value === undefined || value === null || value === '') continue;
                 if (key === 'border_width') node.style.borderStyle = 'solid';
                 for (const property of properties) node.style[property] = `${value}px`;
@@ -19,6 +40,7 @@
         },
         fields(container, item, render, className) {
             if (item.type !== 'button') return;
+            this.initialize(item);
             const add = (label, key, type, fallback = '') => {
                 const wrapper = document.createElement('label');
                 wrapper.className = className;
@@ -26,7 +48,7 @@
                 const input = document.createElement('input');
                 input.type = type;
                 input.setAttribute('aria-label', label);
-                input.value = item[key] ?? fallback;
+                input.value = item[key] ?? this.value(item, key) ?? fallback;
                 if (type === 'number') { input.min = '0'; input.max = '200'; }
                 input.addEventListener('input', () => {
                     if (type === 'number' && input.value === '') delete item[key];
