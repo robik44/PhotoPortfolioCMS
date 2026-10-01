@@ -1776,7 +1776,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .fve-page {
         width: 1200px;
-        min-height: 1900px;
+        min-height: 900px;
         background: #fff;
         box-shadow: 0 12px 40px rgba(0,0,0,.18);
         position: relative;
@@ -1819,7 +1819,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     .fve-content {
         position: relative;
-        min-height: 1650px;
+        min-height: 900px;
         background: #fff;
     }
 
@@ -2630,8 +2630,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const dx =
                     ((event.clientX - startX) / rect.width) * 100;
 
-                const dy =
-                    ((event.clientY - startY) / rect.height) * 100;
+                const dyPx = (event.clientY - startY) / zoom;
+                const dy = (dyPx / 900) * 100;
 
                 item.position_x =
                     Math.max(
@@ -2642,14 +2642,7 @@ document.addEventListener("DOMContentLoaded", function () {
                         )
                     );
 
-                item.position_y =
-                    Math.max(
-                        0,
-                        Math.min(
-                            95,
-                            startTop + dy
-                        )
-                    );
+                item.position_y = Math.max(0, startTop + dy);
 
                 element.style.left =
                     item.position_x + "%";
@@ -2682,6 +2675,15 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             content.appendChild(element);
+        });
+        requestAnimationFrame(function () {
+            let maxBottom = 900;
+            content.querySelectorAll('.fve-element').forEach(function (element) {
+                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 80);
+            });
+            content.style.height = maxBottom + 'px';
+            page.style.minHeight = (maxBottom + 206) + 'px';
+            updateZoom();
         });
         window.ThumbnailGallery.fitCanvas(content);
     }
@@ -3081,7 +3083,7 @@ document.addEventListener("DOMContentLoaded", function () {
         pageWrap.style.marginBottom =
             Math.max(
                 0,
-                1900 * zoom - 1900
+                page.offsetHeight * zoom - page.offsetHeight
             ) + "px";
 
         zoomLabel.textContent =
