@@ -99,6 +99,21 @@ class BuilderButtonTest extends TestCase
 
 
 
+
+    public function test_builder_and_public_page_use_the_same_non_overlapping_vertical_flow(): void
+    {
+        $builderView = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+        $publicView = file_get_contents(resource_path('views/pages/show.blade.php'));
+
+        $this->assertStringContainsString('position: relative;', $builderView);
+        $this->assertStringContainsString('margin-bottom: 36px;', $builderView);
+        $this->assertStringContainsString("sort((a, b) => (Number(a.position_y) || 0) - (Number(b.position_y) || 0))", $builderView);
+        $this->assertStringContainsString('position: relative;', $publicView);
+        $this->assertStringContainsString('margin-bottom: 36px;', $publicView);
+        $this->assertStringContainsString("sortBy(fn (\$element) => (float) (\$element['position_y'] ?? 0))", $publicView);
+        $this->assertStringNotContainsString('top:{{ ($y / 100) * $designHeight }}px;', $publicView);
+    }
+
     public function test_public_builder_uses_same_vertical_coordinate_unit_for_all_element_types(): void
     {
         $view = file_get_contents(resource_path('views/pages/show.blade.php'));
