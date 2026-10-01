@@ -204,4 +204,16 @@ class BuilderButtonTest extends TestCase
     }
 
 
+    public function test_page_builder_only_contains_the_active_visual_editor(): void
+    {
+        $view = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+
+        $this->assertStringNotContainsString('builder-old-editor', $view);
+        $this->assertStringNotContainsString('id="builder-canvas"', $view);
+        $this->assertStringNotContainsString('id="builder-save"', $view);
+        $this->assertStringContainsString('id="full-visual-editor"', $view);
+        $this->assertStringContainsString('id="fve-save"', $view);
+    }
+
+
 }
