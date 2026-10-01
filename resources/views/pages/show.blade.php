@@ -298,18 +298,51 @@
         @media (max-width: 900px) {
             .header-inner {
                 flex-direction: column;
-                justify-content: center;
-                padding: 18px 20px;
+                align-items: flex-start;
+                padding: 14px 18px;
+                gap: 10px;
             }
 
             .main-menu {
+                width: 100%;
                 flex-wrap: wrap;
-                justify-content: center;
-                gap: 16px 22px;
+                justify-content: flex-start;
+                gap: 8px 18px;
+                font-size: 11px;
             }
 
             .page-canvas {
-                min-height: 1000px;
+                width: 100%;
+                min-height: 0;
+                padding-left: 18px;
+                padding-right: 18px;
+            }
+
+            .page-element {
+                max-width: 100%;
+                margin-left: 0 !important;
+            }
+
+            .page-element img {
+                max-width: 100%;
+                height: auto;
+            }
+        }
+
+        @media (max-width: 520px) {
+            .header-inner {
+                padding-top: 14px;
+                padding-bottom: 14px;
+            }
+
+            .main-menu {
+                gap: 6px 14px;
+                font-size: 10px;
+            }
+
+            .page-canvas {
+                padding-left: 14px;
+                padding-right: 14px;
             }
         }
     </style>
