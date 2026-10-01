@@ -22,6 +22,9 @@
 
     $builderContent = optional($page->builder)->content ?? [];
     $sections = $builderContent["sections"] ?? [];
+    $aboutFullWidthImageId = $page->slug === 'o-mnie'
+        ? (collect($sections)->firstWhere('type', 'image')['id'] ?? null)
+        : null;
 
     $layerMap = [
         "image" => 10,
@@ -229,6 +232,13 @@
 
         @if($page->slug === 'o-mnie')
             .page-canvas { overflow: visible; }
+            .page-element-image.about-full-width-image {
+                left: 50% !important;
+                width: 100vw !important;
+                transform: translateX(-50%);
+                border-radius: 0 !important;
+            }
+            .page-element-image.about-full-width-image img { width:100%; max-width:none; border-radius:0 !important; }
         @endif
 
         .page-element-image {
@@ -374,6 +384,8 @@
                     @php
                         $photoUrl = $element["photo_url"] ?? null;
                         $photoTitle = $element["photo_title"] ?? "";
+                        $photoRecord = \App\Models\Photo::find($element["photo_id"] ?? null);
+                        $photoAlt = $photoRecord?->alt ?: $photoTitle;
                         $imageRadius = (int) (
                             $element["image_radius"] ?? 0
                         );
@@ -385,7 +397,7 @@
                     @if($photoUrl)
 
                         <div
-                            class="page-element page-element-image"
+                            class="page-element page-element-image{{ ($aboutFullWidthImageId && ($element['id'] ?? null) === $aboutFullWidthImageId) ? ' about-full-width-image' : '' }}"
                             style="
                                 left:{{ $x }}%;
                                 top:{{ $y }}%;
@@ -397,7 +409,7 @@
 
                             <img
                                 src="{{ $photoUrl }}"
-                                alt="{{ $photoTitle }}"
+                                alt="{{ $photoAlt }}"
                                 style="
                                     border-radius:{{ $imageRadius }}px;
                                     @if($imageHeight > 0)
