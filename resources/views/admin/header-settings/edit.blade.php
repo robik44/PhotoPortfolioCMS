@@ -111,6 +111,14 @@
                 @enderror
             </fieldset>
 
+            <div style="margin:24px 0;">
+                <label for="header_logo_subtitle_gap">Odstęp między logo a podtytułem (px)</label>
+                <input id="header_logo_subtitle_gap" name="header_logo_subtitle_gap" type="number"
+                       min="0" max="80" step="1" required
+                       value="{{ old('header_logo_subtitle_gap', $settings['header_logo_subtitle_gap']) }}">
+                <p>Zmienia pionowy odstęp pomiędzy nazwą/logo tekstowym a podtytułem na wszystkich publicznych stronach.</p>
+            </div>
+
             <label for="header_layout">Układ nagłówka</label>
             <select id="header_layout" name="header_layout" required>
                 <option value="left" @selected(old('header_layout', $settings['header_layout']) === 'left')>Logo po lewej / menu po prawej</option>
@@ -148,7 +156,7 @@
         .header-live-preview { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; padding: 24px; margin-top: 16px; background: #fff; border: 1px solid #eee; }
         .header-preview-brand { max-width: 100%; overflow-wrap: anywhere; }
         .header-preview-brand span { display: block; }
-        .header-preview-brand span + span { margin-top: 4px; }
+        .header-preview-brand span + span { margin-top: var(--header-logo-subtitle-gap, 4px); }
         .header-preview-menu { display: flex; flex-wrap: wrap; gap: 16px; font: 13px Arial, sans-serif; }
         .header-live-preview[data-layout="center"] { flex-direction: column; }
         .header-live-preview[data-layout="center"] .header-preview-brand { text-align: center; }
