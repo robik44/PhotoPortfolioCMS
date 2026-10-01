@@ -221,4 +221,45 @@ class SeoTest extends TestCase
             $this->assertDatabaseHas($resource, ['slug' => 'nowa', 'seo_title' => 'Nowa SEO', 'indexable' => false]);
         }
     }
+
+    public function test_homepage_has_independent_seo_and_indexing_controls(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $photo = Photo::create(['filename' => 'home-social.jpg']);
+        $this->put(route('seo.update'), [
+            'seo_site_name' => 'Studio',
+            'seo_default_title' => 'Domyślny tytuł',
+            'seo_default_description' => 'Domyślny opis',
+            'seo_social_photo_id' => '',
+            'seo_indexable' => '1',
+            'home_seo_title' => 'Fotografia kulinarna Warszawa',
+            'home_seo_description' => 'Autorska fotografia żywności i produktów.',
+            'home_seo_social_photo_id' => $photo->id,
+            'home_seo_indexable' => '1',
+        ])->assertSessionHasNoErrors();
+
+        $this->get('/')->assertOk()
+            ->assertSee('<title>Fotografia kulinarna Warszawa</title>', false)
+            ->assertSee('content="Autorska fotografia żywności i produktów."', false)
+            ->assertSee($photo->imageUrl(), false);
+
+        SiteSetting::updateOrCreate(['key' => 'home_seo_indexable'], ['value' => '0']);
+        $this->get('/')->assertSee('content="noindex, nofollow"', false);
+        $this->get('/sitemap.xml')->assertDontSee('<loc>'.url('/').'</loc>', false);
+    }
+
+    public function test_under_construction_hides_public_site_but_not_authenticated_preview(): void
+    {
+        SiteSetting::updateOrCreate(['key' => 'site_under_construction'], ['value' => '1']);
+
+        $this->app['auth']->logout();
+        $this->get('/')->assertStatus(503)->assertSee('Strona w budowie')->assertSee('noindex, nofollow', false);
+        $this->get('/robots.txt')->assertOk()->assertSee("Disallow: /\n", false);
+        $this->get('/sitemap.xml')->assertOk()->assertDontSee('<loc>', false);
+
+        $this->actingAs(User::factory()->create());
+        $this->get('/')->assertOk()->assertDontSee('Strona w budowie');
+        $this->get(route('seo.edit'))->assertOk();
+    }
+
 }
