@@ -976,7 +976,6 @@ document.addEventListener("DOMContentLoaded", function () {
         content.innerHTML = "";
 
         content.style.backgroundColor =
-            data.settings.background_color ||
             settings.background_color ||
             "#ffffff";
 
