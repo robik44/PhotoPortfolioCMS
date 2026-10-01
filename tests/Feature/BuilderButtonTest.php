@@ -11,29 +11,17 @@ use Tests\TestCase;
 
 class BuilderButtonTest extends TestCase
 {
-    private string $databaseCopy;
-    private string $sourceHash;
-
     protected function setUp(): void
     {
         parent::setUp();
-        // Integration tests use a disposable copy; no migrations or writes to the source.
-        $this->sourceHash = hash_file('sha256', database_path('database.sqlite'));
-        $this->databaseCopy = tempnam(sys_get_temp_dir(), 'typography-db-');
-        copy(database_path('database.sqlite'), $this->databaseCopy);
-        config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => $this->databaseCopy, 'database.connections.sqlite.url' => null]);
+        // Always use a fresh disposable SQLite database so tests do not depend on
+        // development data committed in database/database.sqlite.
+        config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:', 'database.connections.sqlite.url' => null]);
         DB::purge('sqlite');
+        $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
         Storage::fake('public');
         $this->withoutVite();
-        $this->actingAs(User::firstOrFail());
-    }
-
-    protected function tearDown(): void
-    {
-        DB::disconnect('sqlite');
-        unlink($this->databaseCopy);
-        $this->assertSame($this->sourceHash, hash_file('sha256', database_path('database.sqlite')));
-        parent::tearDown();
+        $this->actingAs(User::factory()->create());
     }
 
     public function test_button_links_appearance_and_legacy_defaults(): void
