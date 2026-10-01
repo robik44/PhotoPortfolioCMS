@@ -263,11 +263,8 @@
 
         .page-element-button a {
             display: inline-block;
-            padding: 13px 24px;
-            background: #222;
             color: #fff;
             text-decoration: none;
-            border-radius: 4px;
         }
 
         .page-element-gallery {
