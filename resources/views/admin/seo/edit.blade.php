@@ -69,6 +69,30 @@
             @endif
         </section>
     @endforeach
+
+    <section class="cms-card" style="padding:20px;margin:20px 0;">
+        <h3>Duplikaty meta</h3>
+        @if(empty($duplicateTitles) && empty($duplicateDescriptions))
+            <p>Brak duplikatów tytułów i opisów w indeksowanych treściach.</p>
+        @else
+            @foreach($duplicateTitles as $labels)
+                <p><strong>Powtarzający się tytuł SEO:</strong> {{ implode(' · ', $labels) }}</p>
+            @endforeach
+            @foreach($duplicateDescriptions as $labels)
+                <p><strong>Powtarzający się opis SEO:</strong> {{ implode(' · ', $labels) }}</p>
+            @endforeach
+        @endif
+    </section>
+
+    <section class="cms-card" style="padding:20px;margin:20px 0;">
+        <h3>Linkowanie wewnętrzne</h3>
+        @forelse($menuIssues as $issue)
+            <p>{{ $issue }}</p>
+        @empty
+            <p>Menu nie zawiera odnośników do brakujących lub nieopublikowanych stron i galerii.</p>
+        @endforelse
+    </section>
+
     <section class="cms-card" style="padding:20px;">
         <h3>Biblioteka</h3>
         <p>Wszystkie Photo: {{ $photoCount }} · Posiadające ALT: {{ $photoCount - $missingAlt }}</p>

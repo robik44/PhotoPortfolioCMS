@@ -19,7 +19,7 @@ class ContentPages
             'version' => 1,
             'settings' => [],
             'sections' => [
-                ['id' => 'initial-heading', 'type' => 'heading', 'content' => $page->title ?: $defaults['title'],
+                ['id' => 'initial-heading', 'type' => 'heading', 'content' => $page->title ?: $defaults['title'], 'heading_level' => 'h1',
                     'position_x' => 5, 'position_y' => 5, 'element_width' => 85,
                     'style' => ['font_size' => 42, 'font_weight' => 400, 'color' => '#222222']],
                 ['id' => 'initial-text', 'type' => 'text', 'content' => $page->content ?: $defaults['text'],
