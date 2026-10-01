@@ -4,6 +4,12 @@
             for (const [key, property] of [['background', 'backgroundColor'], ['border_color', 'borderColor']]) {
                 if (item[`button_${key}`]) node.style[property] = item[`button_${key}`];
             }
+            if (item.button_background && item.button_background_opacity !== undefined && item.button_background_opacity !== '') {
+                const hex = item.button_background.replace('#', '');
+                const rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
+                const alpha = Math.max(0, Math.min(100, Number(item.button_background_opacity))) / 100;
+                node.style.backgroundColor = `rgba(${rgb[0]}, ${rgb[1]}, ${rgb[2]}, ${alpha})`;
+            }
             for (const [key, properties] of Object.entries({border_width: ['borderWidth'], radius: ['borderRadius'], padding_y: ['paddingTop', 'paddingBottom'], padding_x: ['paddingLeft', 'paddingRight']})) {
                 const value = item[`button_${key}`];
                 if (value === undefined || value === null || value === '') continue;
@@ -59,6 +65,8 @@
             select.addEventListener('change', () => { item.button_new_tab = select.value === '1'; render(); });
             wrapper.appendChild(select); container.appendChild(wrapper);
             add('Kolor tła przycisku', 'button_background', 'color', '#222222');
+            const opacity = add('Przezroczystość tła (%) — 100 = pełne', 'button_background_opacity', 'number', '100');
+            opacity.max = '100';
             add('Kolor obramowania', 'button_border_color', 'color', '#222222');
             add('Grubość obramowania (px)', 'button_border_width', 'number');
             add('Zaokrąglenie narożników (px)', 'button_radius', 'number');

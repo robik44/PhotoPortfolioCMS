@@ -23,7 +23,15 @@ class Seo
 
     public static function indexing(?array $settings = null): bool
     {
-        return (string) (($settings ?? self::settings())['seo_indexable'] ?? '1') !== '0';
+        $settings ??= self::settings();
+        return (string) ($settings['seo_indexable'] ?? '1') !== '0'
+            && (string) ($settings['site_under_construction'] ?? '0') !== '1';
+    }
+
+    public static function homeIndexing(?array $settings = null): bool
+    {
+        $settings ??= self::settings();
+        return self::indexing($settings) && (string) ($settings['home_seo_indexable'] ?? '1') !== '0';
     }
 
     public static function pageUrl(Page $page): string
@@ -51,21 +59,24 @@ class Seo
         $site = self::siteName($settings);
         $baseTitle = self::firstText($entity?->title, $title);
         $fallbackTitle = $baseTitle !== '' ? (mb_stripos($baseTitle, $site) !== false ? $baseTitle : $baseTitle.' — '.$site) : self::firstText($settings['seo_default_title'] ?? null, $site);
-        $resolvedTitle = self::firstText($entity?->seo_title, $entity instanceof Gallery ? ($settings['seo_default_title'] ?? null) : null, $fallbackTitle);
-        $description = self::firstText($entity?->seo_description, $settings['seo_default_description'] ?? null,
+        $resolvedTitle = $entity === null
+            ? self::firstText($settings['home_seo_title'] ?? null, $settings['seo_default_title'] ?? null, $fallbackTitle)
+            : self::firstText($entity?->seo_title, $entity instanceof Gallery ? ($settings['seo_default_title'] ?? null) : null, $fallbackTitle);
+        $description = self::firstText($entity === null ? ($settings['home_seo_description'] ?? null) : null, $entity?->seo_description, $settings['seo_default_description'] ?? null,
             $entity instanceof Gallery ? $entity->description : null, $entity instanceof Page ? strip_tags($entity->content ?? '') : null,
             $settings['hero_text'] ?? null, $settings['site_subtitle'] ?? null);
         $photo = $entity?->socialPhoto;
         if (!$photo && $entity instanceof Gallery) {
             $photo = $entity->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover);
         }
+        if (!$photo && $entity === null) $photo = Photo::find($settings['home_seo_social_photo_id'] ?? null);
         $photo ??= Photo::find($settings['seo_social_photo_id'] ?? null);
         $canonical = $entity instanceof Gallery ? route('portfolio.gallery', $entity)
             : ($entity instanceof Page ? self::pageUrl($entity) : ($url ?? url('/')));
         return [
             'title' => $resolvedTitle, 'description' => $description, 'canonical' => $canonical,
             'image' => $photo?->imageUrl(), 'type' => 'website',
-            'robots' => self::indexing($settings) && ($entity?->indexable ?? true) ? 'index, follow' : 'noindex, nofollow',
+            'robots' => ($entity === null ? self::homeIndexing($settings) : self::indexing($settings) && ($entity?->indexable ?? true)) ? 'index, follow' : 'noindex, nofollow',
         ];
     }
 

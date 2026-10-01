@@ -56,6 +56,17 @@
 
                     <div style="display:flex;flex-direction:column;gap:24px;">
 
+                        <div style="padding:18px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
+                            <label for="site_under_construction" style="display:block;font-size:14px;font-weight:700;margin-bottom:8px;">
+                                Widoczność witryny
+                            </label>
+                            <select id="site_under_construction" name="site_under_construction" style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;">
+                                <option value="0" @selected((string) old('site_under_construction', $settings['site_under_construction'] ?? '0') === '0')>Witryna publiczna — WŁĄCZONA</option>
+                                <option value="1" @selected((string) old('site_under_construction', $settings['site_under_construction'] ?? '0') === '1')>UNDER CONSTRUCTION — ukryj witrynę</option>
+                            </select>
+                            <p style="margin:8px 0 0;font-size:13px;color:#6b7280;">Po włączeniu niezalogowani odwiedzający zobaczą stronę „W budowie”, a wyszukiwarki otrzymają noindex. Po zalogowaniu nadal zobaczysz całą witrynę i CMS.</p>
+                        </div>
+
                         <p>
                             Logo i podtytuł edytujesz w sekcji
                             <a href="{{ route('header-settings.edit') }}" style="text-decoration:underline;">Wygląd → Nagłówek</a>.

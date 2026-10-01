@@ -18,6 +18,23 @@
             </select>
         </label>
         <p>Puste pola korzystają z dotychczasowych danych witryny. Wyłączenie indeksowania obowiązuje wszystkie strony i galerie.</p>
+
+        <hr style="margin:28px 0;">
+        <h2>SEO — Strona główna</h2>
+        <label style="display:block;margin:12px 0;">Tytuł SEO strony głównej
+            <input name="home_seo_title" value="{{ old('home_seo_title', $settings['home_seo_title'] ?? '') }}" maxlength="255" style="display:block;width:100%;padding:10px;border:1px solid #ddd;">
+        </label>
+        <label style="display:block;margin:12px 0;">Opis SEO strony głównej
+            <textarea name="home_seo_description" maxlength="2000" rows="4" style="display:block;width:100%;padding:10px;border:1px solid #ddd;">{{ old('home_seo_description', $settings['home_seo_description'] ?? '') }}</textarea>
+        </label>
+        <x-photo-picker name="home_seo_social_photo_id" label="Zdjęcie social strony głównej" :selected="$settings['home_seo_social_photo_id'] ?? null" fallback />
+        <label>Indeksowanie strony głównej
+            <select name="home_seo_indexable">
+                <option value="1" @selected((string) old('home_seo_indexable', $settings['home_seo_indexable'] ?? '1') === '1')>TAK</option>
+                <option value="0" @selected((string) old('home_seo_indexable', $settings['home_seo_indexable'] ?? '1') === '0')>NIE</option>
+            </select>
+        </label>
+        <p>Jeśli pola strony głównej pozostaną puste, użyte zostaną globalne wartości SEO.</p>
         <button class="cms-button cms-button-primary" type="submit">Zapisz SEO</button>
     </form>
 

@@ -11,7 +11,7 @@ class SeoController extends Controller
     {
         $urls = [];
         if (Seo::indexing()) {
-            $urls[] = url('/');
+            if (Seo::homeIndexing()) $urls[] = url('/');
             foreach (Page::where('published', true)->where('indexable', true)->get() as $page) $urls[] = Seo::pageUrl($page);
             foreach (Gallery::where('published', true)->where('indexable', true)->get() as $gallery) $urls[] = route('portfolio.gallery', $gallery);
             // These public fallback pages can exist before their first CMS edit.

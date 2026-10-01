@@ -31,6 +31,10 @@ class SeoController extends Controller
             'seo_default_description' => ['nullable', 'string', 'max:2000'],
             'seo_social_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'seo_indexable' => ['required', 'boolean'],
+            'home_seo_title' => ['nullable', 'string', 'max:255'],
+            'home_seo_description' => ['nullable', 'string', 'max:2000'],
+            'home_seo_social_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'home_seo_indexable' => ['sometimes', 'boolean'],
         ]);
         DB::transaction(function () use ($data) {
             foreach ($data as $key => $value) SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);

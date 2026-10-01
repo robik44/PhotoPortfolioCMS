@@ -38,7 +38,7 @@ class BuilderButtonTest extends TestCase
         $legacy->assertDontSee('<a href="#" style="color:#123456;', false);
         $button['content'] = 'Nowy przycisk';
         $button += ['button_background' => '#abcdef', 'button_border_color' => '#654321', 'button_border_width' => 3,
-            'button_radius' => 9, 'button_padding_y' => 15, 'button_padding_x' => 31];
+            'button_radius' => 9, 'button_padding_y' => 15, 'button_padding_x' => 31, 'button_background_opacity' => 45];
         foreach (['/o-mnie', route('portfolio.gallery', $gallery), 'https://example.com/path?a=1&b=2', 'mailto:test@example.com', 'tel:+48123456789'] as $url) {
             $button['button_link'] = $url;
             $button['button_new_tab'] = true;
@@ -50,7 +50,7 @@ class BuilderButtonTest extends TestCase
             $response = $this->get($public)->assertOk()->assertSee('Nowy przycisk')
                 ->assertSee('href="'.e($url).'"', false)->assertSee('target="_blank" rel="noopener noreferrer"', false)
                 ->assertSee('font-family:Georgia, serif;', false)->assertSee('font-size:24px;', false)->assertSee('font-weight:700;', false)
-                ->assertSee('color:#123456;', false)->assertSee('background-color:#abcdef;', false)
+                ->assertSee('color:#123456;', false)->assertSee('background-color:rgba(171,205,239,0.45);', false)
                 ->assertSee('border-color:#654321;', false)->assertSee('border-width:3px;', false)
                 ->assertSee('border-radius:9px;', false)->assertSee('padding-top:15px;', false)->assertSee('padding-left:31px;', false);
         }
