@@ -208,8 +208,15 @@
         }
 
         .button:hover {
-            background: #fff;
             color: #222;
+        }
+
+        .button:not([style*="background-color"]) {
+            background: transparent;
+        }
+
+        .button:not([style*="background-color"]):hover {
+            background: #fff;
         }
 
         .section {
