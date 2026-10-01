@@ -37,20 +37,20 @@
         "button" => 120,
     ];
 
-    $pageHeight = 900;
-
+    // position_y uses a stable 900px design-height unit in both the CMS and public page.
+    // The canvas grows with content instead of rescaling existing positions.
+    $designHeight = 900;
+    $pageHeight = $designHeight;
     foreach ($sections as $element) {
-        $y = (float) ($element["position_y"] ?? 0);
-        $h = (float) ($element["height"] ?? 8);
-
-        $bottom = $y + max($h, 5);
-
-        if ($bottom > $pageHeight) {
-            $pageHeight = $bottom;
-        }
+        $topPx = ((float) ($element["position_y"] ?? 0) / 100) * $designHeight;
+        $estimatedHeight = match ($element["type"] ?? "text") {
+            "image", "gallery", "thumbnail_gallery" => 420,
+            "text" => 260,
+            "heading" => 100,
+            default => 90,
+        };
+        $pageHeight = max($pageHeight, $topPx + $estimatedHeight + 100);
     }
-
-    $pageHeight = max(700, min(4000, $pageHeight + 12));
 @endphp
 
 <!DOCTYPE html>
@@ -397,7 +397,7 @@
                             class="page-element page-element-image{{ ($aboutFullWidthImageId && ($element['id'] ?? null) === $aboutFullWidthImageId) ? ' about-full-width-image' : '' }}"
                             style="
                                 left:{{ $x }}%;
-                                top:{{ $y }}%;
+                                top:{{ ($y / 100) * $designHeight }}px;
                                 width:{{ $width }}%;
                                 z-index:{{ $zIndex }};
                                 border-radius:{{ $imageRadius }}px;

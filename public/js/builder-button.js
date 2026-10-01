@@ -87,7 +87,7 @@
             select.addEventListener('change', () => { item.button_new_tab = select.value === '1'; render(); });
             wrapper.appendChild(select); container.appendChild(wrapper);
             add('Kolor tła przycisku', 'button_background', 'color', '#222222');
-            const opacity = add('Przezroczystość tła (%) — 100 = pełne', 'button_background_opacity', 'number', '100');
+            const opacity = add('Krycie tła (%) — 0 = przezroczyste, 100 = pełne', 'button_background_opacity', 'number', '100');
             opacity.max = '100';
             add('Kolor obramowania', 'button_border_color', 'color', '#222222');
             add('Grubość obramowania (px)', 'button_border_width', 'number');
