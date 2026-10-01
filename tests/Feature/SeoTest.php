@@ -165,7 +165,9 @@ class SeoTest extends TestCase
         $this->page(['slug' => 'hidden', 'published' => false]);
         $this->page(['slug' => 'noindex', 'indexable' => false]);
         $response = $this->get('/sitemap.xml')->assertOk()->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
-            ->assertSee(Seo::pageUrl($page))->assertSee(route('portfolio.gallery', $gallery))->assertDontSee('/portfolio/'.$gallery->id.'<', false)->assertDontSee('/strona/hidden')->assertDontSee('/strona/noindex')->assertDontSee('/admin');
+            ->assertSee(Seo::pageUrl($page))->assertSee(route('portfolio.gallery', $gallery))->assertDontSee('/portfolio/'.$gallery->id.'<', false)->assertDontSee('/strona/hidden')->assertDontSee('/strona/noindex')->assertDontSee('/admin')
+            ->assertSee('<lastmod>'.$page->updated_at->toAtomString().'</lastmod>', false)
+            ->assertSee('<lastmod>'.$gallery->updated_at->toAtomString().'</lastmod>', false);
         $this->assertNotFalse(simplexml_load_string($response->getContent()));
     }
 
