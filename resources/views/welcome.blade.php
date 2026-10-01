@@ -488,8 +488,10 @@
                         <div class="gallery-card-image">
                             @if($cover)
                                 <img
-                                    src="{{ asset('storage/photos/' . basename($cover->filename)) }}"
+                                    src="{{ $cover->thumbnailUrl() }}"
                                     alt="{{ $cover->alt ?: $gallery->title }}"
+                                    loading="lazy"
+                                    decoding="async"
                                 >
                             @else
                                 <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;">
