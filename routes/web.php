@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PhotoController;
 use App\Http\Controllers\Admin\SiteSettingController;
 use App\Http\Controllers\ContentPageController;
+use App\Http\Controllers\ProfileController;
 use App\Models\Gallery;
 use App\Models\MenuItem;
 use App\Models\SiteSetting;
@@ -112,6 +113,9 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::get('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'edit'])->name('seo.edit');
     Route::put('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'update'])->name('seo.update');
     Route::get('/admin/content-pages/{slug}', [ContentPageController::class, 'edit'])
