@@ -1265,7 +1265,7 @@ document.addEventListener("DOMContentLoaded", function () {
         window.ThumbnailGallery.fitCanvas(content);
     }
 
-    function field(labelText, type, value, callback) {
+    function field(labelText, type, value, callback, options = {}) {
 
         const wrapper =
             document.createElement("div");
@@ -1291,7 +1291,9 @@ document.addEventListener("DOMContentLoaded", function () {
         if (type !== "textarea") {
             input.type = type;
             if (type === "number") {
-                input.step = "any";
+                input.step = options.step ?? "any";
+                if (options.min !== undefined) input.min = String(options.min);
+                if (options.max !== undefined) input.max = String(options.max);
             }
         }
 
@@ -1455,8 +1457,8 @@ document.addEventListener("DOMContentLoaded", function () {
             });
             field('Wysokość linii', 'number', item.style.line_height, function (value) {
                 const parsed = Number(value);
-                item.style.line_height = Number.isFinite(parsed) ? Math.max(0.45, Math.min(4, parsed)) : 1.4;
-            });
+                item.style.line_height = Number.isFinite(parsed) ? Math.max(0.1, Math.min(4, parsed)) : 1.4;
+            }, { step: 0.1, min: 0.1, max: 4 });
             field('Odstęp między literami (px)', 'number', item.style.letter_spacing, function (value) {
                 item.style.letter_spacing = Number(value) || 0;
             });
