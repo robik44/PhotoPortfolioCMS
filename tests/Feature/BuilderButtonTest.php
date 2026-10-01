@@ -193,4 +193,15 @@ class BuilderButtonTest extends TestCase
     }
 
 
+    public function test_visual_builder_has_duplicate_and_vertical_move_controls(): void
+    {
+        $view = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+
+        $this->assertStringContainsString('actionButton("Duplikuj"', $view);
+        $this->assertStringContainsString('actionButton("↑ Wyżej"', $view);
+        $this->assertStringContainsString('actionButton("↓ Niżej"', $view);
+        $this->assertStringContainsString('JSON.parse(JSON.stringify(item))', $view);
+    }
+
+
 }
