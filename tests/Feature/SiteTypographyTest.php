@@ -168,6 +168,26 @@ class SiteTypographyTest extends TestCase
         $this->get(route('portfolio.gallery', $gallery))->assertOk()
             ->assertSee('font-family:' . $font, false)->assertSee('font-family:Georgia, serif', false)
             ->assertSee('Verdana, sans-serif', false)->assertSee('storage/fonts/' . $font . '.ttf', false);
+
+        PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => [
+                'version' => 1,
+                'settings' => [],
+                'sections' => [[
+                    'id' => 'home-gallery',
+                    'type' => 'gallery',
+                    'gallery_mode' => 'all',
+                    'position_x' => 0,
+                    'position_y' => 40,
+                    'element_width' => 100,
+                    'style' => ['font_family' => $font],
+                ]],
+            ],
+        ]);
+
         $this->get('/')->assertOk()->assertSee('font-family:' . $font, false);
         $before = SiteSetting::where('key', GalleryTypography::key($gallery->id))->value('value');
         $this->put(route('galleries.update', $gallery), ['title' => 'Galeria', 'description' => 'Opis', 'title_font_family' => 'Arial; color:red'])
