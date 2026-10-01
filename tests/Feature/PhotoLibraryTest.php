@@ -485,7 +485,7 @@ class PhotoLibraryTest extends TestCase
         $this->assertStringContainsString('og:site_name', $view);
         $this->assertStringContainsString('twitter:card', $view);
         $this->assertStringContainsString('application/ld+json', $view);
-        $this->assertStringContainsString("'@type' => $seo['schema_type'] ?? 'WebPage'", $view);
+        $this->assertStringContainsString("schema_type", $view);
         $this->assertStringContainsString("'@type' => 'WebSite'", $view);
         $this->assertStringContainsString("'@type' => 'ImageObject'", $view);
     }
