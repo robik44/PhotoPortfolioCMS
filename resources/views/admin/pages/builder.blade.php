@@ -189,13 +189,13 @@
     }
 
     .fve-page-wrap {
-        width: 1200px;
+        width: 1400px;
         margin: 0 auto;
         transform-origin: top center;
     }
 
     .fve-page {
-        width: 1200px;
+        width: 1400px;
         min-height: 900px;
         background: #fff;
         box-shadow: 0 12px 40px rgba(0,0,0,.18);
