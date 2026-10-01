@@ -336,8 +336,25 @@
             }
 
             .main-menu {
-                gap: 6px 14px;
-                font-size: 10px;
+                flex-wrap: nowrap;
+                justify-content: space-between;
+                gap: 0;
+                font-size: clamp(8px, 2.55vw, 10px);
+                letter-spacing: .045em;
+            }
+
+            .main-menu-item {
+                flex: 0 1 auto;
+                min-width: 0;
+            }
+
+            .main-menu-link {
+                gap: 3px;
+                white-space: nowrap;
+            }
+
+            .main-menu-arrow {
+                font-size: 7px;
             }
 
             .page-canvas {
