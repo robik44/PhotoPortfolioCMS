@@ -99,23 +99,19 @@ class BuilderButtonTest extends TestCase
 
 
 
-    public function test_public_builder_uses_same_vertical_coordinate_unit_for_all_element_types(): void
+
+    public function test_builder_and_public_page_use_the_same_non_overlapping_vertical_flow(): void
     {
-        $view = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $builderView = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+        $publicView = file_get_contents(resource_path('views/pages/show.blade.php'));
 
-        $this->assertSame(0, substr_count($view, 'top:{{ $y }}%;'));
-        $this->assertGreaterThanOrEqual(6, substr_count($view, 'top:{{ ($y / 100) * $designHeight }}px;'));
-        $this->assertStringContainsString("querySelectorAll('.page-element')", $view);
-        $this->assertStringContainsString("element.offsetTop + element.offsetHeight + 80", $view);
-    }
-
-    public function test_visual_builder_uses_stable_vertical_coordinates_and_appends_new_elements_below_content(): void
-    {
-        $page = Page::create(['title' => 'Long page', 'slug' => 'long-page', 'published' => true]);
-        $editor = $this->get(route('pages.builder', $page))->assertOk();
-
-        $editor->assertSee('((item.position_y / 100) * 900) + "px"', false)
-            ->assertSee("maxBottom + 60", false);
+        $this->assertStringContainsString('position: relative;', $builderView);
+        $this->assertStringContainsString('margin-bottom: 36px;', $builderView);
+        $this->assertStringContainsString("sort((a, b) => (Number(a.position_y) || 0) - (Number(b.position_y) || 0))", $builderView);
+        $this->assertStringContainsString('position: relative;', $publicView);
+        $this->assertStringContainsString('margin-bottom: 36px;', $publicView);
+        $this->assertStringContainsString("sortBy(fn (\$element) => (float) (\$element['position_y'] ?? 0))", $publicView);
+        $this->assertStringNotContainsString('top:{{ ($y / 100) * $designHeight }}px;', $publicView);
     }
 
     public function test_every_new_page_builder_exposes_shared_button_controls(): void

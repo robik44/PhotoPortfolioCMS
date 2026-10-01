@@ -226,16 +226,16 @@
         }
 
         .page-element {
-            position: absolute;
+            position: relative;
             box-sizing: border-box;
+            margin-bottom: 36px;
         }
 
         @if($page->slug === 'o-mnie')
             .page-canvas { overflow: visible; }
             .page-element-image.about-full-width-image {
-                left: 50% !important;
+                margin-left: calc(50% - 50vw) !important;
                 width: 100vw !important;
-                transform: translateX(-50%);
                 border-radius: 0 !important;
             }
             .page-element-image.about-full-width-image img { width:100%; max-width:none; border-radius:0 !important; }
@@ -327,7 +327,7 @@
 
         @if(count($sections) > 0)
 
-            @foreach($sections as $element)
+            @foreach(collect($sections)->sortBy(fn ($element) => (float) ($element['position_y'] ?? 0))->values() as $element)
 
                 @php
                     $type = $element["type"] ?? "text";
@@ -396,8 +396,7 @@
                         <div
                             class="page-element page-element-image{{ ($aboutFullWidthImageId && ($element['id'] ?? null) === $aboutFullWidthImageId) ? ' about-full-width-image' : '' }}"
                             style="
-                                left:{{ $x }}%;
-                                top:{{ ($y / 100) * $designHeight }}px;
+                                margin-left:{{ $x }}%;
                                 width:{{ $width }}%;
                                 z-index:{{ $zIndex }};
                                 border-radius:{{ $imageRadius }}px;
@@ -433,8 +432,7 @@
                     <{{ $headingTag }}
                         class="page-element page-element-heading"
                         style="margin:0;
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -455,8 +453,7 @@
                     <div
                         class="page-element page-element-text"
                         style="
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -477,8 +474,7 @@
                     <div
                         class="page-element page-element-button"
                         style="
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -502,8 +498,7 @@
                     <div
                         class="page-element page-element-separator"
                         style="
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                         "
@@ -523,8 +518,7 @@
                     <div
                         class="page-element page-element-section"
                         style="
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -542,7 +536,7 @@
 
                 @elseif($type === "thumbnail_gallery")
                     <div class="page-element page-element-thumbnail-gallery" data-builder-thumbnail-gallery
-                        style="left:{{ $x }}%;top:{{ ($y / 100) * $designHeight }}px;width:{{ $width }}%;z-index:{{ $zIndex }};">
+                        style="margin-left:{{ $x }}%;width:{{ $width }}%;z-index:{{ $zIndex }};">
                         @include('components.builder-thumbnail-gallery', ['element' => $element])
                     </div>
 
@@ -552,8 +546,7 @@
                         class="page-element page-element-gallery"
                         @if(($element['gallery_mode'] ?? 'all') === 'single') data-builder-selected-gallery @endif
                         style="
-                            left:{{ $x }}%;
-                            top:{{ ($y / 100) * $designHeight }}px;
+                            margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};

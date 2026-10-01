@@ -1821,6 +1821,7 @@ document.addEventListener("DOMContentLoaded", function () {
         position: relative;
         min-height: 900px;
         background: #fff;
+        padding-bottom: 80px;
     }
 
     .fve-footer {
@@ -1836,11 +1837,12 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     .fve-element {
-        position: absolute;
+        position: relative;
         box-sizing: border-box;
         cursor: move;
         min-width: 40px;
         user-select: none;
+        margin-bottom: 36px;
     }
 
     .fve-element.selected {
@@ -2508,7 +2510,10 @@ document.addEventListener("DOMContentLoaded", function () {
         content.style.backgroundPosition = "initial";
         content.style.backgroundRepeat = "initial";
 
-        data.sections.forEach(function (item, index) {
+        data.sections
+            .slice()
+            .sort((a, b) => (Number(a.position_y) || 0) - (Number(b.position_y) || 0))
+            .forEach(function (item, index) {
 
             ensureItem(item, index);
 
@@ -2523,14 +2528,8 @@ document.addEventListener("DOMContentLoaded", function () {
             element.dataset.id =
                 item.id;
 
-            element.style.left =
+            element.style.marginLeft =
                 item.position_x + "%";
-
-            // position_y is stored in stable 900px design-height units.
-            // Never express it as a percentage of the growing canvas: doing so moves
-            // existing elements whenever the page becomes taller.
-            element.style.top =
-                ((item.position_y / 100) * 900) + "px";
 
             element.style.width =
                 item.element_width + "%";
@@ -2647,11 +2646,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 item.position_y = Math.max(0, startTop + dy);
 
-                element.style.left =
+                element.style.marginLeft =
                     item.position_x + "%";
-
-                element.style.top =
-                    ((item.position_y / 100) * 900) + "px";
             });
 
             document.addEventListener("mouseup", function () {
@@ -2680,12 +2676,10 @@ document.addEventListener("DOMContentLoaded", function () {
             content.appendChild(element);
         });
         requestAnimationFrame(function () {
-            let maxBottom = 900;
-            content.querySelectorAll('.fve-element').forEach(function (element) {
-                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 80);
-            });
-            content.style.height = maxBottom + 'px';
-            page.style.minHeight = (maxBottom + 206) + 'px';
+            const contentHeight = Math.max(900, content.scrollHeight + 80);
+            content.style.height = 'auto';
+            content.style.minHeight = contentHeight + 'px';
+            page.style.minHeight = (contentHeight + 206) + 'px';
             updateZoom();
         });
         window.ThumbnailGallery.fitCanvas(content);
@@ -3036,18 +3030,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 letter_spacing: 0
             },
             position_x: 5,
-            position_y: (function () {
-                let maxBottom = 0;
-                content.querySelectorAll('.fve-element').forEach(function (element) {
-                    maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight);
-                });
-                if (maxBottom === 0 && data.sections.length) {
-                    maxBottom = Math.max(...data.sections.map(function (section) {
-                        return ((Number(section.position_y) || 0) / 100) * 900 + 100;
-                    }));
-                }
-                return (Math.max(45, maxBottom + 60) / 900) * 100;
-            })(),
+            position_y: data.sections.length
+                ? Math.max(...data.sections.map(section => Number(section.position_y) || 0)) + 10
+                : 5,
             element_width:
                 type === "image"
                     ? 55
