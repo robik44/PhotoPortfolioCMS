@@ -178,4 +178,19 @@ class BuilderButtonTest extends TestCase
         $this->get('/')->assertOk()->assertSee('background:rgba(51,102,153,0.35) !important;', false);
     }
 
+    public function test_public_views_use_consistent_mobile_breakpoints(): void
+    {
+        $home = file_get_contents(resource_path('views/welcome.blade.php'));
+        $page = file_get_contents(resource_path('views/pages/show.blade.php'));
+
+        $this->assertStringContainsString('desktop 4, tablet 2, phone 1', $home);
+        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $home);
+        $this->assertStringContainsString('@media (max-width: 520px)', $home);
+        $this->assertStringContainsString('grid-template-columns: 1fr;', $home);
+        $this->assertStringNotContainsString('@media (max-width: 1400px)', $home);
+        $this->assertStringContainsString('margin-left: 0 !important;', $page);
+        $this->assertStringContainsString('max-width: 100%;', $page);
+    }
+
+
 }
