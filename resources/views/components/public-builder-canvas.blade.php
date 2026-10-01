@@ -46,7 +46,7 @@
         @endphp
 
         <div
-            class="builder-public-element builder-public-element-{{ $type }}"
+            class="page-element page-element-{{ $type }}"
             data-builder-id="{{ $element['id'] ?? '' }}"
             style="
                 left:{{ $x }}%;
@@ -54,6 +54,16 @@
                 width:{{ $width }}%;
                 @if($height > 0) min-height:{{ $height }}px; @endif
                 z-index:{{ $zIndex }};
+                @if(in_array($type, ['heading','text','button','section','gallery'], true))
+                    font-family:{{ $fontFamily }};
+                    font-size:{{ $fontSize }}px;
+                    font-weight:{{ $fontWeight }};
+                    color:{{ $color }};
+                    text-align:{{ $textAlign }};
+                    line-height:{{ $lineHeight }};
+                    letter-spacing:{{ $letterSpacing }}px;
+                    word-spacing:{{ $wordSpacing }}px;
+                @endif
             "
         >
             @if($type === 'image')
@@ -178,7 +188,7 @@
         box-sizing: border-box;
     }
 
-    .builder-public-element {
+    .page-element {
         position: absolute;
         box-sizing: border-box;
         min-width: 1px;
@@ -194,7 +204,7 @@
         overflow-wrap: anywhere;
     }
 
-    .builder-public-element-image {
+    .page-element-image {
         overflow: hidden;
     }
 
@@ -210,7 +220,7 @@
         text-decoration: none;
     }
 
-    .builder-public-element-gallery {
+    .page-element-gallery {
         overflow: visible;
     }
 
@@ -229,7 +239,7 @@
 
     const fit = () => {
         let maxBottom = 900;
-        canvas.querySelectorAll('.builder-public-element').forEach((element) => {
+        canvas.querySelectorAll('.page-element').forEach((element) => {
             maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 40);
         });
         canvas.style.minHeight = Math.ceil(maxBottom) + 'px';
@@ -237,7 +247,7 @@
 
     const observer = new ResizeObserver(fit);
     observer.observe(canvas);
-    canvas.querySelectorAll('.builder-public-element').forEach((element) => observer.observe(element));
+    canvas.querySelectorAll('.page-element').forEach((element) => observer.observe(element));
     window.addEventListener('load', fit);
     fit();
 })();
