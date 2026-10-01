@@ -502,6 +502,7 @@
     @include('components.public-builder-canvas', [
         'sections' => $homeSections ?? collect(),
         'settings' => $settings,
+        'canvasSettings' => $homeBuilderSettings ?? [],
         'fontCatalog' => $fontCatalog,
         'canvasId' => 'home-public-builder-canvas',
     ])
