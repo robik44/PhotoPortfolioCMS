@@ -50,7 +50,7 @@ class BuilderButtonTest extends TestCase
             $response = $this->get($public)->assertOk()->assertSee('Nowy przycisk')
                 ->assertSee('href="'.e($url).'"', false)->assertSee('target="_blank" rel="noopener noreferrer"', false)
                 ->assertSee('font-family:Georgia, serif;', false)->assertSee('font-size:24px;', false)->assertSee('font-weight:700;', false)
-                ->assertSee('color:#123456;', false)->assertSee('background-color:rgba(171,205,239,0.45);', false)
+                ->assertSee('color:#123456;', false)->assertSee('background:rgba(171,205,239,0.45) !important;', false)
                 ->assertSee('border-color:#654321;', false)->assertSee('border-width:3px;', false)
                 ->assertSee('border-radius:9px;', false)->assertSee('padding-top:15px;', false)->assertSee('padding-left:31px;', false);
         }
@@ -118,7 +118,7 @@ class BuilderButtonTest extends TestCase
 
         $this->get('/')->assertOk()
             ->assertSee('Portfolio')
-            ->assertSee('background-color:rgba(18,52,86,0.4);', false)
+            ->assertSee('background:rgba(18,52,86,0.4) !important;', false)
             ->assertDontSee('.button:hover {\n            background: #fff;', false);
     }
 
@@ -138,11 +138,11 @@ class BuilderButtonTest extends TestCase
 
         $this->postJson(route('home-builder.save'), ['content' => $payload])->assertOk();
         $this->assertSame(0, \App\Models\PageBuilder::whereNull('page_id')->where('type', 'home')->firstOrFail()->content['sections'][0]['button_background_opacity']);
-        $this->get('/')->assertOk()->assertSee('background-color:rgba(51,102,153,0);', false);
+        $this->get('/')->assertOk()->assertSee('background:rgba(51,102,153,0) !important;', false);
 
         $payload['sections'][0]['button_background_opacity'] = 35;
         $this->postJson(route('home-builder.save'), ['content' => $payload])->assertOk();
-        $this->get('/')->assertOk()->assertSee('background-color:rgba(51,102,153,0.35);', false);
+        $this->get('/')->assertOk()->assertSee('background:rgba(51,102,153,0.35) !important;', false);
     }
 
 }
