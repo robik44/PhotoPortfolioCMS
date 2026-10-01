@@ -40,7 +40,7 @@
 
     <h2>SEO — KONTROLA WITRYNY</h2>
     <p>Braki tytułu i opisu dotyczą własnych pól SEO. Publiczne meta tagi mogą korzystać z wartości domyślnych. Audyt sprawdza też strukturę H1 stron budowanych w edytorze.</p>
-    @php($homeIssues = AppSupportSeo::homeIssues())
+    @php($homeIssues = \App\Support\Seo::homeIssues())
     <section class="cms-card" style="padding:20px;margin:20px 0;">
         <h3>Strona główna</h3>
         <p>
