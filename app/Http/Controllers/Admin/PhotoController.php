@@ -51,8 +51,13 @@ class PhotoController extends Controller
 
                     $storedPaths[] = $filename;
 
-                    $variants = $variantService->createFor($filename);
-                    $storedPaths = array_merge($storedPaths, array_values(array_filter($variants)));
+                    try {
+                        $variants = $variantService->createFor($filename);
+                        $storedPaths = array_merge($storedPaths, array_values(array_filter($variants)));
+                    } catch (Throwable $variantException) {
+                        report($variantException);
+                        $variants = ['thumbnail' => null, 'webp' => null];
+                    }
 
                     Photo::create([
                         'filename' => $filename,
