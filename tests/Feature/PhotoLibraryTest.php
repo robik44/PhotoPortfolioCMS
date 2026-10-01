@@ -408,6 +408,45 @@ class PhotoLibraryTest extends TestCase
         $this->delete(route('photos.destroy', $photo))->assertRedirect(route('login'));
         $this->assertDatabaseHas('photos', ['id' => $photo->id, 'title' => null]);
     }
+    public function test_existing_photo_optimization_command_backfills_missing_variants_and_skips_complete_records(): void
+    {
+        $legacy = Photo::create(['filename' => 'legacy.png']);
+        $complete = Photo::create([
+            'filename' => 'photos/complete.png',
+            'webp' => 'photos/complete-web.webp',
+            'thumbnail' => 'photos/complete-thumb.webp',
+        ]);
+
+        $legacyImage = UploadedFile::fake()->image('legacy.png', 20, 20);
+        Storage::disk('public')->put('photos/legacy.png', $legacyImage->getContent());
+        Storage::disk('public')->put('photos/complete.png', 'original');
+        Storage::disk('public')->put('photos/complete-web.webp', 'web');
+        Storage::disk('public')->put('photos/complete-thumb.webp', 'thumb');
+
+        $this->artisan('photos:optimize-existing')
+            ->expectsOutputToContain('Zoptymalizowano: 1; pominięto: 1; błędy: 0.')
+            ->assertExitCode(0);
+
+        $legacy = $legacy->fresh();
+        $complete = $complete->fresh();
+
+        $this->assertNotNull($legacy->webp);
+        $this->assertNotNull($legacy->thumbnail);
+        Storage::disk('public')->assertExists($legacy->webp);
+        Storage::disk('public')->assertExists($legacy->thumbnail);
+
+        $this->assertSame('photos/complete-web.webp', $complete->webp);
+        $this->assertSame('photos/complete-thumb.webp', $complete->thumbnail);
+    }
+
+    public function test_existing_photo_optimization_command_rejects_invalid_limit(): void
+    {
+        $this->artisan('photos:optimize-existing', ['--limit' => '0'])
+            ->expectsOutput('--limit must be a positive integer.')
+            ->assertExitCode(2);
+    }
+
+
     public function test_photo_urls_prefer_optimized_variants_with_safe_fallbacks(): void
     {
         $photo = Photo::create([
