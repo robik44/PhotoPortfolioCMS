@@ -22,6 +22,7 @@ class SiteSettingController extends Controller
             'footer_text' => 'ROBERT WOŹNIAK FOTOGRAFIA',
             'hero_photo_id' => null,
             'hero_image' => null,
+            'site_under_construction' => '0',
         ];
 
         $settings = array_merge(
@@ -50,6 +51,7 @@ class SiteSettingController extends Controller
             'hero_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
             'background_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'site_under_construction' => ['required', 'boolean'],
         ]);
 
         foreach ([
@@ -62,6 +64,7 @@ class SiteSettingController extends Controller
             'footer_text',
             'hero_photo_id',
             'background_color',
+            'site_under_construction',
         ] as $key) {
             SiteSetting::updateOrCreate(
                 ['key' => $key],
