@@ -365,6 +365,54 @@ class SeoTest extends TestCase
         $this->assertSame('Domyślny opis', $meta['description']);
     }
 
+    public function test_static_content_preview_starts_with_real_h1(): void
+    {
+        $page = $this->page(['title' => 'O mnie', 'slug' => 'o-mnie']);
+        $content = \App\Support\ContentPages::initialContent($page);
+
+        $this->assertSame('h1', $content['sections'][0]['heading_level']);
+    }
+
+    public function test_seo_dashboard_reports_duplicate_metadata_and_broken_menu_targets(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $first = $this->page([
+            'title' => 'Pierwsza',
+            'slug' => 'pierwsza',
+            'seo_title' => 'Wspólny tytuł',
+            'seo_description' => 'Wspólny opis',
+            'indexable' => true,
+        ]);
+        $second = $this->page([
+            'title' => 'Druga',
+            'slug' => 'druga',
+            'seo_title' => 'Wspólny tytuł',
+            'seo_description' => 'Wspólny opis',
+            'indexable' => true,
+        ]);
+        $hidden = $this->page([
+            'title' => 'Ukryta',
+            'slug' => 'ukryta',
+            'published' => false,
+            'indexable' => true,
+        ]);
+
+        \App\Models\MenuItem::create([
+            'title' => 'Ukryta strona',
+            'type' => 'page',
+            'page_id' => $hidden->id,
+            'published' => true,
+        ]);
+
+        $this->get(route('seo.edit'))->assertOk()
+            ->assertSee('Powtarzający się tytuł SEO')
+            ->assertSee('Powtarzający się opis SEO')
+            ->assertSee('Strona: Pierwsza')
+            ->assertSee('Strona: Druga')
+            ->assertSee('Menu „Ukryta strona” prowadzi do brakującej lub nieopublikowanej strony.');
+    }
+
     public function test_create_forms_save_seo_and_admin_seo_requires_authentication(): void
     {
         $this->get(route('seo.edit'))->assertRedirect(route('login'));
