@@ -424,6 +424,27 @@ class SeoTest extends TestCase
         }
     }
 
+    public function test_homepage_portfolio_heading_exposes_anchor_target(): void
+    {
+        \App\Models\PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => ['sections' => [
+                [
+                    'id' => 'portfolio-heading',
+                    'type' => 'heading',
+                    'content' => 'Portfolio',
+                    'heading_level' => 'h2',
+                ],
+            ]],
+        ]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('id="portfolio"', false)
+            ->assertSee('data-builder-id="portfolio-heading"', false);
+    }
+
     public function test_homepage_has_independent_seo_and_indexing_controls(): void
     {
         $this->actingAs(User::factory()->create());
