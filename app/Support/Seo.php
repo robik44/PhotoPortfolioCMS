@@ -88,8 +88,8 @@ class Seo
         if (!self::meta($entity)['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
         if (!$entity->indexable) $issues[] = 'noindex';
 
-        if ($entity instanceof Page) {
-            $sections = $entity->builder?->content['sections'] ?? [];
+        if ($entity instanceof Page && $entity->builder) {
+            $sections = $entity->builder->content['sections'] ?? [];
             $issues = array_merge($issues, self::headingIssues($sections));
         }
 
