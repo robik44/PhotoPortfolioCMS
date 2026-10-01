@@ -13,7 +13,10 @@ class UnderConstruction
     {
         $enabled = (string) SiteSetting::where('key', 'site_under_construction')->value('value') === '1';
 
-        if (!$enabled || auth()->check()
+        $authenticatedAdminRoute = auth()->check()
+            && in_array('auth', $request->route()?->gatherMiddleware() ?? [], true);
+
+        if (!$enabled || $authenticatedAdminRoute
             || $request->routeIs('login', 'logout', 'password.*', 'verification.*')
             || $request->is('robots.txt', 'sitemap.xml', 'up')) {
             return $next($request);

@@ -248,7 +248,7 @@ class SeoTest extends TestCase
         $this->get('/sitemap.xml')->assertDontSee('<loc>'.url('/').'</loc>', false);
     }
 
-    public function test_under_construction_hides_public_site_but_not_authenticated_preview(): void
+    public function test_under_construction_hides_public_site_even_when_authenticated_but_keeps_cms_available(): void
     {
         SiteSetting::updateOrCreate(['key' => 'site_under_construction'], ['value' => '1']);
 
@@ -258,8 +258,9 @@ class SeoTest extends TestCase
         $this->get('/sitemap.xml')->assertOk()->assertDontSee('<loc>', false);
 
         $this->actingAs(User::factory()->create());
-        $this->get('/')->assertOk()->assertDontSee('Strona w budowie');
+        $this->get('/')->assertStatus(503)->assertSee('Strona w budowie');
         $this->get(route('seo.edit'))->assertOk();
+        $this->get(route('site-settings.edit'))->assertOk();
     }
 
 }
