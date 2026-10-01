@@ -119,6 +119,16 @@ class SeoTest extends TestCase
         $this->get(route('galleries.edit', $gallery))->assertOk()->assertSee('name="slug"', false);
     }
 
+    public function test_public_meta_declares_polish_locale_and_language(): void
+    {
+        $page = $this->page(['seo_title' => 'Klienci', 'seo_description' => 'Opis']);
+
+        $this->get(Seo::pageUrl($page))->assertOk()
+            ->assertSee('<meta property="og:locale" content="pl_PL">', false)
+            ->assertSee('<link rel="alternate" hreflang="pl" href="'.Seo::pageUrl($page).'">', false)
+            ->assertSee('"inLanguage":"pl"', false);
+    }
+
     public function test_social_image_alt_and_schema_types_match_page_kind(): void
     {
         $photo = Photo::create(['filename' => 'social.jpg', 'alt' => 'Apetyczne danie']);

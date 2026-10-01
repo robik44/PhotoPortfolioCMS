@@ -85,6 +85,7 @@ class Seo
             'image' => $photo?->imageUrl(),
             'image_alt' => self::firstText($photo?->alt, $photo?->title, $resolvedTitle),
             'type' => 'website', 'site_name' => $site, 'schema_type' => $schemaType,
+            'language' => 'pl', 'og_locale' => 'pl_PL',
             'robots' => ($entity === null ? self::homeIndexing($settings) : self::indexing($settings) && ($entity?->indexable ?? true)) ? 'index, follow' : 'noindex, nofollow',
         ];
     }
