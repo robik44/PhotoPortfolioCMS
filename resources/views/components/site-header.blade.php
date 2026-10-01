@@ -32,8 +32,12 @@
     .site-header .main-submenu a:hover { opacity: 1; background: #f7f7f7; }
     @media (max-width: 520px) {
         .site-header .header-inner {
-            padding-left: 10px;
-            padding-right: 10px;
+            min-height: 0;
+            padding: 5px 10px 4px;
+            gap: 5px;
+        }
+        .site-header.header-layout-center .header-inner {
+            gap: 5px;
         }
         .site-header .logo,
         .site-header.header-layout-center .logo,
@@ -44,12 +48,16 @@
             overflow-wrap: normal;
         }
         .site-header .logo > span:first-child {
+            margin-top: 0;
+            line-height: 1.05;
             white-space: nowrap;
             overflow-wrap: normal;
             font-size: clamp(13px, 4.8vw, 17px) !important;
             letter-spacing: .035em !important;
         }
         .site-header .logo > span:last-child {
+            margin-top: 1px;
+            line-height: 1.1;
             white-space: nowrap;
             overflow-wrap: normal;
             font-size: clamp(7px, 2.2vw, 9px) !important;
@@ -68,7 +76,8 @@
         .site-header .main-menu-item { flex: 0 1 auto; min-width: 0; }
         .site-header .main-menu-link {
             gap: 2px;
-            padding: 8px 0;
+            padding: 4px 0;
+            line-height: 1.1;
             white-space: nowrap;
         }
         .site-header .main-menu-arrow { font-size: 6px; }
