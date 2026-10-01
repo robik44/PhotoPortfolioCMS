@@ -33,11 +33,11 @@
     @media (max-width: 520px) {
         .site-header .header-inner {
             min-height: 0;
-            padding: 5px 10px 4px;
-            gap: 5px;
+            padding: 8px 12px 7px;
+            gap: 7px;
         }
         .site-header.header-layout-center .header-inner {
-            gap: 5px;
+            gap: 7px;
         }
         .site-header .logo,
         .site-header.header-layout-center .logo,
@@ -52,31 +52,31 @@
             line-height: 1.05;
             white-space: nowrap;
             overflow-wrap: normal;
-            font-size: clamp(13px, 4.8vw, 17px) !important;
-            letter-spacing: .035em !important;
+            font-size: clamp(14px, 5vw, 18px) !important;
+            letter-spacing: .04em !important;
         }
         .site-header .logo > span:last-child {
             margin-top: 1px;
             line-height: 1.1;
             white-space: nowrap;
             overflow-wrap: normal;
-            font-size: clamp(7px, 2.2vw, 9px) !important;
-            letter-spacing: .055em !important;
+            font-size: clamp(7.5px, 2.3vw, 9.5px) !important;
+            letter-spacing: .06em !important;
         }
         .site-header .main-menu,
         .site-header.header-layout-center .main-menu,
         .site-header.header-layout-right .main-menu {
             width: 100%;
             flex-wrap: nowrap !important;
-            justify-content: space-between;
-            gap: 0;
-            font-size: clamp(6.5px, 2vw, 8.5px);
-            letter-spacing: 0;
+            justify-content: center;
+            gap: clamp(14px, 4vw, 22px);
+            font-size: clamp(7px, 2.15vw, 9px);
+            letter-spacing: .01em;
         }
         .site-header .main-menu-item { flex: 0 1 auto; min-width: 0; }
         .site-header .main-menu-link {
             gap: 2px;
-            padding: 4px 0;
+            padding: 5px 0;
             line-height: 1.1;
             white-space: nowrap;
         }
