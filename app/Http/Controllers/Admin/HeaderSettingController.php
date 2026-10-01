@@ -41,6 +41,9 @@ class HeaderSettingController extends Controller
             'header_padding_bottom.required' => 'Podaj odstęp pod logo i menu.',
             'header_padding_bottom.integer' => 'Odstęp pod logo i menu musi być liczbą całkowitą.',
             'header_padding_bottom.between' => 'Odstęp pod logo i menu musi mieścić się w zakresie od 0 do 160 px.',
+            'header_logo_subtitle_gap.required' => 'Podaj odstęp między logo a podtytułem.',
+            'header_logo_subtitle_gap.integer' => 'Odstęp między logo a podtytułem musi być liczbą całkowitą.',
+            'header_logo_subtitle_gap.between' => 'Odstęp między logo a podtytułem musi mieścić się w zakresie od 0 do 80 px.',
         ]);
         $data = array_intersect_key($validated, HeaderSettings::DEFAULTS);
         $data['logo_subtitle'] = $data['logo_subtitle'] ?? '';
