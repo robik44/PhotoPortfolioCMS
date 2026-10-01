@@ -36,8 +36,8 @@ class CentralTypographyTest extends TestCase
         foreach ($beforeFonts as $oldId => $font) $this->assertSame($font, $catalog['fonts'][$oldId]);
         Storage::disk('public')->assertExists($catalog['fonts'][$id]['path']);
         $this->assertCount(1, Storage::disk('public')->allFiles('fonts'));
-        // A fresh database connection and service must see the persisted registry.
-        DB::purge('sqlite');
+        // A fresh service instance must see the persisted registry on the same
+        // in-memory test connection. Purging :memory: would intentionally destroy it.
         $this->assertSame($catalog, (new SiteFontLibrary)->catalog());
 
         $gallery = Gallery::create(['title' => 'Typography test', 'slug' => 'typography-test', 'description' => 'Gallery description', 'published' => true]);
