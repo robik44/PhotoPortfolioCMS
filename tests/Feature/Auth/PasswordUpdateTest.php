@@ -28,7 +28,21 @@ class PasswordUpdateTest extends TestCase
             ->assertSessionHasNoErrors()
             ->assertRedirect('/profile');
 
-        $this->assertTrue(Hash::check('new-password', $user->refresh()->password));
+        $user->refresh();
+        $this->assertTrue(Hash::check('new-password', $user->password));
+        $this->assertNotSame('new-password', $user->password);
+        $this->assertArrayNotHasKey('password', $user->toArray());
+    }
+
+    public function test_profile_page_is_authenticated_and_exposes_password_form(): void
+    {
+        $this->get('/profile')->assertRedirect(route('login'));
+
+        $user = User::factory()->create();
+        $this->actingAs($user)->get('/profile')->assertOk()
+            ->assertSee('name="current_password"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('name="password_confirmation"', false);
     }
 
     public function test_correct_password_must_be_provided_to_update_password(): void
