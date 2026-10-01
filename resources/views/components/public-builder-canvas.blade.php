@@ -36,8 +36,9 @@
             $fontSize = (float) ($style['font_size'] ?? ($type === 'heading' ? 42 : 18));
             $fontWeight = (int) ($style['font_weight'] ?? 400);
             $color = $style['color'] ?? '#222222';
-            $textAlign = in_array($style['text_align'] ?? 'left', ['left', 'center', 'right'], true)
-                ? $style['text_align']
+            $requestedTextAlign = $style['text_align'] ?? 'left';
+            $textAlign = in_array($requestedTextAlign, ['left', 'center', 'right'], true)
+                ? $requestedTextAlign
                 : 'left';
             $lineHeight = max(0.45, min(4, (float) ($style['line_height'] ?? 1.4)));
             $letterSpacing = (float) ($style['letter_spacing'] ?? 0);
