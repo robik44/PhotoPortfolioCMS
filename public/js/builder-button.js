@@ -1,6 +1,23 @@
 (() => {
     window.BuilderButton = {
+        defaults: {
+            button_background: '#222222',
+            button_background_opacity: 100,
+            button_border_color: '#222222',
+            button_border_width: 0,
+            button_radius: 4,
+            button_padding_y: 13,
+            button_padding_x: 24,
+        },
+        initialize(item) {
+            if (item.type !== 'button') return item;
+            for (const [key, value] of Object.entries(this.defaults)) {
+                if (item[key] === undefined || item[key] === null || item[key] === '') item[key] = value;
+            }
+            return item;
+        },
         apply(node, item) {
+            this.initialize(item);
             for (const [key, property] of [['background', 'backgroundColor'], ['border_color', 'borderColor']]) {
                 if (item[`button_${key}`]) node.style[property] = item[`button_${key}`];
             }
@@ -19,6 +36,7 @@
         },
         fields(container, item, render, className) {
             if (item.type !== 'button') return;
+            this.initialize(item);
             const add = (label, key, type, fallback = '') => {
                 const wrapper = document.createElement('label');
                 wrapper.className = className;
