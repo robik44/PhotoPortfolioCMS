@@ -2,7 +2,7 @@
 
 namespace App\Support;
 
-use App\Models\{Gallery, Page, Photo, SiteSetting};
+use App\Models\{Gallery, Page, PageBuilder, Photo, SiteSetting};
 
 class Seo
 {
@@ -87,6 +87,46 @@ class Seo
         if (!trim($entity->seo_description ?? '')) $issues[] = 'Brak opisu SEO';
         if (!self::meta($entity)['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
         if (!$entity->indexable) $issues[] = 'noindex';
+
+        if ($entity instanceof Page) {
+            $sections = $entity->builder?->content['sections'] ?? [];
+            $issues = array_merge($issues, self::headingIssues($sections));
+        }
+
         return $issues;
+    }
+
+    public static function homeIssues(): array
+    {
+        $settings = self::settings();
+        $issues = [];
+        if (!trim((string) ($settings['home_seo_title'] ?? '')) && !trim((string) ($settings['seo_default_title'] ?? ''))) {
+            $issues[] = 'Brak tytułu SEO';
+        }
+        if (!trim((string) ($settings['home_seo_description'] ?? '')) && !trim((string) ($settings['seo_default_description'] ?? ''))) {
+            $issues[] = 'Brak opisu SEO';
+        }
+        if (!self::meta(null)['image']) $issues[] = 'Brak zdjęcia social (także w fallbackach)';
+        if (!self::homeIndexing($settings)) $issues[] = 'noindex';
+
+        $builder = PageBuilder::whereNull('page_id')->where('type', 'home')->where('published', true)->first();
+        $sections = $builder?->content['sections'] ?? [];
+
+        return array_merge($issues, self::headingIssues($sections));
+    }
+
+    /**
+     * @param array<int, array<string, mixed>> $sections
+     * @return list<string>
+     */
+    public static function headingIssues(array $sections): array
+    {
+        $headings = collect($sections)->filter(fn ($section) => ($section['type'] ?? null) === 'heading');
+        $h1Count = $headings->filter(fn ($section) => ($section['heading_level'] ?? null) === 'h1')->count();
+
+        if ($h1Count === 0) return ['Brak H1'];
+        if ($h1Count > 1) return ['Więcej niż jeden H1 ('.$h1Count.')'];
+
+        return [];
     }
 }
