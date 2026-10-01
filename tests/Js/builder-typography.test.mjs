@@ -216,8 +216,8 @@ test('heading properties change H1/H2/H3 tags while preserving visual styles and
 for (const type of ['image', 'gallery']) {
     test(`${type}: caption controls preserve defaults and reopen saved font settings`, () => {
         const item = { ...textItem(type), photo_url: '/photo.jpg' };
-        const before = JSON.stringify(item);
         const { context, preview } = setup(item);
+        const before = JSON.stringify(item);
         assert.equal(JSON.stringify(item), before);
         const prefix = type === 'gallery' ? 'Opis zdjęcia w podglądzie' : 'Podpis zdjęcia';
         const font = find(context.properties, el => el['aria-label'] === `${prefix} — rodzaj czcionki`);
@@ -280,8 +280,8 @@ test('lightbox description typography changes per photo and resets for legacy ga
 
 test('button fields update appearance without changing legacy defaults or geometry', () => {
     const item = textItem('button');
-    const before = JSON.stringify(item);
     const { context, preview } = setup(item);
+    const before = JSON.stringify(item);
     assert.equal(JSON.stringify(item), before);
     for (const [label, value, property, expected] of [
         ['Kolor tła przycisku', '#abcdef', 'backgroundColor', '#abcdef'],
