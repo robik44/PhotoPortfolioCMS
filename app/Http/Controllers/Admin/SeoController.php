@@ -30,7 +30,7 @@ class SeoController extends Controller
                 'meta' => Seo::meta($gallery),
                 'active' => $gallery->published && $gallery->indexable && Seo::indexing($settings),
             ])
-        )->filter('active')->values();
+        )->filter(fn ($entity) => (bool) $entity['active'])->values();
 
         $duplicateTitles = $this->duplicates($indexedEntities, 'title');
         $duplicateDescriptions = $this->duplicates($indexedEntities, 'description');
