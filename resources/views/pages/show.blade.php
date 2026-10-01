@@ -402,6 +402,7 @@
     @include('components.public-builder-canvas', [
         'sections' => $sections,
         'settings' => $settings,
+        'canvasSettings' => $builderContent['settings'] ?? [],
         'fontCatalog' => $fontCatalog,
         'canvasId' => 'page-public-builder-canvas',
     ])
