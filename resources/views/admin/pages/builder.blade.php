@@ -2526,8 +2526,11 @@ document.addEventListener("DOMContentLoaded", function () {
             element.style.left =
                 item.position_x + "%";
 
+            // position_y is stored in stable 900px design-height units.
+            // Never express it as a percentage of the growing canvas: doing so moves
+            // existing elements whenever the page becomes taller.
             element.style.top =
-                item.position_y + "%";
+                ((item.position_y / 100) * 900) + "px";
 
             element.style.width =
                 item.element_width + "%";
@@ -2648,7 +2651,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     item.position_x + "%";
 
                 element.style.top =
-                    item.position_y + "%";
+                    ((item.position_y / 100) * 900) + "px";
             });
 
             document.addEventListener("mouseup", function () {
@@ -3033,7 +3036,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 letter_spacing: 0
             },
             position_x: 5,
-            position_y: 5,
+            position_y: (function () {
+                let maxBottom = 0;
+                content.querySelectorAll('.fve-element').forEach(function (element) {
+                    maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight);
+                });
+                if (maxBottom === 0 && data.sections.length) {
+                    maxBottom = Math.max(...data.sections.map(function (section) {
+                        return ((Number(section.position_y) || 0) / 100) * 900 + 100;
+                    }));
+                }
+                return (Math.max(45, maxBottom + 60) / 900) * 100;
+            })(),
             element_width:
                 type === "image"
                     ? 55
