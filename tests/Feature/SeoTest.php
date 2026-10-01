@@ -424,6 +424,31 @@ class SeoTest extends TestCase
         }
     }
 
+    public function test_public_builder_uses_global_background_instead_of_stale_page_background(): void
+    {
+        $this->settings(['background_color' => '#ead3a3']);
+
+        \App\Models\PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => [
+                'settings' => ['background_color' => '#ffffff'],
+                'sections' => [],
+            ],
+        ]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('class="builder-public-canvas" style="background:#ead3a3;"', false)
+            ->assertDontSee('class="builder-public-canvas" style="background:#ffffff;"', false);
+    }
+
+    public function test_shared_header_is_opaque_and_above_builder_layers(): void
+    {
+        $this->get('/')->assertOk()
+            ->assertSee('.site-header { z-index: 5000 !important; background: #fff !important; }', false);
+    }
+
     public function test_homepage_portfolio_heading_exposes_anchor_target(): void
     {
         \App\Models\PageBuilder::create([

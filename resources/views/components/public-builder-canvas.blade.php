@@ -4,7 +4,7 @@
     $settings = $settings ?? [];
     $canvasId = $canvasId ?? 'builder-public-canvas';
     $canvasSettings = is_array($canvasSettings ?? null) ? $canvasSettings : [];
-    $canvasBackground = $canvasSettings['background_color'] ?? $settings['background_color'] ?? '#ffffff';
+    $canvasBackground = $settings['background_color'] ?? '#ffffff';
     $designHeight = 900;
     $layerMap = [
         'image' => 10,
