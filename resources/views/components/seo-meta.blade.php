@@ -16,6 +16,8 @@
 <meta property="og:type" content="{{ $seo['type'] }}">
 
 <meta property="og:site_name" content="{{ $seo['site_name'] }}">
+<meta property="og:locale" content="{{ $seo['og_locale'] ?? 'pl_PL' }}">
+<link rel="alternate" hreflang="{{ $seo['language'] ?? 'pl' }}" href="{{ $seo['canonical'] }}">
 <meta name="twitter:card" content="{{ $seo['image'] ? 'summary_large_image' : 'summary' }}">
 <meta name="twitter:title" content="{{ $seo['title'] }}">
 @if($seo['description'] !== '')
@@ -31,6 +33,7 @@
     'name' => $seo['title'],
     'description' => $seo['description'] ?: null,
     'url' => $seo['canonical'],
+    'inLanguage' => $seo['language'] ?? 'pl',
     'isPartOf' => [
         '@type' => 'WebSite',
         'name' => $seo['site_name'],
