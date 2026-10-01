@@ -39,7 +39,7 @@
     </form>
 
     <h2>SEO — KONTROLA WITRYNY</h2>
-    <p>Braki tytułu i opisu dotyczą własnych pól SEO. Publiczne meta tagi mogą korzystać z wartości domyślnych. Audyt sprawdza też strukturę H1 stron budowanych w edytorze oraz ostrzega o wyjątkowo długich tytułach i opisach SEO. To wskazówki redakcyjne, nie twarde limity wyszukiwarki.</p>
+    <p>Braki tytułu i opisu dotyczą własnych pól SEO. Publiczne meta tagi mogą korzystać z wartości domyślnych. Audyt sprawdza też strukturę nagłówków stron budowanych w edytorze: obecność H1, pusty H1 i pomijanie poziomów (np. H1 → H3). Ostrzega też o wyjątkowo długich tytułach i opisach SEO. To wskazówki redakcyjne, nie twarde limity wyszukiwarki.</p>
     @php($homeIssues = \App\Support\Seo::homeIssues())
     <section class="cms-card" style="padding:20px;margin:20px 0;">
         <h3>Strona główna</h3>

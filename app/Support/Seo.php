@@ -154,12 +154,37 @@ class Seo
      */
     public static function headingIssues(array $sections): array
     {
-        $headings = collect($sections)->filter(fn ($section) => ($section['type'] ?? null) === 'heading');
-        $h1Count = $headings->filter(fn ($section) => ($section['heading_level'] ?? null) === 'h1')->count();
+        $headings = collect($sections)
+            ->filter(fn ($section) => ($section['type'] ?? null) === 'heading')
+            ->values();
 
-        if ($h1Count === 0) return ['Brak H1'];
-        if ($h1Count > 1) return ['Więcej niż jeden H1 ('.$h1Count.')'];
+        $issues = [];
+        $h1Headings = $headings->filter(fn ($section) => ($section['heading_level'] ?? null) === 'h1');
+        $h1Count = $h1Headings->count();
 
-        return [];
+        if ($h1Count === 0) $issues[] = 'Brak H1';
+        if ($h1Count > 1) $issues[] = 'Więcej niż jeden H1 ('.$h1Count.')';
+        if ($h1Headings->contains(fn ($section) => trim((string) ($section['content'] ?? '')) === '')) {
+            $issues[] = 'Pusty H1';
+        }
+
+        $levels = $headings
+            ->map(fn ($section) => match ($section['heading_level'] ?? null) {
+                'h1' => 1,
+                'h2' => 2,
+                'h3' => 3,
+                default => null,
+            })
+            ->filter()
+            ->values();
+
+        for ($i = 1; $i < $levels->count(); $i++) {
+            if ($levels[$i] > $levels[$i - 1] + 1) {
+                $issues[] = 'Pominięty poziom nagłówka (np. H1 → H3)';
+                break;
+            }
+        }
+
+        return $issues;
     }
 }
