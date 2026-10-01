@@ -91,7 +91,8 @@ Route::get("/", function () {
         "heroImageUrl",
         "menuItems",
         "homeButtons",
-        "homeElements"
+        "homeElements",
+        "homeSections"
     ));
 });
 
