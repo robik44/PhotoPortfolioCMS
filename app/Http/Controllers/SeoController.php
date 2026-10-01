@@ -21,9 +21,22 @@ class SeoController extends Controller
                 $entries[$loc] = ['loc' => $loc, 'lastmod' => $page->updated_at?->toAtomString()];
             }
 
-            foreach (Gallery::where('published', true)->where('indexable', true)->get() as $gallery) {
+            foreach (Gallery::with('photos')->where('published', true)->where('indexable', true)->get() as $gallery) {
                 $loc = route('portfolio.gallery', $gallery);
-                $entries[$loc] = ['loc' => $loc, 'lastmod' => $gallery->updated_at?->toAtomString()];
+                $images = $gallery->photos
+                    ->map(fn ($photo) => [
+                        'loc' => $photo->imageUrl(),
+                        'title' => trim((string) ($photo->title ?: $photo->alt ?: $gallery->title)),
+                        'caption' => trim((string) ($photo->description ?: $photo->alt ?: $photo->title ?: '')),
+                    ])
+                    ->values()
+                    ->all();
+
+                $entries[$loc] = [
+                    'loc' => $loc,
+                    'lastmod' => $gallery->updated_at?->toAtomString(),
+                    'images' => $images,
+                ];
             }
 
             // These public fallback pages can exist before their first CMS edit.
