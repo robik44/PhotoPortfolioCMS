@@ -34,7 +34,8 @@ class BuilderButtonTest extends TestCase
         $public = route('page.public', $page);
         $this->postJson($save, ['content' => ['sections' => [$button]]])->assertOk();
         $legacy = $this->get($public)->assertOk();
-        $legacy->assertSee('padding: 13px 24px;', false)->assertSee('background: #222;', false)->assertSee('border-radius: 4px;', false);
+        $legacy->assertSee('padding-top:13px;', false)->assertSee('padding-left:24px;', false)
+            ->assertSee('background-color:#222222;', false)->assertSee('border-radius:4px;', false);
         $legacy->assertDontSee('<a href="#" style="color:#123456;', false);
         $button['content'] = 'Nowy przycisk';
         $button += ['button_background' => '#abcdef', 'button_border_color' => '#654321', 'button_border_width' => 3,
@@ -94,6 +95,23 @@ class BuilderButtonTest extends TestCase
         $this->get(route('page.public', $page))->assertOk()->assertSee('font-family:'.$id, false)->assertSee('storage/fonts/'.$id.'.ttf', false);
         $this->put(route('galleries.update', $gallery), ['title' => $gallery->title, 'back_font_family' => $id])->assertSessionHasNoErrors();
         $this->get(route('portfolio.gallery', $gallery))->assertOk()->assertSee('font-family:'.$id, false)->assertSee('storage/fonts/'.$id.'.ttf', false);
+    }
+
+
+    public function test_every_new_page_builder_exposes_shared_button_controls(): void
+    {
+        $page = Page::create(['title' => 'Future page', 'slug' => 'future-page', 'published' => true]);
+
+        $editor = $this->get(route('pages.builder', $page))->assertOk();
+        $editor->assertSee('+ Przycisk')
+            ->assertSee('builder-button.js')
+            ->assertSee('Przezroczystość tła (%) — 100 = pełne');
+
+        $button = ['type' => 'button', 'content' => 'Future button', 'button_background' => '#336699',
+            'button_background_opacity' => 25, 'style' => ['color' => '#ffffff']];
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$button]]])->assertOk();
+        $this->get(route('page.public', $page))->assertOk()
+            ->assertSee('background:rgba(51,102,153,0.25) !important;', false);
     }
 
     public function test_homepage_renders_builder_button_background_and_opacity(): void
