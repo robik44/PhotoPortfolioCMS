@@ -39,37 +39,29 @@ function slice(start, end, offset = 0) {
     assert.ok(a >= 0 && b > a);
     return builder.slice(a, b);
 }
-function setup(mode, item, galleryList = [], photoList = []) {
+function setup(item, galleryList = [], photoList = []) {
     const document = { createElement: node, addEventListener() {} };
     const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
     vm.runInContext(thumbnailSource, context);
     vm.runInContext(readFileSync(new URL('../../public/js/builder-button.js', import.meta.url), 'utf8'), context);
-    if (mode === 'full') {
-        const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
-        const functions = slice('    function createElementContent(item)', '    function render()', offset)
-            + slice('    function field(', '    function showProperties(item)', offset)
-            + slice('    function showProperties(item)', '    function addElement(type)', offset);
-        vm.runInContext(functions + '\nfunction render() { preview = createElementContent(item); }\nshowProperties(item); render();', context);
-    } else {
-        const functions = slice('            function ensureElementStyle(item)', '            function createField(')
-            + slice('            function createField(', '            function showImageProperties(')
-            + slice('            function showProperties(item)', '            document.querySelectorAll(".builder-add")');
-        vm.runInContext(functions + '\nshowProperties(item); render();', context);
-    }
-    return { context, preview: () => mode === 'full' ? context.preview : context.page.children[0].children[0] };
+    const offset = builder.indexOf('/* FULL VISUAL PAGE EDITOR */');
+    const functions = slice('    function createElementContent(item)', '    function render()', offset)
+        + slice('    function field(', '    function showProperties(item)', offset)
+        + slice('    function showProperties(item)', '    function addElement(type)', offset);
+    vm.runInContext(functions + '\nfunction render() { preview = createElementContent(item); }\nshowProperties(item); render();', context);
+    return { context, preview: () => context.preview };
 }
 function textItem(type) {
     return { id: 'element-1', type, content: 'Tekst', position_x: 12, position_y: 20,
         style: { color: '#123456', font_size: 24, font_weight: 400, text_align: 'left', line_height: 1.6, letter_spacing: 0 }, other: { keep: true } };
 }
 
-for (const mode of ['full', 'legacy']) {
-    for (const type of catalog.textTypes) {
-        test(`${mode}: ${type} changes system and custom font immediately in the actual renderer`, () => {
+for (const type of catalog.textTypes) {
+        test(`full: ${type} changes system and custom font immediately in the actual renderer`, () => {
             const item = textItem(type);
-            const { context, preview } = setup(mode, item);
+            const { context, preview } = setup(item);
             const before = JSON.stringify(item);
             const select = find(context.properties, element => element.tag === 'select' && element['aria-label'] === 'Rodzaj czcionki');
             assert.ok(select);
@@ -84,7 +76,6 @@ for (const mode of ['full', 'legacy']) {
             delete item.style.font_family;
             assert.equal(JSON.stringify(item), before);
         });
-    }
 }
 
 test('thumbnail canvas sizing follows moved blocks and resets after their removal', () => {
@@ -111,7 +102,7 @@ test('thumbnail canvas sizing follows moved blocks and resets after their remova
 
 test('full builder existing text controls update content, size, weight, color and spacing without save', () => {
     const item = textItem('text');
-    const { context, preview } = setup('full', item);
+    const { context, preview } = setup(item);
     for (const [label, value, styleKey, expected] of [
         ['Treść', 'Nowa treść', null, 'Nowa treść'],
         ['Rozmiar czcionki', '36', 'fontSize', '36px'],
@@ -143,11 +134,10 @@ test('graphic blocks do not get font fields or new font properties', () => {
     }
 });
 
-for (const mode of ['full', 'legacy']) {
-    test(`${mode}: thumbnail block renders ordered live Photo references and its own settings without text fields`, () => {
+test('full: thumbnail block renders ordered live Photo references and its own settings without text fields', () => {
         const item = { ...textItem('thumbnail_gallery'), photo_ids: [2, 999, 1], image_fit: 'cover', thumbnail_height: 180 };
         const photos = [{ id: 1, url: '/one.png', alt: 'Logo one' }, { id: 2, thumbnail_url: '/two-small.png', title: 'Firma two' }];
-        const { context, preview } = setup(mode, item, [], photos);
+        const { context, preview } = setup(item, [], photos);
         const grid = find(preview(), element => element.className === 'thumbnail-gallery-grid');
         assert.deepEqual(grid.children.map(image => image.src), ['/two-small.png', '/one.png']);
         assert.deepEqual(grid.children.map(image => image.alt), ['Firma two', 'Logo one']);
@@ -170,7 +160,6 @@ for (const mode of ['full', 'legacy']) {
         assert.equal(item.thumbnail_height, 180);
         assert.deepEqual(item.photo_ids, [2, 999, 1]);
     });
-}
 
 test('new blocks use global defaults, old blocks remain untouched and unknown CSS is never used', () => {
     const context = vm.createContext({ window: {}, document: { createElement: node }, catalog });
