@@ -434,7 +434,7 @@
                         class="page-element page-element-heading"
                         style="margin:0;
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -456,7 +456,7 @@
                         class="page-element page-element-text"
                         style="
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -478,7 +478,7 @@
                         class="page-element page-element-button"
                         style="
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -503,7 +503,7 @@
                         class="page-element page-element-separator"
                         style="
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                         "
@@ -524,7 +524,7 @@
                         class="page-element page-element-section"
                         style="
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -542,7 +542,7 @@
 
                 @elseif($type === "thumbnail_gallery")
                     <div class="page-element page-element-thumbnail-gallery" data-builder-thumbnail-gallery
-                        style="left:{{ $x }}%;top:{{ $y }}%;width:{{ $width }}%;z-index:{{ $zIndex }};">
+                        style="left:{{ $x }}%;top:{{ ($y / 100) * $designHeight }}px;width:{{ $width }}%;z-index:{{ $zIndex }};">
                         @include('components.builder-thumbnail-gallery', ['element' => $element])
                     </div>
 
@@ -553,7 +553,7 @@
                         @if(($element['gallery_mode'] ?? 'all') === 'single') data-builder-selected-gallery @endif
                         style="
                             left:{{ $x }}%;
-                            top:{{ $y }}%;
+                            top:{{ ($y / 100) * $designHeight }}px;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
                             color:{{ $color }};
@@ -593,21 +593,25 @@
     @include('components.gallery-lightbox')
 @endif
 <script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
-@if($page->slug === 'o-mnie')
 <script>
-    // Reserve space for overflowing text without moving percentage-positioned elements.
-    const aboutCanvas = document.querySelector('.page-canvas');
-    const aboutText = [...aboutCanvas.querySelectorAll('.page-element-text')];
-    function fitAboutText() {
-        const bottom = aboutCanvas.getBoundingClientRect().bottom;
-        const overflow = Math.max(0, ...aboutText.map(text => text.getBoundingClientRect().bottom - bottom));
-        aboutCanvas.parentElement.style.paddingBottom = `${Math.ceil(overflow)}px`;
+    // Match the CMS canvas: keep saved coordinates fixed, but let the public
+    // canvas extend below the lowest real element so the footer never overlaps it.
+    const publicCanvas = document.querySelector('.page-canvas');
+    function fitPublicCanvas() {
+        if (!publicCanvas) return;
+        let maxBottom = 900;
+        publicCanvas.querySelectorAll('.page-element').forEach(function (element) {
+            maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 80);
+        });
+        publicCanvas.style.minHeight = Math.ceil(maxBottom) + 'px';
     }
-    const aboutTextObserver = new ResizeObserver(fitAboutText);
-    aboutTextObserver.observe(aboutCanvas);
-    aboutText.forEach(text => aboutTextObserver.observe(text));
-    fitAboutText();
+    const publicCanvasObserver = new ResizeObserver(fitPublicCanvas);
+    if (publicCanvas) {
+        publicCanvasObserver.observe(publicCanvas);
+        publicCanvas.querySelectorAll('.page-element').forEach(element => publicCanvasObserver.observe(element));
+        window.addEventListener('load', fitPublicCanvas);
+        fitPublicCanvas();
+    }
 </script>
-@endif
 </body>
 </html>

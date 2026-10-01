@@ -99,6 +99,16 @@ class BuilderButtonTest extends TestCase
 
 
 
+    public function test_public_builder_uses_same_vertical_coordinate_unit_for_all_element_types(): void
+    {
+        $view = file_get_contents(resource_path('views/pages/show.blade.php'));
+
+        $this->assertSame(0, substr_count($view, 'top:{{ $y }}%;'));
+        $this->assertGreaterThanOrEqual(6, substr_count($view, 'top:{{ ($y / 100) * $designHeight }}px;'));
+        $this->assertStringContainsString("querySelectorAll('.page-element')", $view);
+        $this->assertStringContainsString("element.offsetTop + element.offsetHeight + 80", $view);
+    }
+
     public function test_visual_builder_uses_stable_vertical_coordinates_and_appends_new_elements_below_content(): void
     {
         $page = Page::create(['title' => 'Long page', 'slug' => 'long-page', 'published' => true]);
