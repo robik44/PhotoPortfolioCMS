@@ -217,6 +217,15 @@ class BuilderButtonTest extends TestCase
     }
 
 
+    public function test_visual_builder_allows_precise_line_height_steps(): void
+    {
+        $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+
+        $this->assertStringContainsString("{ step: 0.1, min: 0.1, max: 4 }", $builder);
+        $this->assertStringContainsString("Math.max(0.1, Math.min(4, parsed))", $builder);
+    }
+
+
     public function test_visual_builder_supports_free_element_resize(): void
     {
         $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
