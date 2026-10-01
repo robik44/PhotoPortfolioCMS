@@ -47,7 +47,6 @@
 
         <div
             class="page-element page-element-{{ $type }}"
-            data-builder-id="{{ $element['id'] ?? '' }}"
             style="
                 left:{{ $x }}%;
                 top:{{ $top }}px;
@@ -65,6 +64,7 @@
                     word-spacing:{{ $wordSpacing }}px;
                 @endif
             "
+            data-builder-id="{{ $element['id'] ?? '' }}"
         >
             @if($type === 'image')
                 @php
