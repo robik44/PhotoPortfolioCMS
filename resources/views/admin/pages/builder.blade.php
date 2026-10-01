@@ -996,7 +996,6 @@ document.addEventListener("DOMContentLoaded", function () {
             element.style.position = "absolute";
             element.style.left = "0";
             element.style.top = top + "px";
-            element.style.marginLeft = "7%";
             element.style.marginBottom = "0";
             element.style.zIndex = "120";
         };
@@ -1007,7 +1006,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (portfolioHeading) {
             portfolioHeading.style.position = "relative";
             portfolioHeading.style.marginTop = "55px";
-            portfolioHeading.style.marginLeft = "7%";
             portfolioHeading.style.marginBottom = "32px";
         }
     }
