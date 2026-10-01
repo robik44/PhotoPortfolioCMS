@@ -439,4 +439,17 @@ class PhotoLibraryTest extends TestCase
     }
 
 
+    public function test_public_pages_include_social_and_structured_seo_metadata(): void
+    {
+        $view = file_get_contents(resource_path('views/components/seo-meta.blade.php'));
+
+        $this->assertStringContainsString('og:site_name', $view);
+        $this->assertStringContainsString('twitter:card', $view);
+        $this->assertStringContainsString('application/ld+json', $view);
+        $this->assertStringContainsString("'@type' => 'WebPage'", $view);
+        $this->assertStringContainsString("'@type' => 'WebSite'", $view);
+        $this->assertStringContainsString("'@type' => 'ImageObject'", $view);
+    }
+
+
 }
