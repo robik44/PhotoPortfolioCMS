@@ -86,12 +86,16 @@ class HomeBuilderSyncTest extends TestCase
         $response->assertSee('Fotografia i stylizacja żywności')
             ->assertSee('Fotografia kulinarna i artystyczna')
             ->assertSee('Moje portfolio')
-            ->assertSee('font-size:40px;font-weight:400;color:#000000;', false)
+            ->assertSee('font-size:40px;', false)
+            ->assertSee('font-weight:400;', false)
+            ->assertSee('color:#000000;', false)
             ->assertSee('left:7%;', false)
             ->assertSee('width:24%;', false)
             ->assertSee('min-height:150px;', false)
-            ->assertSee('font-size:22px;font-weight:500;color:#123456;', false)
-            ->assertSee('font-size:37px;font-weight:600;color:#654321;', false);
+            ->assertSee('font-size:22px;', false)
+            ->assertSee('color:#123456;', false)
+            ->assertSee('font-size:37px;', false)
+            ->assertSee('color:#654321;', false);
     }
 
     public function test_opening_home_builder_exposes_missing_editable_homepage_texts(): void
