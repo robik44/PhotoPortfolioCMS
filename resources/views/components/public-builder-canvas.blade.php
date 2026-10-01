@@ -46,6 +46,7 @@
         @endphp
 
         <div
+            @if(($element['id'] ?? null) === 'portfolio-heading') id="portfolio" @endif
             class="page-element page-element-{{ $type }}"
             style="
                 left:{{ $x }}%;
