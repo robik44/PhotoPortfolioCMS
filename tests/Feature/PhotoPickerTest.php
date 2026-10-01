@@ -51,7 +51,7 @@ class PhotoPickerTest extends TestCase
         SiteSetting::create(['key' => 'seo_social_photo_id', 'value' => $photo->id]);
 
         foreach ([
-            [route('seo.edit'), 'Domyślne zdjęcie social', 'seo_social_photo_id', 1],
+            [route('seo.edit'), 'Domyślne zdjęcie social', 'seo_social_photo_id', 2],
             [route('pages.edit', $page), 'Zdjęcie social', 'social_photo_id', 2],
             [route('galleries.edit', $gallery), 'Zdjęcie social', 'social_photo_id', 1],
             [route('pages.create'), 'Zdjęcie social', 'social_photo_id', 2],
