@@ -3,6 +3,8 @@
     $fontCatalog = $fontCatalog ?? app(\App\Services\SiteFontLibrary::class)->catalog();
     $settings = $settings ?? [];
     $canvasId = $canvasId ?? 'builder-public-canvas';
+    $canvasSettings = is_array($canvasSettings ?? null) ? $canvasSettings : [];
+    $canvasBackground = $canvasSettings['background_color'] ?? $settings['background_color'] ?? '#ffffff';
     $designHeight = 900;
     $layerMap = [
         'image' => 10,
@@ -16,7 +18,7 @@
     ];
 @endphp
 
-<div id="{{ $canvasId }}" class="builder-public-canvas">
+<div id="{{ $canvasId }}" class="builder-public-canvas" style="background:{{ $canvasBackground }};">
     @foreach($sections as $element)
         @php
             $type = $element['type'] ?? 'text';
