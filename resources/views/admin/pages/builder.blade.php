@@ -1290,6 +1290,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (type !== "textarea") {
             input.type = type;
+            if (type === "number") {
+                input.step = "any";
+            }
         }
 
         input.value =
