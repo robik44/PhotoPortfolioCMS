@@ -117,7 +117,7 @@ class SiteTypographyTest extends TestCase
         $layout = $this->layout($id);
         $this->postJson(route('home-builder.save'), ['content' => $layout])->assertOk();
         $this->assertSame($layout, PageBuilder::whereNull('page_id')->where('type', 'home')->first()->content);
-        $this->get('/')->assertDontSee('Tekst heading'); // Deliberately no HomeBuilder integration.
+        $this->get('/')->assertSee('Tekst heading'); // HomeBuilder is integrated with the homepage.
         $this->assertCount(1, Storage::disk('public')->allFiles('fonts'));
     }
 

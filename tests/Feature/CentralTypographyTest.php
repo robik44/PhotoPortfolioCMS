@@ -11,29 +11,17 @@ use Tests\TestCase;
 
 class CentralTypographyTest extends TestCase
 {
-    private string $databaseCopy;
-    private string $sourceHash;
-
     protected function setUp(): void
     {
         parent::setUp();
-        // Integration tests use a disposable copy; no migrations or writes to the source.
-        $this->sourceHash = hash_file('sha256', database_path('database.sqlite'));
-        $this->databaseCopy = tempnam(sys_get_temp_dir(), 'typography-db-');
-        copy(database_path('database.sqlite'), $this->databaseCopy);
-        config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => $this->databaseCopy, 'database.connections.sqlite.url' => null]);
+        // Always use a fresh disposable SQLite database so tests do not depend on
+        // development data committed in database/database.sqlite.
+        config(['database.default' => 'sqlite', 'database.connections.sqlite.database' => ':memory:', 'database.connections.sqlite.url' => null]);
         DB::purge('sqlite');
+        $this->artisan('migrate', ['--force' => true])->assertExitCode(0);
         Storage::fake('public');
         $this->withoutVite();
-        $this->actingAs(User::firstOrFail());
-    }
-
-    protected function tearDown(): void
-    {
-        DB::disconnect('sqlite');
-        unlink($this->databaseCopy);
-        $this->assertSame($this->sourceHash, hash_file('sha256', database_path('database.sqlite')));
-        parent::tearDown();
+        $this->actingAs(User::factory()->create());
     }
 
     public function test_one_upload_is_available_everywhere_and_all_four_text_settings_persist(): void
@@ -48,8 +36,8 @@ class CentralTypographyTest extends TestCase
         foreach ($beforeFonts as $oldId => $font) $this->assertSame($font, $catalog['fonts'][$oldId]);
         Storage::disk('public')->assertExists($catalog['fonts'][$id]['path']);
         $this->assertCount(1, Storage::disk('public')->allFiles('fonts'));
-        // A fresh database connection and service must see the persisted registry.
-        DB::purge('sqlite');
+        // A fresh service instance must see the persisted registry on the same
+        // in-memory test connection. Purging :memory: would intentionally destroy it.
         $this->assertSame($catalog, (new SiteFontLibrary)->catalog());
 
         $gallery = Gallery::create(['title' => 'Typography test', 'slug' => 'typography-test', 'description' => 'Gallery description', 'published' => true]);
