@@ -11,6 +11,7 @@
 <meta property="og:url" content="{{ $seo['canonical'] }}">
 @if($seo['image'])
 <meta property="og:image" content="{{ $seo['image'] }}">
+<meta property="og:image:alt" content="{{ $seo['image_alt'] }}">
 @endif
 <meta property="og:type" content="{{ $seo['type'] }}">
 
@@ -22,10 +23,11 @@
 @endif
 @if($seo['image'])
 <meta name="twitter:image" content="{{ $seo['image'] }}">
+<meta name="twitter:image:alt" content="{{ $seo['image_alt'] }}">
 @endif
 <script type="application/ld+json">{!! json_encode([
     '@context' => 'https://schema.org',
-    '@type' => 'WebPage',
+    '@type' => $seo['schema_type'] ?? 'WebPage',
     'name' => $seo['title'],
     'description' => $seo['description'] ?: null,
     'url' => $seo['canonical'],
@@ -37,5 +39,6 @@
     'primaryImageOfPage' => $seo['image'] ? [
         '@type' => 'ImageObject',
         'url' => $seo['image'],
+        'caption' => $seo['image_alt'] ?: null,
     ] : null,
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>

@@ -73,9 +73,18 @@ class Seo
         $photo ??= Photo::find($settings['seo_social_photo_id'] ?? null);
         $canonical = $entity instanceof Gallery ? route('portfolio.gallery', $entity)
             : ($entity instanceof Page ? self::pageUrl($entity) : ($url ?? url('/')));
+        $schemaType = match (true) {
+            $entity instanceof Gallery => 'ImageGallery',
+            $entity instanceof Page && $entity->slug === 'o-mnie' => 'AboutPage',
+            $entity instanceof Page && $entity->slug === 'kontakt' => 'ContactPage',
+            default => 'WebPage',
+        };
+
         return [
             'title' => $resolvedTitle, 'description' => $description, 'canonical' => $canonical,
-            'image' => $photo?->imageUrl(), 'type' => 'website', 'site_name' => $site,
+            'image' => $photo?->imageUrl(),
+            'image_alt' => self::firstText($photo?->alt, $photo?->title, $resolvedTitle),
+            'type' => 'website', 'site_name' => $site, 'schema_type' => $schemaType,
             'robots' => ($entity === null ? self::homeIndexing($settings) : self::indexing($settings) && ($entity?->indexable ?? true)) ? 'index, follow' : 'noindex, nofollow',
         ];
     }
