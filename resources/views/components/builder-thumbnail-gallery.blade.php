@@ -9,7 +9,7 @@
 <div class="thumbnail-gallery-grid" style="--tg-desktop:{{ $desktop }};--tg-tablet:{{ $tablet }};--tg-mobile:{{ $mobile }};--tg-gap:{{ $gap }}px;">
     @foreach($ids as $id)
         @if($photo = $photos->get($id))
-            <img src="{{ $photo->thumbnailUrl() }}" alt="{{ $photo->alt ?: $photo->title ?: '' }}" loading="lazy" draggable="false">
+            <img src="{{ $photo->thumbnailUrl() }}" alt="{{ $photo->alt ?: $photo->title ?: '' }}" loading="lazy" decoding="async" draggable="false">
         @endif
     @endforeach
 </div>

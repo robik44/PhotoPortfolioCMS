@@ -408,4 +408,35 @@ class PhotoLibraryTest extends TestCase
         $this->delete(route('photos.destroy', $photo))->assertRedirect(route('login'));
         $this->assertDatabaseHas('photos', ['id' => $photo->id, 'title' => null]);
     }
+    public function test_photo_urls_prefer_optimized_variants_with_safe_fallbacks(): void
+    {
+        $photo = Photo::create([
+            'filename' => 'photos/original.jpg',
+            'webp' => 'photos/web/photo.webp',
+            'thumbnail' => 'photos/thumb/photo.webp',
+        ]);
+
+        $this->assertSame(asset('storage/photos/web/photo.webp'), $photo->imageUrl());
+        $this->assertSame(asset('storage/photos/original.jpg'), $photo->originalUrl());
+        $this->assertSame(asset('storage/photos/thumb/photo.webp'), $photo->thumbnailUrl());
+
+        $legacy = Photo::create(['filename' => 'legacy.jpg']);
+        $this->assertSame(asset('storage/photos/legacy.jpg'), $legacy->imageUrl());
+        $this->assertSame(asset('storage/photos/legacy.jpg'), $legacy->thumbnailUrl());
+    }
+
+    public function test_public_photo_views_use_lazy_optimized_thumbnails(): void
+    {
+        $home = file_get_contents(resource_path('views/welcome.blade.php'));
+        $gallery = file_get_contents(resource_path('views/portfolio/gallery.blade.php'));
+        $thumbnails = file_get_contents(resource_path('views/components/builder-thumbnail-gallery.blade.php'));
+
+        $this->assertStringContainsString('$cover->thumbnailUrl()', $home);
+        $this->assertStringContainsString('loading="lazy"', $home);
+        $this->assertStringContainsString('$photo->thumbnailUrl()', $gallery);
+        $this->assertStringContainsString('decoding="async"', $gallery);
+        $this->assertStringContainsString('decoding="async"', $thumbnails);
+    }
+
+
 }

@@ -254,9 +254,10 @@
                     data-photo-description="{{ $photo->description ?? '' }}"
                 >
                     <img
-                        src="{{ asset('storage/photos/' . basename($photo->thumbnail ?: $photo->filename)) }}"
+                        src="{{ $photo->thumbnailUrl() }}"
                         alt="{{ $photo->alt ?: $photo->title ?: $gallery->title }}"
                         loading="lazy"
+                        decoding="async"
                     >
 
                     @if($photo->title || $photo->description)
