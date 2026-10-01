@@ -7,6 +7,7 @@ use App\Models\Photo;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Intervention\Image\Laravel\Facades\Image;
 use RuntimeException;
 use Throwable;
 
@@ -49,7 +50,15 @@ class PhotoController extends Controller
                     }
 
                     $storedPaths[] = $filename;
-                    Photo::create(['filename' => $filename]);
+
+                    $variants = $this->createOptimizedVariants($filename);
+                    $storedPaths = array_merge($storedPaths, array_values(array_filter($variants)));
+
+                    Photo::create([
+                        'filename' => $filename,
+                        'thumbnail' => $variants['thumbnail'],
+                        'webp' => $variants['webp'],
+                    ]);
                 }
             });
         } catch (Throwable $exception) {
@@ -81,6 +90,43 @@ class PhotoController extends Controller
         return redirect()
             ->route('photos.index')
             ->with('success', 'Fotografie zostały dodane do biblioteki.');
+    }
+
+    /**
+     * Create lightweight public variants while preserving the uploaded original.
+     *
+     * @return array{thumbnail: ?string, webp: ?string}
+     */
+    private function createOptimizedVariants(string $filename): array
+    {
+        $disk = Storage::disk('public');
+        $source = $disk->path($filename);
+        $base = pathinfo($filename, PATHINFO_FILENAME);
+        $directory = trim(pathinfo($filename, PATHINFO_DIRNAME), '.');
+
+        $webp = ($directory ? $directory.'/' : '').$base.'-web.webp';
+        $thumbnail = ($directory ? $directory.'/' : '').$base.'-thumb.webp';
+
+        try {
+            $large = Image::read($source);
+            $large->scaleDown(width: 2400, height: 2400);
+            if (! $disk->put($webp, (string) $large->toWebp(quality: 86))) {
+                throw new RuntimeException('Could not store optimized WebP.');
+            }
+
+            $thumb = Image::read($source);
+            $thumb->scaleDown(width: 900, height: 900);
+            if (! $disk->put($thumbnail, (string) $thumb->toWebp(quality: 82))) {
+                throw new RuntimeException('Could not store thumbnail WebP.');
+            }
+
+            return ['thumbnail' => $thumbnail, 'webp' => $webp];
+        } catch (Throwable $exception) {
+            report($exception);
+            $disk->delete([$webp, $thumbnail]);
+
+            return ['thumbnail' => null, 'webp' => null];
+        }
     }
 
     public function show(Photo $photo)
