@@ -383,6 +383,24 @@
         }
 
         @media (max-width: 520px) {
+            .site-header .logo {
+                width: 100%;
+                white-space: nowrap;
+                overflow-wrap: normal;
+            }
+
+            .site-header .logo > span:first-child {
+                white-space: nowrap;
+                font-size: clamp(14px, 5.2vw, 18px) !important;
+                letter-spacing: .055em !important;
+            }
+
+            .site-header .logo > span:last-child {
+                white-space: nowrap;
+                font-size: clamp(7px, 2.35vw, 10px) !important;
+                letter-spacing: .08em !important;
+            }
+
             .header-inner {
                 padding-top: 14px;
                 padding-bottom: 14px;
@@ -392,8 +410,8 @@
                 flex-wrap: nowrap;
                 justify-content: space-between;
                 gap: 0;
-                font-size: clamp(8px, 2.55vw, 10px);
-                letter-spacing: .045em;
+                font-size: clamp(7px, 2.15vw, 9px);
+                letter-spacing: .02em;
             }
 
             .main-menu-item {
