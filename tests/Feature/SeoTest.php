@@ -281,6 +281,20 @@ class SeoTest extends TestCase
         $this->get(route('pages.builder', $page))->assertOk()->assertSee('Poziom nagłówka');
     }
 
+    public function test_heading_audit_reports_empty_h1_and_skipped_levels(): void
+    {
+        $sections = [
+            ['type' => 'heading', 'content' => '   ', 'heading_level' => 'h1'],
+            ['type' => 'heading', 'content' => 'Sekcja', 'heading_level' => 'h3'],
+        ];
+
+        $issues = Seo::headingIssues($sections);
+
+        $this->assertContains('Pusty H1', $issues);
+        $this->assertContains('Pominięty poziom nagłówka (np. H1 → H3)', $issues);
+        $this->assertNotContains('Brak H1', $issues);
+    }
+
     public function test_seo_audit_reports_missing_or_duplicate_h1_for_builder_pages_and_home(): void
     {
         $this->actingAs(User::factory()->create());
