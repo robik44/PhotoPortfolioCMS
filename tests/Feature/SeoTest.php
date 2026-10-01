@@ -107,6 +107,30 @@ class SeoTest extends TestCase
         $this->get(route('galleries.edit', $gallery))->assertOk()->assertSee('name="slug"', false);
     }
 
+    public function test_social_image_alt_and_schema_types_match_page_kind(): void
+    {
+        $photo = Photo::create(['filename' => 'social.jpg', 'alt' => 'Apetyczne danie']);
+        $this->settings(['seo_social_photo_id' => $photo->id, 'seo_default_title' => 'Studio', 'seo_default_description' => 'Opis']);
+
+        $about = $this->page(['title' => 'O mnie', 'slug' => 'o-mnie']);
+        $contact = $this->page(['title' => 'Kontakt', 'slug' => 'kontakt']);
+        $gallery = $this->gallery();
+
+        $this->assertSame('AboutPage', Seo::meta($about)['schema_type']);
+        $this->assertSame('ContactPage', Seo::meta($contact)['schema_type']);
+        $this->assertSame('ImageGallery', Seo::meta($gallery)['schema_type']);
+        $this->assertSame('WebPage', Seo::meta(null)['schema_type']);
+
+        $this->get('/o-mnie')->assertOk()
+            ->assertSee('<meta property="og:image:alt" content="Apetyczne danie">', false)
+            ->assertSee('<meta name="twitter:image:alt" content="Apetyczne danie">', false)
+            ->assertSee('"@type":"AboutPage"', false)
+            ->assertSee('"caption":"Apetyczne danie"', false);
+
+        $this->get('/kontakt')->assertOk()->assertSee('"@type":"ContactPage"', false);
+        $this->get(route('portfolio.gallery', $gallery))->assertOk()->assertSee('"@type":"ImageGallery"', false);
+    }
+
     public function test_gallery_social_priority_is_own_then_pivot_cover_then_global(): void
     {
         $global = Photo::create(['filename' => 'global.jpg']);
