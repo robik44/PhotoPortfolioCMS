@@ -95,4 +95,30 @@ class BuilderButtonTest extends TestCase
         $this->put(route('galleries.update', $gallery), ['title' => $gallery->title, 'back_font_family' => $id])->assertSessionHasNoErrors();
         $this->get(route('portfolio.gallery', $gallery))->assertOk()->assertSee('font-family:'.$id, false)->assertSee('storage/fonts/'.$id.'.ttf', false);
     }
+
+    public function test_homepage_renders_builder_button_background_and_opacity(): void
+    {
+        \App\Models\PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => [
+                'version' => 1,
+                'settings' => [],
+                'sections' => [[
+                    'type' => 'button',
+                    'content' => 'Portfolio',
+                    'button_link' => '/portfolio',
+                    'button_background' => '#123456',
+                    'button_background_opacity' => 40,
+                    'style' => ['color' => '#ffffff'],
+                ]],
+            ],
+        ]);
+
+        $this->get('/')->assertOk()
+            ->assertSee('Portfolio')
+            ->assertSee('background-color:rgba(18,52,86,0.4);', false);
+    }
+
 }
