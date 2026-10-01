@@ -24,6 +24,33 @@
     }
 
     $heroImageUrl = $heroImageUrl ?: null;
+
+    $homeElements = $homeElements ?? [];
+    $fontCatalog = app(\App\Services\SiteFontLibrary::class)->catalog();
+
+    $builderTextCss = static function (?array $element, array $fontCatalog, array $defaults = []): string {
+        $style = $element['style'] ?? [];
+
+        $fontFamily = \App\Services\SiteFontLibrary::css(
+            $style['font_family'] ?? null,
+            $fontCatalog,
+            $defaults['font_family'] ?? 'Arial'
+        );
+
+        $fontSize = (float) ($style['font_size'] ?? ($defaults['font_size'] ?? 18));
+        $fontWeight = (int) ($style['font_weight'] ?? ($defaults['font_weight'] ?? 400));
+        $color = $style['color'] ?? ($defaults['color'] ?? '#222222');
+        $textAlign = $style['text_align'] ?? ($defaults['text_align'] ?? 'left');
+        $lineHeight = (float) ($style['line_height'] ?? ($defaults['line_height'] ?? 1.4));
+        $letterSpacing = (float) ($style['letter_spacing'] ?? ($defaults['letter_spacing'] ?? 0));
+
+        return "font-family:{$fontFamily};font-size:{$fontSize}px;font-weight:{$fontWeight};color:{$color};"
+            . "text-align:{$textAlign};line-height:{$lineHeight};letter-spacing:{$letterSpacing}px;";
+    };
+
+    $heroTitleElement = $homeElements['hero_title'] ?? null;
+    $heroSubtitleElement = $homeElements['hero_subtitle'] ?? null;
+    $portfolioTitleElement = $homeElements['portfolio_title'] ?? null;
 @endphp
 
 <!DOCTYPE html>
@@ -461,9 +488,9 @@
 
     <section class="hero">
         <div class="hero-content">
-            <h1>{{ $settings['hero_title'] }}</h1>
+            <h1 style="{{ $builderTextCss($heroTitleElement, $fontCatalog, ['font_size' => 70, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.05]) }}">{{ $settings['hero_title'] }}</h1>
 
-            <p>{{ $settings['hero_subtitle'] }}</p>
+            <p style="{{ $builderTextCss($heroSubtitleElement, $fontCatalog, ['font_size' => 18, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.6]) }}">{{ $settings['hero_subtitle'] }}</p>
 
             @foreach(($homeButtons ?? collect()) as $homeButton)
                 @php
@@ -482,7 +509,7 @@
 
     <section class="section" id="portfolio">
         <div class="section-heading">
-            <h2>Portfolio</h2>
+            <h2 style="{{ $builderTextCss($portfolioTitleElement, $fontCatalog, ['font_size' => 34, 'font_weight' => 400, 'color' => '#222222', 'line_height' => 1.2]) }}">{{ $portfolioTitleElement['content'] ?? 'Portfolio' }}</h2>
 
             <p>
                 {{ $settings['site_subtitle'] }}
