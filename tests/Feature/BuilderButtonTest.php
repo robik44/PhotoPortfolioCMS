@@ -216,4 +216,20 @@ class BuilderButtonTest extends TestCase
     }
 
 
+    public function test_visual_builder_supports_free_element_resize(): void
+    {
+        $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+        $public = file_get_contents(resource_path('views/pages/show.blade.php'));
+
+        $this->assertStringContainsString('fve-resize-handle', $builder);
+        $this->assertStringContainsString('resizeStartWidth', $builder);
+        $this->assertStringContainsString('item.element_height', $builder);
+        $this->assertStringContainsString('Minimalna wysokość boksu (px)', $builder);
+        $this->assertStringContainsString('white-space: normal', $builder);
+
+        $this->assertStringContainsString('$heightStyle', $public);
+        $this->assertStringContainsString('min-height: inherit', $public);
+        $this->assertStringContainsString('overflow-wrap: anywhere', $public);
+    }
+
 }
