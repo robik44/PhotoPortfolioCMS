@@ -4,12 +4,20 @@ namespace App\Services;
 
 use App\Models\Photo;
 use Illuminate\Support\Facades\Storage;
-use Intervention\Image\Laravel\Facades\Image;
+use Intervention\Image\Drivers\Gd\Driver;
+use Intervention\Image\ImageManager;
 use RuntimeException;
 use Throwable;
 
 class PhotoVariantService
 {
+    private ImageManager $images;
+
+    public function __construct()
+    {
+        $this->images = new ImageManager(new Driver());
+    }
+
     /**
      * @return array{thumbnail: ?string, webp: ?string}
      */
@@ -30,13 +38,13 @@ class PhotoVariantService
         $thumbnail = ($directory ? $directory.'/' : '').$base.'-thumb.webp';
 
         try {
-            $large = Image::read($source);
+            $large = $this->images->read($source);
             $large->scaleDown(width: 2400, height: 2400);
             if (! $disk->put($webp, (string) $large->toWebp(quality: 86))) {
                 throw new RuntimeException('Could not store optimized WebP.');
             }
 
-            $thumb = Image::read($source);
+            $thumb = $this->images->read($source);
             $thumb->scaleDown(width: 900, height: 900);
             if (! $disk->put($thumbnail, (string) $thumb->toWebp(quality: 82))) {
                 throw new RuntimeException('Could not store thumbnail WebP.');
