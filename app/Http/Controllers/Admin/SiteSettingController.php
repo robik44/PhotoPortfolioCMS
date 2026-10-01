@@ -30,7 +30,7 @@ class SiteSettingController extends Controller
             SiteSetting::pluck('value', 'key')->toArray()
         );
 
-        $photos = Photo::with('gallery')
+        $photos = Photo::with('galleries')
             ->orderBy('gallery_id')
             ->orderBy('sort_order')
             ->get();
