@@ -330,7 +330,7 @@ class SeoTest extends TestCase
         ]);
 
         $this->assertNotContains('Brak H1', Seo::homeIssues());
-        $this->get(route('seo.edit'))->assertOk()->assertSee('Audyt sprawdza też strukturę H1')->assertSee('Sprawdź H1');
+        $this->get(route('seo.edit'))->assertOk()->assertSee('Audyt sprawdza też strukturę nagłówków')->assertSee('Sprawdź H1');
     }
 
     public function test_gallery_uses_global_title_and_description_then_existing_gallery_data(): void
