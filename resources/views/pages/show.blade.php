@@ -448,6 +448,8 @@
                     $y = max(0, $y);
 
                     $width = max(5, min(100, $width));
+                    $height = max(0, (float) ($element["element_height"] ?? 0));
+                    $heightStyle = $height > 0 ? "min-height:{$height}px;" : "";
 
                     $zIndex = $layerMap[$type] ?? 100;
                 @endphp
@@ -559,6 +561,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                             color:{{ $color }};
                             font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
@@ -604,6 +607,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                             color:{{ $color }};
                             font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
@@ -632,6 +636,7 @@
                             margin-left:{{ $x }}%;
                             width:{{ $width }}%;
                             z-index:{{ $zIndex }};
+                            {{ $heightStyle }}
                             color:{{ $color }};
                             font-family:{{ $fontFamily }};
                             font-size:{{ $fontSize }}px;
