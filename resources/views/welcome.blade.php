@@ -341,23 +341,29 @@
             text-align: center;
         }
 
-        @media (max-width: 800px) {
+        /* Responsive layout: desktop 4, tablet 2, phone 1. */
+        @media (max-width: 900px) {
             .header-inner {
                 min-height: 65px;
-                padding: 0 18px;
+                padding: 14px 18px;
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 10px;
             }
 
             .main-menu {
-                gap: 14px;
-                font-size: 10px;
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px 18px;
+                font-size: 11px;
             }
 
-            .logo {
-                font-size: 16px;
+            .main-submenu {
+                left: 0;
             }
 
             .hero {
-                min-height: 520px;
+                min-height: 460px;
             }
 
             .hero-content {
@@ -366,61 +372,45 @@
 
             .gallery-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 18px;
+                gap: 14px;
             }
 
             .section,
             .about-inner,
             .contact-inner {
-                padding: 65px 20px;
+                padding: 50px 20px;
             }
         }
 
         @media (max-width: 520px) {
             .header-inner {
-                align-items: flex-start;
-                padding-top: 18px;
-                padding-bottom: 18px;
-                flex-direction: column;
-                gap: 12px;
+                padding-top: 14px;
+                padding-bottom: 14px;
             }
 
             .main-menu {
-                flex-wrap: wrap;
+                gap: 6px 14px;
+                font-size: 10px;
             }
 
-            .gallery-grid {
-                grid-template-columns: 1fr;
+            .hero {
+                min-height: 420px;
             }
 
             .hero-content h1 {
-                font-size: 40px;
+                font-size: clamp(34px, 11vw, 44px);
             }
-        }
 
-        @media (max-width: 1400px) {
-            .gallery-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
+            .hero-content p {
+                font-size: 16px;
             }
-        }
 
-        @media (max-width: 900px) {
-            .gallery-grid {
-                grid-template-columns: repeat(4, minmax(0, 1fr));
-                gap: 12px;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .gallery-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 12px;
-            }
-        }
-
-        @media (max-width: 420px) {
             .gallery-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .gallery-card-content {
+                padding-top: 14px;
             }
         }
 
