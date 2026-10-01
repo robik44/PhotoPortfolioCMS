@@ -23,8 +23,9 @@
                 if (value !== undefined && value !== null && value !== '') node.style[property] = value;
             }
             const background = this.value(item, 'button_background');
+            const hasExplicitOpacity = item.button_background_opacity !== undefined && item.button_background_opacity !== null && item.button_background_opacity !== '';
             const opacity = this.value(item, 'button_background_opacity');
-            if (background && opacity !== undefined && opacity !== '') {
+            if (background && hasExplicitOpacity) {
                 const hex = background.replace('#', '');
                 const rgb = [0, 2, 4].map(offset => parseInt(hex.slice(offset, offset + 2), 16));
                 const alpha = Math.max(0, Math.min(100, Number(opacity))) / 100;
