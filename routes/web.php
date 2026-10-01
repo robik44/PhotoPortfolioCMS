@@ -66,6 +66,7 @@ Route::get("/", function () {
     }
 
     $homeSections = collect($homeBuilder?->content['sections'] ?? []);
+    $homeButtons = $homeSections->where('type', 'button')->values();
     foreach (['hero_title' => ['heading', 'hero-heading'], 'hero_subtitle' => ['text', 'hero-text']] as $key => [$type, $id]) {
         $elements = $homeSections->where('type', $type);
         $element = $elements->firstWhere('id', $id) ?? $elements->first();
@@ -79,7 +80,8 @@ Route::get("/", function () {
         "settings",
         "heroPhoto",
         "heroImageUrl",
-        "menuItems"
+        "menuItems",
+        "homeButtons"
     ));
 });
 
