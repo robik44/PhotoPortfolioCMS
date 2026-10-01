@@ -48,6 +48,20 @@
             . "text-align:{$textAlign};line-height:{$lineHeight};letter-spacing:{$letterSpacing}px;";
     };
 
+    $builderBoxCss = static function (?array $element): string {
+        if (!$element) {
+            return '';
+        }
+
+        $width = max(5, min(100, (float) ($element['element_width'] ?? 100)));
+        $x = max(0, min(100 - $width, (float) ($element['position_x'] ?? 0)));
+        $height = max(0, (float) ($element['element_height'] ?? 0));
+
+        return "width:{$width}%;max-width:none;margin-left:{$x}%;box-sizing:border-box;"
+            . ($height > 0 ? "min-height:{$height}px;" : '')
+            . "white-space:normal;overflow-wrap:anywhere;";
+    };
+
     $heroTitleElement = $homeElements['hero_title'] ?? null;
     $heroSubtitleElement = $homeElements['hero_subtitle'] ?? null;
     $portfolioTitleElement = $homeElements['portfolio_title'] ?? null;
@@ -488,9 +502,9 @@
 
     <section class="hero">
         <div class="hero-content">
-            <h1 style="{{ $builderTextCss($heroTitleElement, $fontCatalog, ['font_size' => 70, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.05]) }}">{{ $settings['hero_title'] }}</h1>
+            <h1 style="{{ $builderTextCss($heroTitleElement, $fontCatalog, ['font_size' => 70, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.05]) }}{{ $builderBoxCss($heroTitleElement) }}">{{ $settings['hero_title'] }}</h1>
 
-            <p style="{{ $builderTextCss($heroSubtitleElement, $fontCatalog, ['font_size' => 18, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.6]) }}">{{ $settings['hero_subtitle'] }}</p>
+            <p style="{{ $builderTextCss($heroSubtitleElement, $fontCatalog, ['font_size' => 18, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.6]) }}{{ $builderBoxCss($heroSubtitleElement) }}">{{ $settings['hero_subtitle'] }}</p>
 
             @foreach(($homeButtons ?? collect()) as $homeButton)
                 @php
@@ -499,7 +513,7 @@
                 @endphp
                 <a class="button"
                    @if($buttonHref) href="{{ $buttonHref }}" @if($homeButton['button_new_tab'] ?? false) target="_blank" rel="noopener noreferrer" @endif @endif
-                   style="color:{{ $buttonColor }};{{ \App\Support\BuilderButton::css($homeButton) }}">
+                   style="display:flex;align-items:center;justify-content:center;white-space:normal;overflow-wrap:anywhere;color:{{ $buttonColor }};{{ $builderBoxCss($homeButton) }}{{ \App\Support\BuilderButton::css($homeButton) }}">
                     {{ $homeButton['content'] ?? '' }}
                 </a>
             @endforeach
@@ -509,7 +523,7 @@
 
     <section class="section" id="portfolio">
         <div class="section-heading">
-            <h2 style="{{ $builderTextCss($portfolioTitleElement, $fontCatalog, ['font_size' => 34, 'font_weight' => 400, 'color' => '#222222', 'line_height' => 1.2]) }}">{{ $portfolioTitleElement['content'] ?? 'Portfolio' }}</h2>
+            <h2 style="{{ $builderTextCss($portfolioTitleElement, $fontCatalog, ['font_size' => 34, 'font_weight' => 400, 'color' => '#222222', 'line_height' => 1.2]) }}{{ $builderBoxCss($portfolioTitleElement) }}">{{ $portfolioTitleElement['content'] ?? 'Portfolio' }}</h2>
 
             <p>
                 {{ $settings['site_subtitle'] }}

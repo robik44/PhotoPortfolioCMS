@@ -39,6 +39,9 @@ class HomeBuilderSyncTest extends TestCase
                         'id' => 'hero-heading',
                         'type' => 'heading',
                         'content' => 'Fotografia i stylizacja żywności',
+                        'element_width' => 24,
+                        'element_height' => 150,
+                        'position_x' => 7,
                         'style' => [
                             'font_size' => 40,
                             'font_weight' => 400,
@@ -84,6 +87,7 @@ class HomeBuilderSyncTest extends TestCase
             ->assertSee('Fotografia kulinarna i artystyczna')
             ->assertSee('Moje portfolio')
             ->assertSee('font-size:40px;font-weight:400;color:#000000;', false)
+            ->assertSee('width:24%;max-width:none;margin-left:7%;box-sizing:border-box;min-height:150px;white-space:normal;overflow-wrap:anywhere;', false)
             ->assertSee('font-size:22px;font-weight:500;color:#123456;', false)
             ->assertSee('font-size:37px;font-weight:600;color:#654321;', false);
     }

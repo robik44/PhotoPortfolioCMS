@@ -270,6 +270,34 @@
         outline-offset: 3px;
     }
 
+    .fve-resize-handle {
+        position: absolute;
+        right: -8px;
+        bottom: -8px;
+        width: 16px;
+        height: 16px;
+        border: 2px solid #fff;
+        background: #171717;
+        box-shadow: 0 0 0 1px rgba(0,0,0,.35);
+        border-radius: 3px;
+        cursor: nwse-resize;
+        display: none;
+        z-index: 1000;
+    }
+
+    .fve-element.selected .fve-resize-handle {
+        display: block;
+    }
+
+    .fve-element > div,
+    .fve-element > h1,
+    .fve-element > h2,
+    .fve-element > h3 {
+        max-width: 100%;
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+
     .fve-element:hover {
         outline: 1px dashed #777;
         outline-offset: 2px;
@@ -672,6 +700,10 @@ document.addEventListener("DOMContentLoaded", function () {
         if (item.z_index === undefined) {
             item.z_index = index + 1;
         }
+
+        if (item.element_height === undefined || item.element_height === null) {
+            item.element_height = 0;
+        }
     }
 
     function label(type) {
@@ -738,6 +770,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
         const box = document.createElement(item.type === 'heading' && ['h1', 'h2', 'h3'].includes(item.heading_level) ? item.heading_level : 'div');
         box.style.margin = '0';
+        box.style.width = '100%';
+        box.style.boxSizing = 'border-box';
+        box.style.overflowWrap = 'anywhere';
+        box.style.whiteSpace = 'normal';
+
+        if (Number(item.element_height) > 0 && ['text', 'heading', 'section'].includes(item.type)) {
+            box.style.minHeight = Number(item.element_height) + 'px';
+        }
 
         window.builderTypography.apply(box, item);
 
@@ -808,10 +848,17 @@ document.addEventListener("DOMContentLoaded", function () {
             button.textContent =
                 item.content || "Przycisk";
 
-            button.style.display = "inline-block";
+            button.style.display = "flex";
+            button.style.alignItems = "center";
+            button.style.justifyContent = "center";
+            button.style.boxSizing = "border-box";
+            button.style.width = "100%";
+            button.style.minHeight = Number(item.element_height) > 0 ? Number(item.element_height) + "px" : "auto";
             button.style.padding = "12px 22px";
             button.style.background = "#171717";
             button.style.color = item.style.color;
+            button.style.whiteSpace = "normal";
+            button.style.overflowWrap = "anywhere";
             window.BuilderButton.apply(button, item);
 
             box.appendChild(button);
@@ -949,7 +996,6 @@ document.addEventListener("DOMContentLoaded", function () {
             element.style.position = "absolute";
             element.style.left = "0";
             element.style.top = top + "px";
-            element.style.marginLeft = "7%";
             element.style.marginBottom = "0";
             element.style.zIndex = "120";
         };
@@ -960,7 +1006,6 @@ document.addEventListener("DOMContentLoaded", function () {
         if (portfolioHeading) {
             portfolioHeading.style.position = "relative";
             portfolioHeading.style.marginTop = "55px";
-            portfolioHeading.style.marginLeft = "7%";
             portfolioHeading.style.marginBottom = "32px";
         }
     }
@@ -1002,6 +1047,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
             element.style.width =
                 item.element_width + "%";
+
+            element.style.minHeight =
+                Number(item.element_height) > 0
+                    ? Number(item.element_height) + "px"
+                    : "0";
 
             // Stała hierarchia:
             // tło = 0
@@ -1059,6 +1109,92 @@ document.addEventListener("DOMContentLoaded", function () {
 
             element.appendChild(remove);
 
+            const resizeHandle = document.createElement("button");
+            resizeHandle.type = "button";
+            resizeHandle.className = "fve-resize-handle";
+            resizeHandle.setAttribute("aria-label", "Zmień rozmiar elementu");
+            resizeHandle.title = "Przeciągnij, aby zmienić szerokość i wysokość";
+            element.appendChild(resizeHandle);
+
+            let resizing = false;
+            let resizeStartX = 0;
+            let resizeStartY = 0;
+            let resizeStartWidth = 0;
+            let resizeStartHeight = 0;
+
+            resizeHandle.addEventListener("mousedown", function (event) {
+                if (event.button !== 0) {
+                    return;
+                }
+
+                resizing = true;
+                selected = item.id;
+                resizeStartX = event.clientX;
+                resizeStartY = event.clientY;
+                resizeStartWidth = Number(item.element_width) || 5;
+                resizeStartHeight = Number(item.element_height) > 0
+                    ? Number(item.element_height)
+                    : Math.max(24, element.getBoundingClientRect().height / zoom);
+
+                event.preventDefault();
+                event.stopPropagation();
+                showProperties(item);
+            });
+
+            document.addEventListener("mousemove", function (event) {
+                if (!resizing) {
+                    return;
+                }
+
+                const rect = content.getBoundingClientRect();
+                const dxPercent = ((event.clientX - resizeStartX) / rect.width) * 100;
+                const maxWidth = Math.max(5, 100 - (Number(item.position_x) || 0));
+
+                item.element_width = Math.max(
+                    5,
+                    Math.min(maxWidth, resizeStartWidth + dxPercent)
+                );
+
+                item.element_height = Math.max(
+                    24,
+                    resizeStartHeight + ((event.clientY - resizeStartY) / zoom)
+                );
+
+                element.style.width = item.element_width + "%";
+                element.style.minHeight = item.element_height + "px";
+
+                const inner = element.firstElementChild;
+                if (inner && ['text', 'heading', 'section'].includes(item.type)) {
+                    inner.style.minHeight = item.element_height + "px";
+                }
+
+                if (item.type === "button" && inner) {
+                    const button = inner.firstElementChild;
+                    if (button) {
+                        button.style.minHeight = item.element_height + "px";
+                    }
+                }
+
+                if (item.type === "image") {
+                    item.image_height = Math.round(item.element_height);
+                    const image = element.querySelector("img");
+                    if (image) {
+                        image.style.height = item.image_height + "px";
+                        image.style.objectFit = "cover";
+                    }
+                }
+            });
+
+            document.addEventListener("mouseup", function () {
+                if (!resizing) {
+                    return;
+                }
+
+                resizing = false;
+                render();
+                showProperties(item);
+            });
+
             let dragging = false;
             let startX = 0;
             let startY = 0;
@@ -1066,6 +1202,10 @@ document.addEventListener("DOMContentLoaded", function () {
             let startTop = 0;
 
             element.addEventListener("mousedown", function (event) {
+
+                if (event.target.closest(".fve-resize-handle")) {
+                    return;
+                }
 
                 if (event.button !== 0) {
                     return;
@@ -1369,12 +1509,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     Math.max(
                         5,
                         Math.min(
-                            item.type === "image" ? 100 : 90,
+                            100 - (Number(item.position_x) || 0),
                             Number(value) || 5
                         )
                     );
-                if (item.type === "image") {
-                    item.position_x = Math.max(0, Math.min(item.position_x || 0, 100 - item.element_width));
+                item.position_x = Math.max(0, Math.min(item.position_x || 0, 100 - item.element_width));
+            }
+        );
+
+        field(
+            "Minimalna wysokość boksu (px)",
+            "number",
+            item.element_height || 0,
+            function (value) {
+                item.element_height = Math.max(0, Number(value) || 0);
+                if (item.type === "image" && item.element_height > 0) {
+                    item.image_height = item.element_height;
                 }
             }
         );
@@ -1391,6 +1541,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             0,
                             Number(value) || 0
                         );
+                    item.element_height = item.image_height;
                 }
             );
 
