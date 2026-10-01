@@ -67,9 +67,18 @@ Route::get("/", function () {
 
     $homeSections = collect($homeBuilder?->content['sections'] ?? []);
     $homeButtons = $homeSections->where('type', 'button')->values();
-    foreach (['hero_title' => ['heading', 'hero-heading'], 'hero_subtitle' => ['text', 'hero-text']] as $key => [$type, $id]) {
-        $elements = $homeSections->where('type', $type);
-        $element = $elements->firstWhere('id', $id) ?? $elements->first();
+
+    $homeElements = [
+        'hero_title' => $homeSections->firstWhere('id', 'hero-heading')
+            ?? $homeSections->firstWhere('type', 'heading'),
+        'hero_subtitle' => $homeSections->firstWhere('id', 'hero-text')
+            ?? $homeSections->firstWhere('type', 'text'),
+        'portfolio_title' => $homeSections->firstWhere('id', 'portfolio-heading'),
+    ];
+
+    foreach (['hero_title', 'hero_subtitle'] as $key) {
+        $element = $homeElements[$key] ?? null;
+
         if ($element && array_key_exists('content', $element)) {
             $settings[$key] = $element['content'] ?? '';
         }
@@ -81,7 +90,8 @@ Route::get("/", function () {
         "heroPhoto",
         "heroImageUrl",
         "menuItems",
-        "homeButtons"
+        "homeButtons",
+        "homeElements"
     ));
 });
 

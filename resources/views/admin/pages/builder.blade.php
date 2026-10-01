@@ -544,6 +544,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let zoom = 0.70;
     let selected = null;
+    const isHomeBuilder = @json($isHomeBuilder ?? false);
 
     let data = @json($builder->content ?? [
         "version" => 1,
@@ -916,6 +917,54 @@ document.addEventListener("DOMContentLoaded", function () {
         return box;
     }
 
+    function applyHomepagePreviewLayout() {
+        if (!isHomeBuilder) {
+            return;
+        }
+
+        const heroImage = content.querySelector('[data-id="hero-image"]');
+        const heroHeading = content.querySelector('[data-id="hero-heading"]');
+        const heroText = content.querySelector('[data-id="hero-text"]');
+        const portfolioHeading = content.querySelector('[data-id="portfolio-heading"]');
+
+        if (heroImage) {
+            heroImage.style.marginLeft = "0";
+            heroImage.style.width = "100%";
+            heroImage.style.marginBottom = "0";
+            heroImage.style.zIndex = "10";
+
+            const image = heroImage.querySelector("img");
+            if (image) {
+                image.style.width = "100%";
+                image.style.height = "430px";
+                image.style.objectFit = "cover";
+            }
+        }
+
+        const placeOnHero = function (element, top) {
+            if (!element) {
+                return;
+            }
+
+            element.style.position = "absolute";
+            element.style.left = "0";
+            element.style.top = top + "px";
+            element.style.marginLeft = "7%";
+            element.style.marginBottom = "0";
+            element.style.zIndex = "120";
+        };
+
+        placeOnHero(heroHeading, 145);
+        placeOnHero(heroText, 325);
+
+        if (portfolioHeading) {
+            portfolioHeading.style.position = "relative";
+            portfolioHeading.style.marginTop = "55px";
+            portfolioHeading.style.marginLeft = "7%";
+            portfolioHeading.style.marginBottom = "32px";
+        }
+    }
+
     function render() {
 
         content.innerHTML = "";
@@ -1095,6 +1144,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             content.appendChild(element);
         });
+
+        applyHomepagePreviewLayout();
+
         requestAnimationFrame(function () {
             const contentHeight = Math.max(900, content.scrollHeight + 80);
             content.style.height = 'auto';
