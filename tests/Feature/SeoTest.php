@@ -192,7 +192,7 @@ class SeoTest extends TestCase
             if ($level) $element['heading_level'] = $level;
             $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$element]]])->assertOk();
             $html = $this->get(Seo::pageUrl($page))->assertOk()->assertSee('font-size:42px;', false)->getContent();
-            $this->assertMatchesRegularExpression('/<'.($level ?? 'div').'\s+class="page-element page-element-heading"/', $html);
+            $this->assertMatchesRegularExpression('/<'.($level ?? 'div').'\s+class="builder-public-text"/', $html);
         }
         $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [['type' => 'heading', 'heading_level' => 'script']]]])->assertStatus(422);
         $this->get(route('pages.builder', $page))->assertOk()->assertSee('Poziom nagłówka');
