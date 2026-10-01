@@ -39,7 +39,15 @@
     </form>
 
     <h2>SEO — KONTROLA WITRYNY</h2>
-    <p>Braki tytułu i opisu dotyczą własnych pól SEO. Publiczne meta tagi mogą korzystać z wartości domyślnych.</p>
+    <p>Braki tytułu i opisu dotyczą własnych pól SEO. Publiczne meta tagi mogą korzystać z wartości domyślnych. Audyt sprawdza też strukturę H1 stron budowanych w edytorze.</p>
+    @php($homeIssues = \App\Support\Seo::homeIssues())
+    <section class="cms-card" style="padding:20px;margin:20px 0;">
+        <h3>Strona główna</h3>
+        <p>
+            <strong>Home</strong> — {{ $homeIssues ? implode('; ', $homeIssues) : 'Kompletne' }}
+            <a class="cms-button cms-button-small" href="{{ route('home-builder.edit') }}">Sprawdź H1</a>
+        </p>
+    </section>
     @unless(\App\Support\Seo::indexing($settings))<p>Globalne indeksowanie jest wyłączone — cała witryna ma noindex.</p>@endunless
     @foreach(['Strony' => $pages, 'Galerie' => $galleries] as $label => $entities)
         <section class="cms-card" style="padding:20px;margin:20px 0;">

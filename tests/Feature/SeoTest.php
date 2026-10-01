@@ -198,6 +198,44 @@ class SeoTest extends TestCase
         $this->get(route('pages.builder', $page))->assertOk()->assertSee('Poziom nagłówka');
     }
 
+    public function test_seo_audit_reports_missing_or_duplicate_h1_for_builder_pages_and_home(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $page = $this->page(['seo_title' => 'SEO', 'seo_description' => 'Opis', 'indexable' => true]);
+        $page->builder()->create([
+            'type' => 'page',
+            'published' => true,
+            'content' => ['sections' => [
+                ['type' => 'heading', 'content' => 'Sekcja', 'heading_level' => 'h2'],
+            ]],
+        ]);
+
+        $this->assertContains('Brak H1', Seo::issues($page->fresh()->load('builder')));
+
+        $page->builder->update(['content' => ['sections' => [
+            ['type' => 'heading', 'content' => 'Pierwszy', 'heading_level' => 'h1'],
+            ['type' => 'heading', 'content' => 'Drugi', 'heading_level' => 'h1'],
+        ]]]);
+        $this->assertContains('Więcej niż jeden H1 (2)', Seo::issues($page->fresh()->load('builder')));
+
+        \App\Models\PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => ['sections' => [
+                ['type' => 'heading', 'content' => 'Home', 'heading_level' => 'h1'],
+            ]],
+        ]);
+        $this->settings([
+            'seo_default_title' => 'Domyślny tytuł',
+            'seo_default_description' => 'Domyślny opis',
+        ]);
+
+        $this->assertNotContains('Brak H1', Seo::homeIssues());
+        $this->get(route('seo.edit'))->assertOk()->assertSee('Audyt sprawdza też strukturę H1')->assertSee('Sprawdź H1');
+    }
+
     public function test_gallery_uses_global_title_and_description_then_existing_gallery_data(): void
     {
         $gallery = $this->gallery(['description' => 'Dotychczasowy opis galerii']);
