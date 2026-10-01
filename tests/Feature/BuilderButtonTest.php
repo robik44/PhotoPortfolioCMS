@@ -100,18 +100,21 @@ class BuilderButtonTest extends TestCase
 
 
 
-    public function test_builder_and_public_page_use_the_same_non_overlapping_vertical_flow(): void
+    public function test_builder_and_public_pages_use_the_same_absolute_geometry_model(): void
     {
         $builderView = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
-        $publicView = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $publicView = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
+        $pageView = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $homeView = file_get_contents(resource_path('views/welcome.blade.php'));
 
-        $this->assertStringContainsString('position: relative;', $builderView);
-        $this->assertStringContainsString('margin-bottom: 36px;', $builderView);
-        $this->assertStringContainsString("sort((a, b) => (Number(a.position_y) || 0) - (Number(b.position_y) || 0))", $builderView);
-        $this->assertStringContainsString('position: relative;', $publicView);
-        $this->assertStringContainsString('margin-bottom: 36px;', $publicView);
-        $this->assertStringContainsString("sortBy(fn (\$element) => (float) (\$element['position_y'] ?? 0))", $publicView);
-        $this->assertStringNotContainsString('top:{{ ($y / 100) * $designHeight }}px;', $publicView);
+        $this->assertStringContainsString('position: absolute;', $builderView);
+        $this->assertStringContainsString('element.style.left', $builderView);
+        $this->assertStringContainsString('element.style.top', $builderView);
+        $this->assertStringContainsString('position: absolute;', $publicView);
+        $this->assertStringContainsString('left:{{ $x }}%;', $publicView);
+        $this->assertStringContainsString('top:{{ $top }}px;', $publicView);
+        $this->assertStringContainsString("components.public-builder-canvas", $pageView);
+        $this->assertStringContainsString("components.public-builder-canvas", $homeView);
     }
 
     public function test_every_new_page_builder_exposes_shared_button_controls(): void
@@ -183,13 +186,11 @@ class BuilderButtonTest extends TestCase
         $home = file_get_contents(resource_path('views/welcome.blade.php'));
         $page = file_get_contents(resource_path('views/pages/show.blade.php'));
 
-        $this->assertStringContainsString('desktop 4, tablet 2, phone 1', $home);
-        $this->assertStringContainsString('grid-template-columns: repeat(2, minmax(0, 1fr));', $home);
-        $this->assertStringContainsString('@media (max-width: 520px)', $home);
-        $this->assertStringContainsString('grid-template-columns: 1fr;', $home);
-        $this->assertStringNotContainsString('@media (max-width: 1400px)', $home);
-        $this->assertStringContainsString('margin-left: 0 !important;', $page);
-        $this->assertStringContainsString('max-width: 100%;', $page);
+        $this->assertStringContainsString("components.public-builder-canvas", $home);
+        $this->assertStringContainsString("components.public-builder-canvas", $page);
+        $shared = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
+        $this->assertStringContainsString('@media (max-width: 900px)', $shared);
+        $this->assertStringContainsString('overflow-x: hidden;', $shared);
     }
 
 
@@ -219,7 +220,7 @@ class BuilderButtonTest extends TestCase
     public function test_visual_builder_supports_free_element_resize(): void
     {
         $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
-        $public = file_get_contents(resource_path('views/pages/show.blade.php'));
+        $public = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
 
         $this->assertStringContainsString('fve-resize-handle', $builder);
         $this->assertStringContainsString('resizeStartWidth', $builder);
@@ -227,7 +228,7 @@ class BuilderButtonTest extends TestCase
         $this->assertStringContainsString('Minimalna wysokość boksu (px)', $builder);
         $this->assertStringContainsString('white-space: normal', $builder);
 
-        $this->assertStringContainsString('$heightStyle', $public);
+        $this->assertStringContainsString('min-height:{{ $height }}px;', $public);
         $this->assertStringContainsString('min-height: inherit', $public);
         $this->assertStringContainsString('overflow-wrap: anywhere', $public);
     }

@@ -66,6 +66,7 @@ Route::get("/", function () {
     }
 
     $homeSections = collect($homeBuilder?->content['sections'] ?? []);
+    $homeBuilderSettings = $homeBuilder?->content['settings'] ?? [];
     $homeButtons = $homeSections->where('type', 'button')->values();
 
     $homeElements = [
@@ -91,7 +92,9 @@ Route::get("/", function () {
         "heroImageUrl",
         "menuItems",
         "homeButtons",
-        "homeElements"
+        "homeElements",
+        "homeSections",
+        "homeBuilderSettings"
     ));
 });
 

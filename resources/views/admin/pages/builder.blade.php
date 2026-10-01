@@ -189,13 +189,13 @@
     }
 
     .fve-page-wrap {
-        width: 1200px;
+        width: 1400px;
         margin: 0 auto;
         transform-origin: top center;
     }
 
     .fve-page {
-        width: 1200px;
+        width: 1400px;
         min-height: 900px;
         background: #fff;
         box-shadow: 0 12px 40px rgba(0,0,0,.18);
@@ -257,12 +257,12 @@
     }
 
     .fve-element {
-        position: relative;
+        position: absolute;
         box-sizing: border-box;
         cursor: move;
         min-width: 40px;
         user-select: none;
-        margin-bottom: 36px;
+        margin: 0;
     }
 
     .fve-element.selected {
@@ -677,6 +677,10 @@ document.addEventListener("DOMContentLoaded", function () {
             item.style.letter_spacing = 0;
         }
 
+        if (item.style.word_spacing === undefined) {
+            item.style.word_spacing = 0;
+        }
+
         if (item.position_x === undefined) {
             item.position_x = 5;
         }
@@ -798,6 +802,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         box.style.letterSpacing =
             item.style.letter_spacing + "px";
+
+        box.style.wordSpacing =
+            (item.style.word_spacing || 0) + "px";
 
         if (item.type === "thumbnail_gallery") {
             box.appendChild(window.ThumbnailGallery.preview(item, photos));
@@ -964,52 +971,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return box;
     }
 
-    function applyHomepagePreviewLayout() {
-        if (!isHomeBuilder) {
-            return;
-        }
-
-        const heroImage = content.querySelector('[data-id="hero-image"]');
-        const heroHeading = content.querySelector('[data-id="hero-heading"]');
-        const heroText = content.querySelector('[data-id="hero-text"]');
-        const portfolioHeading = content.querySelector('[data-id="portfolio-heading"]');
-
-        if (heroImage) {
-            heroImage.style.marginLeft = "0";
-            heroImage.style.width = "100%";
-            heroImage.style.marginBottom = "0";
-            heroImage.style.zIndex = "10";
-
-            const image = heroImage.querySelector("img");
-            if (image) {
-                image.style.width = "100%";
-                image.style.height = "430px";
-                image.style.objectFit = "cover";
-            }
-        }
-
-        const placeOnHero = function (element, top) {
-            if (!element) {
-                return;
-            }
-
-            element.style.position = "absolute";
-            element.style.left = "0";
-            element.style.top = top + "px";
-            element.style.marginBottom = "0";
-            element.style.zIndex = "120";
-        };
-
-        placeOnHero(heroHeading, 145);
-        placeOnHero(heroText, 325);
-
-        if (portfolioHeading) {
-            portfolioHeading.style.position = "relative";
-            portfolioHeading.style.marginTop = "55px";
-            portfolioHeading.style.marginBottom = "32px";
-        }
-    }
-
     function render() {
 
         content.innerHTML = "";
@@ -1042,8 +1003,11 @@ document.addEventListener("DOMContentLoaded", function () {
             element.dataset.id =
                 item.id;
 
-            element.style.marginLeft =
+            element.style.left =
                 item.position_x + "%";
+
+            element.style.top =
+                ((Number(item.position_y) || 0) / 100 * 900) + "px";
 
             element.style.width =
                 item.element_width + "%";
@@ -1255,8 +1219,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 item.position_y = Math.max(0, startTop + dy);
 
-                element.style.marginLeft =
+                element.style.left =
                     item.position_x + "%";
+
+                element.style.top =
+                    ((Number(item.position_y) || 0) / 100 * 900) + "px";
             });
 
             document.addEventListener("mouseup", function () {
@@ -1285,13 +1252,14 @@ document.addEventListener("DOMContentLoaded", function () {
             content.appendChild(element);
         });
 
-        applyHomepagePreviewLayout();
-
         requestAnimationFrame(function () {
-            const contentHeight = Math.max(900, content.scrollHeight + 80);
-            content.style.height = 'auto';
-            content.style.minHeight = contentHeight + 'px';
-            page.style.minHeight = (contentHeight + 206) + 'px';
+            let maxBottom = 900;
+            content.querySelectorAll(".fve-element").forEach(function (element) {
+                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 80);
+            });
+            content.style.height = maxBottom + "px";
+            content.style.minHeight = maxBottom + "px";
+            page.style.minHeight = (maxBottom + 206) + "px";
             updateZoom();
         });
         window.ThumbnailGallery.fitCanvas(content);
@@ -1322,6 +1290,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (type !== "textarea") {
             input.type = type;
+            if (type === "number") {
+                input.step = "any";
+            }
         }
 
         input.value =
@@ -1475,8 +1446,22 @@ document.addEventListener("DOMContentLoaded", function () {
             field('Grubość czcionki', 'number', item.style.font_weight, function (value) {
                 item.style.font_weight = Math.max(100, Math.min(900, Number(value) || 400));
             });
+            selectField('Wyrównanie tekstu', item.style.text_align || 'left', [
+                ['left', 'Do lewej'],
+                ['center', 'Do środka'],
+                ['right', 'Do prawej']
+            ], function (value) {
+                item.style.text_align = value;
+            });
+            field('Wysokość linii', 'number', item.style.line_height, function (value) {
+                const parsed = Number(value);
+                item.style.line_height = Number.isFinite(parsed) ? Math.max(0.45, Math.min(4, parsed)) : 1.4;
+            });
             field('Odstęp między literami (px)', 'number', item.style.letter_spacing, function (value) {
                 item.style.letter_spacing = Number(value) || 0;
+            });
+            field('Odstęp między słowami (px)', 'number', item.style.word_spacing || 0, function (value) {
+                item.style.word_spacing = Number(value) || 0;
             });
         }
 

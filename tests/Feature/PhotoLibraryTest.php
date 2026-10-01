@@ -427,12 +427,12 @@ class PhotoLibraryTest extends TestCase
 
     public function test_public_photo_views_use_lazy_optimized_thumbnails(): void
     {
-        $home = file_get_contents(resource_path('views/welcome.blade.php'));
+        $shared = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
         $gallery = file_get_contents(resource_path('views/portfolio/gallery.blade.php'));
         $thumbnails = file_get_contents(resource_path('views/components/builder-thumbnail-gallery.blade.php'));
 
-        $this->assertStringContainsString('$cover->thumbnailUrl()', $home);
-        $this->assertStringContainsString('loading="lazy"', $home);
+        $this->assertStringContainsString('loading="lazy"', $shared);
+        $this->assertStringContainsString('$photoRecord?->imageUrl()', $shared);
         $this->assertStringContainsString('$photo->thumbnailUrl()', $gallery);
         $this->assertStringContainsString('decoding="async"', $gallery);
         $this->assertStringContainsString('decoding="async"', $thumbnails);

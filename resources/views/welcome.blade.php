@@ -499,88 +499,23 @@
 
 @include('components.site-typography')
 <main class="site-typography">
-
-    <section class="hero">
-        <div class="hero-content">
-            <h1 style="{{ $builderTextCss($heroTitleElement, $fontCatalog, ['font_size' => 70, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.05]) }}{{ $builderBoxCss($heroTitleElement) }}">{{ $settings['hero_title'] }}</h1>
-
-            <p style="{{ $builderTextCss($heroSubtitleElement, $fontCatalog, ['font_size' => 18, 'font_weight' => 400, 'color' => '#ffffff', 'line_height' => 1.6]) }}{{ $builderBoxCss($heroSubtitleElement) }}">{{ $settings['hero_subtitle'] }}</p>
-
-            @foreach(($homeButtons ?? collect()) as $homeButton)
-                @php
-                    $buttonHref = \App\Support\BuilderButton::href($homeButton['button_link'] ?? null);
-                    $buttonColor = $homeButton['style']['color'] ?? '#ffffff';
-                @endphp
-                <a class="button"
-                   @if($buttonHref) href="{{ $buttonHref }}" @if($homeButton['button_new_tab'] ?? false) target="_blank" rel="noopener noreferrer" @endif @endif
-                   style="display:flex;align-items:center;justify-content:center;white-space:normal;overflow-wrap:anywhere;color:{{ $buttonColor }};{{ $builderBoxCss($homeButton) }}{{ \App\Support\BuilderButton::css($homeButton) }}">
-                    {{ $homeButton['content'] ?? '' }}
-                </a>
-            @endforeach
-
-        </div>
-    </section>
-
-    <section class="section" id="portfolio">
-        <div class="section-heading">
-            <h2 style="{{ $builderTextCss($portfolioTitleElement, $fontCatalog, ['font_size' => 34, 'font_weight' => 400, 'color' => '#222222', 'line_height' => 1.2]) }}{{ $builderBoxCss($portfolioTitleElement) }}">{{ $portfolioTitleElement['content'] ?? 'Portfolio' }}</h2>
-
-            <p>
-                {{ $settings['site_subtitle'] }}
-            </p>
-        </div>
-
-        @if(isset($galleries) && $galleries->count())
-            <div class="gallery-grid">
-                @foreach($galleries as $gallery)
-                    @php
-                        $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
-                        $cover = $gallery->photos
-                            ->first(fn ($photo) => (bool) $photo->pivot->is_cover)
-                            ?: $gallery->photos->first();
-                    @endphp
-
-                    <a
-                        href="{{ route('portfolio.gallery', $gallery) }}"
-                        class="gallery-card"
-                    >
-                        <div class="gallery-card-image">
-                            @if($cover)
-                                <img
-                                    src="{{ $cover->thumbnailUrl() }}"
-                                    alt="{{ $cover->alt ?: $gallery->title }}"
-                                    loading="lazy"
-                                    decoding="async"
-                                >
-                            @else
-                                <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:#999;">
-                                    Brak zdjęcia
-                                </div>
-                            @endif
-                        </div>
-
-                        <div class="gallery-card-content">
-                            <h3 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};">{{ $gallery->title }}</h3>
-
-                            @if($gallery->description)
-                                <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};">{{ $gallery->description }}</p>
-                            @endif
-                        </div>
-                    </a>
-                @endforeach
-            </div>
-        @else
-            <div class="empty-gallery">
-                Galerie pojawią się tutaj po ich dodaniu w panelu administracyjnym.
-            </div>
-        @endif
-    </section>
-
+    @include('components.public-builder-canvas', [
+        'sections' => $homeSections ?? collect(),
+        'settings' => $settings,
+        'canvasSettings' => $homeBuilderSettings ?? [],
+        'fontCatalog' => $fontCatalog,
+        'canvasId' => 'home-public-builder-canvas',
+    ])
 </main>
 
 <footer class="site-footer site-typography">
     {{ $settings['footer_text'] }}
 </footer>
+
+@if(collect($homeSections ?? [])->contains('type', 'gallery'))
+    @include('components.gallery-lightbox')
+@endif
+<script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
 
 </body>
 </html>

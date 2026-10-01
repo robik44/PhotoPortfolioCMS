@@ -46,9 +46,10 @@ class HomeBuilderSyncTest extends TestCase
                             'font_size' => 40,
                             'font_weight' => 400,
                             'color' => '#000000',
-                            'text_align' => 'left',
-                            'line_height' => 1.2,
+                            'text_align' => 'center',
+                            'line_height' => 0.8,
                             'letter_spacing' => 1,
+                            'word_spacing' => 12,
                         ],
                     ],
                     [
@@ -86,10 +87,19 @@ class HomeBuilderSyncTest extends TestCase
         $response->assertSee('Fotografia i stylizacja żywności')
             ->assertSee('Fotografia kulinarna i artystyczna')
             ->assertSee('Moje portfolio')
-            ->assertSee('font-size:40px;font-weight:400;color:#000000;', false)
-            ->assertSee('width:24%;max-width:none;margin-left:7%;box-sizing:border-box;min-height:150px;white-space:normal;overflow-wrap:anywhere;', false)
-            ->assertSee('font-size:22px;font-weight:500;color:#123456;', false)
-            ->assertSee('font-size:37px;font-weight:600;color:#654321;', false);
+            ->assertSee('font-size:40px;', false)
+            ->assertSee('font-weight:400;', false)
+            ->assertSee('color:#000000;', false)
+            ->assertSee('text-align:center;', false)
+            ->assertSee('line-height:0.8;', false)
+            ->assertSee('word-spacing:12px;', false)
+            ->assertSee('left:7%;', false)
+            ->assertSee('width:24%;', false)
+            ->assertSee('min-height:150px;', false)
+            ->assertSee('font-size:22px;', false)
+            ->assertSee('color:#123456;', false)
+            ->assertSee('font-size:37px;', false)
+            ->assertSee('color:#654321;', false);
     }
 
     public function test_opening_home_builder_exposes_missing_editable_homepage_texts(): void
@@ -110,7 +120,7 @@ class HomeBuilderSyncTest extends TestCase
         ]);
 
         $this->get(route('home-builder.edit'))->assertOk()
-            ->assertSee('applyHomepagePreviewLayout')
+            ->assertDontSee('applyHomepagePreviewLayout')
             ->assertSee('hero-heading')
             ->assertSee('hero-text')
             ->assertSee('portfolio-heading');
