@@ -32,6 +32,18 @@ class SeoTest extends TestCase
         return Gallery::create($values + ['title' => 'Żywność', 'slug' => 'zywnosc']);
     }
 
+    public function test_public_pages_declare_polish_document_language(): void
+    {
+        $this->assertSame('pl', config('app.locale'));
+
+        $page = $this->page();
+        $gallery = $this->gallery();
+
+        $this->get('/')->assertOk()->assertSee('<html lang="pl">', false);
+        $this->get(Seo::pageUrl($page))->assertOk()->assertSee('<html lang="pl">', false);
+        $this->get(route('portfolio.gallery', $gallery))->assertOk()->assertSee('<html lang="pl">', false);
+    }
+
     public function test_global_settings_save_references_in_existing_settings_and_render_home_meta(): void
     {
         $this->actingAs(User::factory()->create());
