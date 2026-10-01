@@ -32,6 +32,16 @@ class SeoTest extends TestCase
         return Gallery::create($values + ['title' => 'Żywność', 'slug' => 'zywnosc']);
     }
 
+    public function test_authentication_and_cms_pages_are_noindex(): void
+    {
+        $this->get(route('login'))->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+
+        $this->actingAs(User::factory()->create());
+        $this->get(route('dashboard'))->assertOk()
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false);
+    }
+
     public function test_public_pages_declare_polish_document_language(): void
     {
         $this->assertSame('pl', config('app.locale'));
