@@ -40,6 +40,7 @@ function slice(start, end, offset = 0) {
     return builder.slice(a, b);
 }
 function setup(item, galleryList = [], photoList = []) {
+    if (!item.style) item.style = {};
     const document = { createElement: node, addEventListener() {} };
     const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
