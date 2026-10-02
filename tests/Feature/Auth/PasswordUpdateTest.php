@@ -45,6 +45,30 @@ class PasswordUpdateTest extends TestCase
             ->assertSee('name="password_confirmation"', false);
     }
 
+    public function test_site_settings_exposes_admin_email_and_password_controls(): void
+    {
+        $user = User::factory()->create(['email' => 'old@example.com']);
+
+        $this->actingAs($user)
+            ->get(route('site-settings.edit'))
+            ->assertOk()
+            ->assertSee('Adres e-mail do logowania i resetu hasła')
+            ->assertSee('name="email"', false)
+            ->assertSee('name="current_password"', false)
+            ->assertSee('name="password_confirmation"', false);
+
+        $this->actingAs($user)
+            ->from(route('site-settings.edit'))
+            ->patch(route('profile.update'), [
+                'name' => $user->name,
+                'email' => 'reset@example.com',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('site-settings.edit'));
+
+        $this->assertSame('reset@example.com', $user->fresh()->email);
+    }
+
     public function test_correct_password_must_be_provided_to_update_password(): void
     {
         $user = User::factory()->create();
