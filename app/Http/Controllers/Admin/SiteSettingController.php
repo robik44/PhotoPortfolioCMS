@@ -19,7 +19,7 @@ class SiteSettingController extends Controller
             'hero_title' => 'FOTOGRAFIA TO SPOSÓB PATRZENIA NA ŚWIAT',
             'hero_text' => 'Fotografia kulinarna i artystyczna',
             'galleries_title' => 'GALERIE',
-            'footer_text' => 'ROBERT WOŹNIAK FOTOGRAFIA',
+            'footer_text' => 'MAGDA GUGAŁA — FOTOGRAFIA ŻYWNOŚCI',
             'hero_photo_id' => null,
             'hero_image' => null,
             'site_under_construction' => '0',
@@ -35,7 +35,7 @@ class SiteSettingController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('admin.site-settings.edit', compact('settings', 'photos'));
+        return view('admin.site-settings.edit', compact('settings', 'photos'))->with('user', auth()->user());
     }
 
     public function update(Request $request)
