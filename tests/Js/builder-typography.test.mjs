@@ -63,23 +63,25 @@ function textItem(type) {
 }
 
 for (const type of catalog.textTypes) {
-        test(`full: ${type} changes system and custom font immediately in the actual renderer`, () => {
-            const item = textItem(type);
-            const { context, preview } = setup(item);
-            const before = JSON.stringify(item);
-            const select = find(context.properties, element => element.tag === 'select' && element['aria-label'] === 'Rodzaj czcionki');
-            assert.ok(select);
-            assert.equal(preview().style.fontFamily, 'Arial, sans-serif');
-            assert.equal(item.style.font_family, undefined);
-            for (const id of ['Georgia', custom]) {
-                select.value = id;
-                select.emit('input');
-                assert.equal(item.style.font_family, id);
-                assert.equal(preview().style.fontFamily, catalog.families[id]);
-            }
-            delete item.style.font_family;
-            assert.equal(JSON.stringify(item), before);
-        });
+    test(`full: ${type} changes system and custom font through desktop override`, () => {
+        const item = textItem(type);
+        const { context, preview } = setup(item);
+        const initial = JSON.stringify(item);
+        const select = find(context.properties, element => element.tag === 'select' && element['aria-label'] === 'Rodzaj czcionki');
+        assert.ok(select);
+        assert.equal(preview().style.fontFamily, 'Arial, sans-serif');
+        assert.equal(JSON.stringify(item), initial);
+        for (const id of ['Georgia', custom]) {
+            select.value = id;
+            select.emit('change');
+            assert.equal(item.typography.desktop.font_family, id);
+            assert.equal(preview().style.fontFamily, catalog.families[id]);
+        }
+        select.value = '';
+        select.emit('change');
+        assert.equal(item.typography, undefined);
+        assert.equal(JSON.stringify(item), initial);
+    });
 }
 
 test('thumbnail canvas sizing follows moved blocks and resets after their removal', () => {
@@ -104,22 +106,33 @@ test('thumbnail canvas sizing follows moved blocks and resets after their remova
     assert.equal(canvas.style.minHeight, '900px');
 });
 
-test('full builder existing text controls update content, size, weight, color and spacing without save', () => {
+test('full builder existing text controls update content and precise typography without save', () => {
     const item = textItem('text');
     const { context, preview } = setup(item);
-    for (const [label, value, styleKey, expected] of [
-        ['Treść', 'Nowa treść', null, 'Nowa treść'],
-        ['Rozmiar czcionki', '36', 'fontSize', '36px'],
-        ['Grubość czcionki', '700', 'fontWeight', 700],
-        ['Kolor tekstu', '#abcdef', 'color', '#abcdef'],
-        ['Odstęp między literami (px)', '3', 'letterSpacing', '3px'],
+
+    const contentWrapper = context.properties.children.find(element => element.children[0]?.textContent === 'Treść');
+    contentWrapper.children[1].value = 'Nowa treść';
+    contentWrapper.children[1].emit('input');
+    assert.equal(preview().textContent, 'Nowa treść');
+
+    for (const [label, value, event, styleKey, expected] of [
+        ['Rozmiar czcionki', '36.4', 'input', 'fontSize', '36.4px'],
+        ['Grubość czcionki', '700', 'change', 'fontWeight', '700'],
+        ['Kolor tekstu', '#abcdef', 'input', 'color', '#abcdef'],
+        ['Odstęp między literami', '-0.02', 'input', 'letterSpacing', '-0.02px'],
     ]) {
-        const wrapper = context.properties.children.find(element => element.children[0]?.textContent === label);
-        const input = wrapper.children[1];
+        const input = find(context.properties, element => element['aria-label'] === label);
+        assert.ok(input, label);
         input.value = value;
-        input.emit('input');
-        assert.equal(styleKey ? preview().style[styleKey] : preview().textContent, expected);
+        input.emit(event);
+        assert.equal(preview().style[styleKey], expected);
     }
+
+    assert.equal(item.style.font_size, 24);
+    assert.equal(item.typography.desktop.font_size, 36.4);
+    assert.equal(item.typography.desktop.font_weight, 700);
+    assert.equal(item.typography.desktop.color, '#abcdef');
+    assert.equal(item.typography.desktop.letter_spacing, -0.02);
 });
 
 test('graphic blocks do not get font fields or new font properties', () => {
@@ -311,16 +324,23 @@ test('button fields update appearance without changing legacy defaults or geomet
 test('button existing typography and target picker update independently', () => {
     const item = textItem('button');
     const { context, preview } = setup(item);
-    for (const [label, value, property, expected] of [
-        ['Tekst przycisku', 'Nowy tekst', null, 'Nowy tekst'],
-        ['Rozmiar czcionki', '32', 'fontSize', '32px'],
-        ['Kolor tekstu', '#abcdef', 'color', '#abcdef'],
-        ['Grubość czcionki', '700', 'fontWeight', 700],
+
+    const textWrapper = context.properties.children.find(el => el.children[0]?.textContent === 'Tekst przycisku');
+    textWrapper.children[1].value = 'Nowy tekst';
+    textWrapper.children[1].emit('input');
+    assert.equal(preview().children[0].textContent, 'Nowy tekst');
+
+    for (const [label, value, event, property, expected] of [
+        ['Rozmiar czcionki', '32.6', 'input', 'fontSize', '32.6px'],
+        ['Kolor tekstu', '#abcdef', 'input', 'color', '#abcdef'],
+        ['Grubość czcionki', '700', 'change', 'fontWeight', '700'],
     ]) {
-        const wrapper = context.properties.children.find(el => el.children[0]?.textContent === label);
-        wrapper.children[1].value = value; wrapper.children[1].emit('input');
-        assert.equal(property ? preview().style[property] : preview().children[0].textContent, expected);
+        const input = find(context.properties, el => el['aria-label'] === label);
+        input.value = value;
+        input.emit(event);
+        assert.equal(preview().style[property], expected);
     }
+
     context.window.builderButtonTargets = [{url: '/strona/test', label: 'Strona: Test'}, {url: '/portfolio/test', label: 'Galeria: Test'}];
     vm.runInContext('showProperties(item);', context);
     const wrapper = context.properties.children.find(el => el.textContent === 'Wybierz stronę lub galerię');
