@@ -106,8 +106,12 @@
                     <img
                         src="{{ $photoUrl }}"
                         alt="{{ $photoAlt }}"
-                        loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
-                        @if($isPriorityImage) fetchpriority="high" @endif
+                        @if($isPriorityImage)
+                            loading="eager"
+                            fetchpriority="high"
+                        @else
+                            loading="lazy"
+                        @endif
                         decoding="async"
                         style="
                             display:block;
