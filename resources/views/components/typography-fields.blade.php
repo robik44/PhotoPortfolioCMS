@@ -23,7 +23,7 @@
 
                 @if($withSize ?? true)
                     <label for="{{ $sizeKey }}">{{ $label }} — rozmiar czcionki (px)@if($breakpoint !== 'desktop') — {{ $breakpointLabel }}@endif</label>
-                    <input type="number" inputmode="decimal" step="0.1" min="1" max="300" name="{{ $sizeKey }}" id="{{ $sizeKey }}"
+                    <input type="number" inputmode="decimal" step="0.1" min="1" max="200" name="{{ $sizeKey }}" id="{{ $sizeKey }}"
                            value="{{ old($sizeKey, $typography[$sizeKey] ?? '') }}" placeholder="{{ $breakpoint === 'desktop' ? 'Domyślny (bez zmiany)' : 'Dziedzicz' }}" style="{{ $inputStyle }}">
                     @error($sizeKey)<p role="alert">{{ $message }}</p>@enderror
                 @endif
