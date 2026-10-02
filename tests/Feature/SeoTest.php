@@ -372,6 +372,28 @@ class SeoTest extends TestCase
         $this->assertSame('Domyślny opis', $meta['description']);
     }
 
+    public function test_privacy_policy_is_public_editable_and_listed_in_sitemap(): void
+    {
+        $this->get(route('privacy'))->assertOk()
+            ->assertSee('Polityka prywatności')
+            ->assertSee('Serwis nie prowadzi newslettera');
+
+        $this->get('/sitemap.xml')->assertOk()
+            ->assertSee(url('/polityka-prywatnosci'));
+
+        $this->actingAs(User::factory()->create())
+            ->get(route('content-pages.edit', 'polityka-prywatnosci'))
+            ->assertOk()
+            ->assertSee('Polityka prywatności');
+    }
+
+    public function test_custom_not_found_page_is_noindex(): void
+    {
+        $this->get('/nie-istnieje-na-pewno')->assertNotFound()
+            ->assertSee('Nie znaleziono strony')
+            ->assertSee('name="robots" content="noindex"', false);
+    }
+
     public function test_static_content_preview_starts_with_real_h1(): void
     {
         $page = $this->page(['title' => 'O mnie', 'slug' => 'o-mnie']);
