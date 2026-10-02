@@ -97,6 +97,8 @@
                     $photoAlt = $photoRecord?->alt ?: ($element['photo_title'] ?? '');
                     $imageRadius = max(0, (int) ($element['image_radius'] ?? 0));
                     $imageHeight = max(0, (int) ($element['image_height'] ?? $element['element_height'] ?? 0));
+                    $isPriorityImage = $canvasId === 'home-public-builder-canvas'
+                        && ($element['id'] ?? null) === 'hero-image';
                 @endphp
                 @if($photoUrl)
                     @php($imageHref = \App\Support\BuilderButton::href($element['image_link'] ?? null))
@@ -104,7 +106,8 @@
                     <img
                         src="{{ $photoUrl }}"
                         alt="{{ $photoAlt }}"
-                        loading="lazy"
+                        loading="{{ $isPriorityImage ? 'eager' : 'lazy' }}"
+                        @if($isPriorityImage) fetchpriority="high" @endif
                         decoding="async"
                         style="
                             display:block;
