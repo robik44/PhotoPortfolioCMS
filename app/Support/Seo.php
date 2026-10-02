@@ -155,27 +155,38 @@ class Seo
     public static function headingIssues(array $sections): array
     {
         $headings = collect($sections)
-            ->filter(fn ($section) => ($section['type'] ?? null) === 'heading')
+            ->map(function ($section) {
+                $tag = $section['semantic_tag']
+                    ?? (($section['type'] ?? null) === 'heading' ? ($section['heading_level'] ?? null) : null);
+
+                if (!in_array($tag, ['h1', 'h2', 'h3'], true)) {
+                    return null;
+                }
+
+                return [
+                    'tag' => $tag,
+                    'content' => (string) ($section['content'] ?? ''),
+                ];
+            })
+            ->filter()
             ->values();
 
         $issues = [];
-        $h1Headings = $headings->filter(fn ($section) => ($section['heading_level'] ?? null) === 'h1');
+        $h1Headings = $headings->filter(fn ($heading) => $heading['tag'] === 'h1');
         $h1Count = $h1Headings->count();
 
         if ($h1Count === 0) $issues[] = 'Brak H1';
         if ($h1Count > 1) $issues[] = 'Więcej niż jeden H1 ('.$h1Count.')';
-        if ($h1Headings->contains(fn ($section) => trim((string) ($section['content'] ?? '')) === '')) {
+        if ($h1Headings->contains(fn ($heading) => trim($heading['content']) === '')) {
             $issues[] = 'Pusty H1';
         }
 
         $levels = $headings
-            ->map(fn ($section) => match ($section['heading_level'] ?? null) {
+            ->map(fn ($heading) => match ($heading['tag']) {
                 'h1' => 1,
                 'h2' => 2,
                 'h3' => 3,
-                default => null,
             })
-            ->filter()
             ->values();
 
         for ($i = 1; $i < $levels->count(); $i++) {
