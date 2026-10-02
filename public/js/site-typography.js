@@ -123,6 +123,7 @@
                 node.style.opacity = String(Math.max(0, Math.min(100, number(values.opacity, 100))) / 100);
                 node.style.marginTop = number(values.margin_top, 0) + 'px';
                 node.style.marginBottom = number(values.margin_bottom, 0) + 'px';
+                node.style.setProperty('--typography-paragraph-spacing', number(values.paragraph_spacing, 0) + 'px');
 
                 if (values.text_width !== null && values.text_width !== undefined && values.text_width !== '') {
                     node.style.width = number(values.text_width, 100) + (values.text_width_unit === 'px' ? 'px' : '%');
