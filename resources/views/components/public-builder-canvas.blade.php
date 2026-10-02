@@ -185,6 +185,11 @@
         overflow-wrap: anywhere;
     }
 
+    .builder-public-text p + p,
+    [data-builder-typography-target] p + p {
+        margin-top: var(--typography-paragraph-spacing, 0px);
+    }
+
     .page-element-image {
         overflow: hidden;
     }
