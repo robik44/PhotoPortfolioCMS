@@ -32,7 +32,7 @@
             const base = (item) => {
                 const style = item.style || {};
                 return {
-                    font_family: style.font_family || catalog.defaults[item.type === 'heading' ? 'site_heading_font_family' : 'site_body_font_family'] || 'Arial',
+                    font_family: style.font_family || 'Arial',
                     font_size: number(style.font_size, item.type === 'heading' ? 42 : 18),
                     font_weight: number(style.font_weight, 400),
                     font_style: style.font_style || 'normal',
