@@ -325,7 +325,7 @@ class SiteTypographyTest extends TestCase
         $layout['sections'][1]['semantic_tag'] = 'h4';
         $this->postJson(route('pages.builder.save', $page), ['content' => $layout])
             ->assertStatus(422)
-            ->assertJsonValidationErrors('content.sections.1.semantic_tag');
+            ->assertJsonValidationErrors('semantic_tag');
     }
 
 }
