@@ -262,7 +262,7 @@
                     const current = resolved(item, active);
                     const inheritedLabel = active === 'desktop' ? 'Dotychczasowa / domyślna' : 'Dziedzicz';
 
-                    select(fields, className, 'Preset stylu', '', [
+                    select(fields, className, 'Preset wyglądu (nie zmienia SEO)', '', [
                         ['', '— wybierz —'],
                         ...Object.entries(PRESETS).map(([id, preset]) => [id, preset.label])
                     ], presetId => {

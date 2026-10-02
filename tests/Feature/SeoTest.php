@@ -297,7 +297,7 @@ class SeoTest extends TestCase
             $this->assertMatchesRegularExpression('/<'.($level ?? 'div').'\s+class="builder-public-text"/', $html);
         }
         $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [['type' => 'heading', 'heading_level' => 'script']]]])->assertStatus(422);
-        $this->get(route('pages.builder', $page))->assertOk()->assertSee('Poziom nagłówka');
+        $this->get(route('pages.builder', $page))->assertOk()->assertSee('Znaczenie HTML / SEO');
     }
 
     public function test_heading_audit_reports_empty_h1_and_skipped_levels(): void
@@ -312,6 +312,13 @@ class SeoTest extends TestCase
         $this->assertContains('Pusty H1', $issues);
         $this->assertContains('Pominięty poziom nagłówka (np. H1 → H3)', $issues);
         $this->assertNotContains('Brak H1', $issues);
+
+        $semanticIssues = Seo::headingIssues([
+            ['type' => 'text', 'content' => 'Semantyczny H1', 'semantic_tag' => 'h1'],
+            ['type' => 'heading', 'content' => 'Semantyczny H2', 'heading_level' => 'h3', 'semantic_tag' => 'h2'],
+        ]);
+        $this->assertNotContains('Brak H1', $semanticIssues);
+        $this->assertNotContains('Pominięty poziom nagłówka (np. H1 → H3)', $semanticIssues);
     }
 
     public function test_seo_audit_reports_missing_or_duplicate_h1_for_builder_pages_and_home(): void
