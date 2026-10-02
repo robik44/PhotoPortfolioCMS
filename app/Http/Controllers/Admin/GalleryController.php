@@ -69,8 +69,8 @@ class GalleryController extends Controller
         $gallery->load('photos');
 
         $defaults = [
-            'logo' => 'ROBERT WOŹNIAK',
-            'logo_subtitle' => 'FOTOGRAFIA',
+            'logo' => 'FOODFOTO',
+            'logo_subtitle' => 'FOTOGRAFIA ŻYWNOŚCI',
             'menu_gallery' => 'GALERIE',
             'menu_about' => 'O MNIE',
             'menu_contact' => 'KONTAKT',
