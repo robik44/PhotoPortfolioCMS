@@ -204,12 +204,23 @@ document.addEventListener('DOMContentLoaded', function () {
 
         image.src = item.dataset.photoUrl;
         image.alt = item.dataset.photoAlt || item.dataset.photoTitle || 'Zdjęcie';
+        const applyResponsiveTypography = function (target, prefix) {
+            const viewport = typeof window !== 'undefined' && window.innerWidth ? window.innerWidth : 1200;
+            let css = item.dataset[prefix + 'TypographyDesktop'] || '';
+            if (viewport <= 900) css += item.dataset[prefix + 'TypographyTablet'] || '';
+            if (viewport <= 520) css += item.dataset[prefix + 'TypographyMobile'] || '';
+
+            target.style.cssText = css;
+            if (!css) {
+                target.style.fontFamily = item.dataset[prefix + 'FontFamily'] || '';
+                target.style.fontSize = item.dataset[prefix + 'FontSize'] || '';
+            }
+        };
+
         title.textContent = item.dataset.photoTitle || '';
-        title.style.fontFamily = item.dataset.titleFontFamily || '';
-        title.style.fontSize = item.dataset.titleFontSize || '';
+        applyResponsiveTypography(title, 'title');
         description.textContent = item.dataset.photoDescription || '';
-        description.style.fontFamily = item.dataset.descriptionFontFamily || '';
-        description.style.fontSize = item.dataset.descriptionFontSize || '';
+        applyResponsiveTypography(description, 'description');
 
         lightbox.classList.add('is-open');
         lightbox.setAttribute('aria-hidden', 'false');
@@ -258,6 +269,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     nextButton.addEventListener('click', function () {
         showPhoto(currentIndex + 1);
+    });
+
+    window.addEventListener('resize', function () {
+        if (lightbox.classList.contains('is-open') && items[currentIndex]) {
+            showPhoto(currentIndex);
+        }
     });
 
     lightbox.addEventListener('click', function (event) {
