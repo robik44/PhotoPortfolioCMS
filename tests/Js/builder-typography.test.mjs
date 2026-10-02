@@ -211,19 +211,23 @@ test('gallery properties switch between all cards and one live gallery photo pre
     assert.equal(item.photos, undefined);
 });
 
-test('heading properties change H1/H2/H3 tags while preserving visual styles and legacy div', () => {
+test('semantic HTML control changes tags independently from visual typography', () => {
     const item = textItem('heading');
     const { context, preview } = setup(item);
     assert.equal(preview().tag, 'div');
     const before = JSON.stringify(item.style);
-    for (const tag of ['h1', 'h2', 'h3']) {
-        const select = find(context.properties, element => element.textContent === 'Poziom nagłówka').children[0];
+    for (const tag of ['h1', 'h2', 'h3', 'p', 'small']) {
+        const select = find(context.properties, element => element.textContent === 'Znaczenie HTML / SEO').children[0];
         select.value = tag; select.emit('change');
-        assert.equal(item.heading_level, tag);
+        assert.equal(item.semantic_tag, tag);
         assert.equal(preview().tag, tag);
         assert.equal(preview().style.margin, '0');
         assert.equal(JSON.stringify(item.style), before);
     }
+
+    const body = textItem('text');
+    const bodySetup = setup(body);
+    assert.equal(bodySetup.preview().tag, 'p');
 });
 
 for (const type of ['image', 'gallery']) {
