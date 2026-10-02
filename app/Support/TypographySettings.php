@@ -66,7 +66,7 @@ class TypographySettings
         foreach ($fields as $field) {
             foreach (self::BREAKPOINTS as $breakpoint) {
                 $rules[self::key($field, 'font_family', $breakpoint)] = ['sometimes', 'nullable', 'string', Rule::in($families)];
-                $rules[self::key($field, 'font_size', $breakpoint)] = ['sometimes', 'nullable', 'numeric', 'between:1,300'];
+                $rules[self::key($field, 'font_size', $breakpoint)] = ['sometimes', 'nullable', 'numeric', 'between:1,200'];
                 $rules[self::key($field, 'font_weight', $breakpoint)] = ['sometimes', 'nullable', 'integer', 'between:100,900'];
                 $rules[self::key($field, 'font_style', $breakpoint)] = ['sometimes', 'nullable', Rule::in(['normal', 'italic'])];
                 $rules[self::key($field, 'text_transform', $breakpoint)] = ['sometimes', 'nullable', Rule::in(['none', 'uppercase', 'lowercase', 'capitalize'])];
@@ -142,7 +142,7 @@ class TypographySettings
 
         $fontSizeKey = self::key($field, 'font_size', $breakpoint);
         if (isset($values[$fontSizeKey]) && is_numeric($values[$fontSizeKey])) {
-            $css .= 'font-size:' . self::fmt(self::clamp($values[$fontSizeKey], 1, 300)) . 'px' . $suffix . ';';
+            $css .= 'font-size:' . self::fmt(self::clamp($values[$fontSizeKey], 1, 200)) . 'px' . $suffix . ';';
         }
 
         $fontWeightKey = self::key($field, 'font_weight', $breakpoint);
