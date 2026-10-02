@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="viewport" content="width=1400">
     <meta name="robots" content="noindex, nofollow">
     <title>Strona w budowie</title>
     <style>
