@@ -58,10 +58,7 @@
 <head>
     <meta charset="utf-8">
 
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1"
-    >
+    <meta name="viewport" content="width=1400">
 
     @if(collect($sections)->contains('type', 'thumbnail_gallery'))
         <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
