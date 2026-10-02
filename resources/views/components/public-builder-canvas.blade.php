@@ -112,18 +112,18 @@
 
             @elseif($type === 'heading')
                 @php($headingTag = in_array($element['heading_level'] ?? '', ['h1', 'h2', 'h3'], true) ? $element['heading_level'] : 'div')
-                <{{ $headingTag }} class="builder-public-text builder-typography-target"
+                <{{ $headingTag }} class="builder-public-text" data-builder-typography-target
                     style="margin:0;{{ $typographyCss }}"
                 >{{ $content }}</{{ $headingTag }}>
 
             @elseif($type === 'text')
-                <div class="builder-public-text builder-typography-target" style="{{ $typographyCss }}">
+                <div class="builder-public-text" data-builder-typography-target style="{{ $typographyCss }}">
 {!! nl2br(e($content)) !!}</div>
 
             @elseif($type === 'button')
                 @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
                 <a
-                    class="builder-public-button builder-typography-target"
+                    class="builder-public-button" data-builder-typography-target
                     @if($buttonHref) href="{{ $buttonHref }}" @endif
                     @if($buttonHref && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
                     style="{{ $typographyCss }}{{ \App\Support\BuilderButton::css($element) }}"
@@ -139,7 +139,7 @@
                 @include('components.builder-thumbnail-gallery', ['element' => $element])
 
             @elseif($type === 'gallery')
-                <div class="builder-typography-target" style="{{ $typographyCss }}">
+                <div data-builder-typography-target style="{{ $typographyCss }}">
                     @include('components.builder-gallery', ['element' => $element, 'group' => 'builder-'.$loop->index])
                 </div>
             @endif
@@ -154,7 +154,7 @@
             {!! \App\Support\BuilderTypography::responsiveCss(
                 $element,
                 $fontCatalog,
-                '#' . $canvasId . ' .page-element[data-builder-index="' . $loop->index . '"] .builder-typography-target'
+                '#' . $canvasId . ' .page-element[data-builder-index="' . $loop->index . '"] [data-builder-typography-target]'
             ) !!}
         @endif
     @endforeach
