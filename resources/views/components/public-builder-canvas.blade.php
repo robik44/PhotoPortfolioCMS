@@ -51,8 +51,17 @@
             // Visual typography and semantic HTML are intentionally independent.
             // Existing headings keep their legacy heading_level. Text blocks default to <p>.
             $allowedSemanticTags = ['div', 'p', 'h1', 'h2', 'h3', 'small'];
+            $homepageSemanticDefault = $canvasId === 'home-public-builder-canvas'
+                ? match ($element['id'] ?? null) {
+                    'hero-heading' => 'h1',
+                    'hero-text' => 'p',
+                    'portfolio-heading' => 'h2',
+                    default => null,
+                }
+                : null;
             $requestedSemanticTag = $element['semantic_tag']
-                ?? ($type === 'heading' ? ($element['heading_level'] ?? 'div') : ($type === 'text' ? 'p' : 'div'));
+                ?? ($type === 'heading' ? ($element['heading_level'] ?? $homepageSemanticDefault ?? 'div')
+                    : ($type === 'text' ? ($homepageSemanticDefault ?? 'p') : 'div'));
             $semanticTag = in_array($requestedSemanticTag, $allowedSemanticTags, true)
                 ? $requestedSemanticTag
                 : 'div';
@@ -148,7 +157,11 @@
 
             @elseif($type === 'gallery')
                 <div data-builder-typography-target style="{{ $typographyCss }}">
-                    @include('components.builder-gallery', ['element' => $element, 'group' => 'builder-'.$loop->index])
+                    @include('components.builder-gallery', [
+                        'element' => $element,
+                        'group' => 'builder-'.$loop->index,
+                        'galleryTitleTag' => $canvasId === 'home-public-builder-canvas' ? 'h3' : 'div',
+                    ])
                 </div>
             @endif
         </div>
