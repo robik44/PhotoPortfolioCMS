@@ -69,7 +69,7 @@ class GalleryController extends Controller
         $gallery->load('photos');
 
         $defaults = [
-            'logo' => 'FOODFOTO',
+            'logo' => 'MAGDA GUGAŁA',
             'logo_subtitle' => 'FOTOGRAFIA ŻYWNOŚCI',
             'menu_gallery' => 'GALERIE',
             'menu_about' => 'O MNIE',
