@@ -28,7 +28,7 @@
 <meta name="twitter:image:alt" content="{{ $seo['image_alt'] }}">
 @endif
 <script type="application/ld+json">{!! json_encode([
-    '@context' => 'https://schema.org',
+    chr(64).'context' => 'https://schema.org',
     '@type' => $seo['schema_type'] ?? 'WebPage',
     'name' => $seo['title'],
     'description' => $seo['description'] ?: null,
