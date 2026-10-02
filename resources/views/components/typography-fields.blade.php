@@ -98,8 +98,16 @@
                     <summary style="cursor:pointer;font-weight:600;">Zaawansowane</summary>
                     <div style="padding-top:10px;">
                         @php($colorKey = $keyFor('color', $breakpoint))
+                        @php($savedColor = old($colorKey, $typography[$colorKey] ?? ''))
+                        @php($pickerColor = is_string($savedColor) && preg_match('/^#[0-9a-fA-F]{6}$/', $savedColor) ? $savedColor : '#222222')
                         <label for="{{ $colorKey }}">Kolor tekstu</label>
-                        <input type="color" name="{{ $colorKey }}" id="{{ $colorKey }}" value="{{ old($colorKey, $typography[$colorKey] ?? '#222222') }}" style="{{ $inputStyle }}">
+                        <div style="display:grid;grid-template-columns:54px 1fr;gap:8px;align-items:center;margin:7px 0 12px;">
+                            <input type="color" value="{{ $pickerColor }}" aria-label="{{ $label }} — wybierz kolor"
+                                   oninput="document.getElementById('{{ $colorKey }}').value=this.value"
+                                   style="width:54px;height:42px;padding:3px;border:1px solid #d1d5db;border-radius:6px;background:#fff;">
+                            <input type="text" name="{{ $colorKey }}" id="{{ $colorKey }}" value="{{ $savedColor }}" placeholder="{{ $breakpoint === 'desktop' ? '#222222 lub puste' : 'Dziedzicz' }}"
+                                   pattern="^#[0-9A-Fa-f]{6}$" style="{{ $inputStyle }}margin:0;">
+                        </div>
 
                         @php($alphaKey = $keyFor('color_alpha', $breakpoint))
                         <label for="{{ $alphaKey }}">Alpha koloru (%)</label>
