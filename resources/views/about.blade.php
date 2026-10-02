@@ -393,6 +393,7 @@
 
 <footer class="site-footer site-typography">
     {{ $settings['footer_text'] }}
+    <span aria-hidden="true"> · </span><a href="{{ route('privacy') }}" style="text-decoration:underline;text-underline-offset:3px;">Polityka prywatności</a>
 </footer>
 
 </body>
