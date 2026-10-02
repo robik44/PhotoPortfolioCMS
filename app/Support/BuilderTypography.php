@@ -92,9 +92,7 @@ class BuilderTypography
         $style = is_array($element['style'] ?? null) ? $element['style'] : [];
 
         return array_replace([
-            'font_family' => $catalog['defaults'][($element['type'] ?? null) === 'heading'
-                ? 'site_heading_font_family'
-                : 'site_body_font_family'] ?? 'Arial',
+            'font_family' => 'Arial',
             'font_size' => ($element['type'] ?? null) === 'heading' ? 42 : 18,
             'font_weight' => 400,
             'font_style' => 'normal',
