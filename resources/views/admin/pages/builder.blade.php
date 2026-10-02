@@ -772,7 +772,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function createElementContent(item) {
 
-        const box = document.createElement(item.type === 'heading' && ['h1', 'h2', 'h3'].includes(item.heading_level) ? item.heading_level : 'div');
+        const semanticTags = ['div', 'p', 'h1', 'h2', 'h3', 'small'];
+        const requestedSemanticTag = item.semantic_tag
+            || (item.type === 'heading' ? (item.heading_level || 'div') : (item.type === 'text' ? 'p' : 'div'));
+        const boxTag = ['heading', 'text'].includes(item.type) && semanticTags.includes(requestedSemanticTag)
+            ? requestedSemanticTag
+            : 'div';
+        const box = document.createElement(boxTag);
         box.style.margin = '0';
         box.style.width = '100%';
         box.style.boxSizing = 'border-box';
@@ -1377,8 +1383,22 @@ document.addEventListener("DOMContentLoaded", function () {
         window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
-        if (item.type === 'heading') {
-            selectField('Poziom nagłówka', item.heading_level || 'div', [['div', 'Dotychczasowy (bez zmiany)'], ['h1', 'H1'], ['h2', 'H2'], ['h3', 'H3']], value => { item.heading_level = value; });
+        if (['heading', 'text'].includes(item.type)) {
+            const currentSemanticTag = item.semantic_tag
+                || (item.type === 'heading' ? (item.heading_level || 'div') : 'p');
+            selectField(
+                'Znaczenie HTML / SEO',
+                currentSemanticTag,
+                [
+                    ['p', 'Akapit (P)'],
+                    ['h1', 'Nagłówek H1'],
+                    ['h2', 'Nagłówek H2'],
+                    ['h3', 'Nagłówek H3'],
+                    ['small', 'Tekst pomocniczy (SMALL)'],
+                    ['div', 'Neutralny kontener (DIV)']
+                ],
+                value => { item.semantic_tag = value; }
+            );
         }
         if (item.type === 'gallery') {
             selectField('Tryb galerii', item.gallery_mode || 'all', [['all', 'Wszystkie galerie'], ['single', 'Wybrana galeria']], value => { item.gallery_mode = value; });
