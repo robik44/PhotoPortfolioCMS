@@ -67,6 +67,44 @@ class BuilderButtonTest extends TestCase
         }
     }
 
+    public function test_image_can_optionally_link_to_an_internal_page_or_gallery(): void
+    {
+        $page = Page::create(['title' => 'Image links', 'slug' => 'image-links', 'published' => true]);
+        $targetPage = Page::create(['title' => 'Kontakt target', 'slug' => 'kontakt-target', 'published' => true]);
+        $gallery = Gallery::create(['title' => 'Docelowa galeria', 'slug' => 'docelowa-galeria', 'published' => true]);
+        $photo = Photo::create(['filename' => 'linked.jpg', 'title' => 'Klikalne zdjęcie', 'alt' => 'Klikalne zdjęcie']);
+
+        $editor = $this->get(route('pages.builder', $page))->assertOk()
+            ->assertSee('Po kliknięciu zdjęcia')
+            ->assertSee('Strona: Kontakt target')
+            ->assertSee('Galeria: Docelowa galeria');
+
+        $image = [
+            'type' => 'image',
+            'photo_id' => $photo->id,
+            'photo_url' => $photo->imageUrl(),
+            'photo_title' => $photo->title,
+            'image_link' => route('portfolio.gallery', $gallery),
+        ];
+
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$image]]])->assertOk();
+        $this->get(route('page.public', $page))->assertOk()
+            ->assertSee('class="builder-public-image-link"', false)
+            ->assertSee('href="'.route('portfolio.gallery', $gallery).'"', false)
+            ->assertSee('alt="Klikalne zdjęcie"', false);
+
+        $image['image_link'] = route('page.public', $targetPage);
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$image]]])->assertOk();
+        $this->get(route('page.public', $page))->assertSee('href="'.route('page.public', $targetPage).'"', false);
+
+        $image['image_link'] = null;
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$image]]])->assertOk();
+        $this->get(route('page.public', $page))->assertDontSee('class="builder-public-image-link"', false);
+
+        $image['image_link'] = 'javascript:alert(1)';
+        $this->postJson(route('pages.builder.save', $page), ['content' => ['sections' => [$image]]])->assertStatus(422);
+    }
+
     public function test_gallery_back_link_saves_and_keeps_automatic_destination(): void
     {
         $gallery = Gallery::create(['title' => 'Back test', 'slug' => 'test-back-link', 'published' => true]);

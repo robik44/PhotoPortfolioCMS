@@ -76,6 +76,8 @@
                     $imageHeight = max(0, (int) ($element['image_height'] ?? $element['element_height'] ?? 0));
                 @endphp
                 @if($photoUrl)
+                    @php($imageHref = \App\Support\BuilderButton::href($element['image_link'] ?? null))
+                    @if($imageHref)<a href="{{ $imageHref }}" class="builder-public-image-link" style="display:block;">@endif
                     <img
                         src="{{ $photoUrl }}"
                         alt="{{ $photoAlt }}"
@@ -88,6 +90,7 @@
                             border-radius:{{ $imageRadius }}px;
                         "
                     >
+                    @if($imageHref)</a>@endif
                     @if(trim($element['caption'] ?? '') !== '')
                         <div
                             class="page-image-caption"

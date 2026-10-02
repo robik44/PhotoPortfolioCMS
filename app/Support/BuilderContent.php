@@ -11,10 +11,20 @@ class BuilderContent
         foreach ($content['sections'] ?? [] as $element) {
             if (($element['type'] ?? null) === 'button') BuilderButton::validate($element);
             if (in_array($element['type'] ?? null, ['image', 'gallery'], true)) {
-                Validator::make($element, [
+                $rules = [
                     'caption' => ['sometimes', 'nullable', 'string'],
                     'caption_font_size' => ['sometimes', 'nullable', 'numeric', 'between:1,200'],
-                ])->validate();
+                ];
+
+                if (($element['type'] ?? null) === 'image') {
+                    $rules['image_link'] = ['sometimes', 'nullable', 'string', 'max:2048', function ($attribute, $value, $fail) {
+                        if ($value !== null && trim((string) $value) !== '' && BuilderButton::href($value) === null) {
+                            $fail('Wybierz prawidłowy cel linku zdjęcia.');
+                        }
+                    }];
+                }
+
+                Validator::make($element, $rules)->validate();
             }
             if (($element['type'] ?? null) === 'thumbnail_gallery') {
                 Validator::make($element, [
