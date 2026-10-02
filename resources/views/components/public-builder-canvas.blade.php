@@ -339,6 +339,20 @@
         #home-public-builder-canvas .page-element[data-builder-id="portfolio-heading"] {
             margin-top: 8px;
         }
+
+        #home-public-builder-canvas .page-element-text:not([data-builder-id="hero-text"]) [data-builder-typography-target] {
+            font-size: clamp(15px, 4.2vw, 18px) !important;
+            line-height: 1.5 !important;
+            letter-spacing: 0 !important;
+            word-spacing: normal !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+        }
+
+        #home-public-builder-canvas .page-element-heading:not([data-builder-id="hero-heading"]) [data-builder-typography-target] {
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+        }
     }
 
     @media (max-width: 560px) {
