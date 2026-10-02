@@ -126,7 +126,22 @@ class Seo
         if (!self::homeIndexing($settings)) $issues[] = 'noindex';
 
         $builder = PageBuilder::whereNull('page_id')->where('type', 'home')->where('published', true)->first();
-        $sections = $builder?->content['sections'] ?? [];
+        $sections = collect($builder?->content['sections'] ?? [])
+            ->map(function ($section) {
+                if (!empty($section['semantic_tag'])) {
+                    return $section;
+                }
+
+                $section['semantic_tag'] = match ($section['id'] ?? null) {
+                    'hero-heading' => 'h1',
+                    'hero-text' => 'p',
+                    'portfolio-heading' => 'h2',
+                    default => $section['semantic_tag'] ?? null,
+                };
+
+                return $section;
+            })
+            ->all();
 
         return array_merge($issues, self::headingIssues($sections));
     }

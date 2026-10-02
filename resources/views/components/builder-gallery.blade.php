@@ -3,6 +3,7 @@
     $galleries = $single
         ? \App\Models\Gallery::with('photos')->whereKey($element['gallery_id'] ?? 0)->get()
         : \App\Models\Gallery::with('photos')->orderBy('sort_order')->orderBy('title')->get();
+    $galleryTitleTag = in_array($galleryTitleTag ?? 'div', ['div', 'h3'], true) ? ($galleryTitleTag ?? 'div') : 'div';
 @endphp
 <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;width:100%;">
     @if($single)
@@ -32,7 +33,7 @@
                 @else
                     <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#999;">Brak zdjęcia</div>
                 @endif
-                <div style="padding:12px;">{{ $gallery->title }}</div>
+                <{{ $galleryTitleTag }} style="margin:0;padding:12px;font:inherit;color:inherit;text-align:inherit;">{{ $gallery->title }}</{{ $galleryTitleTag }}>
             </a>
         @endforeach
     @endif

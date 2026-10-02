@@ -126,6 +126,7 @@ class HomeBuilderController extends Controller
                 "type" => "heading",
                 "content" => $settings["hero_title"] ?? "Fotografia i stylizacja żywności",
                 "heading_level" => "h1",
+                "semantic_tag" => "h1",
                 "position_x" => 7,
                 "position_y" => 10,
                 "element_width" => 52,
@@ -138,6 +139,9 @@ class HomeBuilderController extends Controller
                     "letter_spacing" => 0,
                 ],
             ];
+            $changed = true;
+        } elseif (empty($sections[$heroHeadingIndex]["semantic_tag"])) {
+            $sections[$heroHeadingIndex]["semantic_tag"] = "h1";
             $changed = true;
         }
 
@@ -155,6 +159,7 @@ class HomeBuilderController extends Controller
             $sections[] = [
                 "id" => "hero-text",
                 "type" => "text",
+                "semantic_tag" => "p",
                 "content" => $settings["hero_subtitle"] ?? $settings["site_subtitle"] ?? "Fotografia kulinarna i artystyczna",
                 "position_x" => 7,
                 "position_y" => 20,
@@ -168,6 +173,9 @@ class HomeBuilderController extends Controller
                     "letter_spacing" => 0,
                 ],
             ];
+            $changed = true;
+        } elseif (empty($sections[$heroTextIndex]["semantic_tag"])) {
+            $sections[$heroTextIndex]["semantic_tag"] = "p";
             $changed = true;
         }
 
@@ -191,6 +199,7 @@ class HomeBuilderController extends Controller
                 "type" => "heading",
                 "content" => "Portfolio",
                 "heading_level" => "h2",
+                "semantic_tag" => "h2",
                 "position_x" => 7,
                 "position_y" => 90,
                 "element_width" => 40,
@@ -203,6 +212,9 @@ class HomeBuilderController extends Controller
                     "letter_spacing" => 0,
                 ],
             ];
+            $changed = true;
+        } elseif (empty($sections[$portfolioHeadingIndex]["semantic_tag"])) {
+            $sections[$portfolioHeadingIndex]["semantic_tag"] = "h2";
             $changed = true;
         }
 

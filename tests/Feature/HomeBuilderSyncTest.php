@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Models\PageBuilder;
+use App\Models\{Gallery, PageBuilder};
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
@@ -99,7 +99,10 @@ class HomeBuilderSyncTest extends TestCase
             ->assertSee('font-size:22px;', false)
             ->assertSee('color:#123456;', false)
             ->assertSee('font-size:37px;', false)
-            ->assertSee('color:#654321;', false);
+            ->assertSee('color:#654321;', false)
+            ->assertSee('<h1 class="builder-public-text"', false)
+            ->assertSee('<p class="builder-public-text"', false)
+            ->assertSee('<h2 class="builder-public-text"', false);
     }
 
     public function test_opening_home_builder_exposes_missing_editable_homepage_texts(): void
@@ -128,7 +131,52 @@ class HomeBuilderSyncTest extends TestCase
         $sections = collect($builder->fresh()->content['sections']);
 
         $this->assertSame('Istniejący nagłówek', $sections->firstWhere('id', 'hero-heading')['content']);
+        $this->assertSame('h1', $sections->firstWhere('id', 'hero-heading')['semantic_tag']);
         $this->assertSame('Fotografia kulinarna i artystyczna', $sections->firstWhere('id', 'hero-text')['content']);
+        $this->assertSame('p', $sections->firstWhere('id', 'hero-text')['semantic_tag']);
         $this->assertSame('Portfolio', $sections->firstWhere('id', 'portfolio-heading')['content']);
+        $this->assertSame('h2', $sections->firstWhere('id', 'portfolio-heading')['semantic_tag']);
+    }
+
+    public function test_homepage_gallery_titles_are_h3_under_portfolio_h2(): void
+    {
+        Gallery::create([
+            'title' => 'Stylizacje',
+            'slug' => 'stylizacje',
+            'published' => true,
+        ]);
+
+        PageBuilder::create([
+            'page_id' => null,
+            'type' => 'home',
+            'published' => true,
+            'content' => [
+                'version' => 1,
+                'settings' => [],
+                'sections' => [
+                    [
+                        'id' => 'hero-heading',
+                        'type' => 'heading',
+                        'content' => 'Fotografia żywności',
+                    ],
+                    [
+                        'id' => 'portfolio-heading',
+                        'type' => 'heading',
+                        'content' => 'Portfolio',
+                    ],
+                    [
+                        'id' => 'portfolio-gallery',
+                        'type' => 'gallery',
+                        'gallery_mode' => 'all',
+                    ],
+                ],
+            ],
+        ]);
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertMatchesRegularExpression('/<h1 class="builder-public-text"[^>]*>\\s*Fotografia żywności\\s*<\\/h1>/s', $html);
+        $this->assertMatchesRegularExpression('/<h2 class="builder-public-text"[^>]*>\\s*Portfolio\\s*<\\/h2>/s', $html);
+        $this->assertMatchesRegularExpression('/<h3 style="[^"]*">Stylizacje<\\/h3>/', $html);
     }
 }
