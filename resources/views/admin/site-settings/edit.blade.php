@@ -381,5 +381,91 @@
 
             </div>
         </div>
+
+        <div style="max-width:900px;margin:28px auto 0;padding:0 24px;">
+            <div style="background:#fff;border-radius:10px;padding:32px;box-shadow:0 2px 12px rgba(0,0,0,.08);">
+                <h2 style="margin:0 0 8px;font-size:20px;font-weight:700;">Konto administratora</h2>
+                <p style="margin:0 0 24px;color:#6b7280;line-height:1.6;">
+                    Ten adres e-mail służy do logowania i to na niego zostanie wysłany link „Nie pamiętam hasła”.
+                    Dane SMTP nadawcy pozostają w konfiguracji serwera, a nie w CMS.
+                </p>
+
+                @if (session('status') === 'profile-updated')
+                    <div style="margin-bottom:20px;padding:12px 14px;border-radius:6px;background:#dcfce7;color:#166534;">
+                        Adres e-mail administratora został zapisany.
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('profile.update') }}" style="margin-bottom:32px;">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="name" value="{{ $user->name }}">
+                    <label for="admin_email" style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;">
+                        Adres e-mail do logowania i resetu hasła
+                    </label>
+                    <input
+                        id="admin_email"
+                        type="email"
+                        name="email"
+                        value="{{ old('email', $user->email) }}"
+                        required
+                        autocomplete="username"
+                        style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;background:#fff;"
+                    >
+                    @error('email')
+                        <p style="margin:8px 0 0;color:#991b1b;">{{ $message }}</p>
+                    @enderror
+                    <button type="submit" style="margin-top:16px;background:#171717;color:#fff;border:0;padding:12px 20px;border-radius:6px;cursor:pointer;">
+                        Zapisz adres e-mail
+                    </button>
+                </form>
+
+                <hr style="border:0;border-top:1px solid #e5e7eb;margin:0 0 28px;">
+
+                <h3 style="margin:0 0 8px;font-size:17px;font-weight:700;">Zmiana hasła</h3>
+                <p style="margin:0 0 18px;color:#6b7280;">Zmiana wymaga podania aktualnego hasła.</p>
+
+                @if (session('status') === 'password-updated')
+                    <div style="margin-bottom:20px;padding:12px 14px;border-radius:6px;background:#dcfce7;color:#166534;">
+                        Hasło zostało zmienione.
+                    </div>
+                @endif
+
+                <form method="POST" action="{{ route('password.update') }}" style="display:flex;flex-direction:column;gap:14px;">
+                    @csrf
+                    @method('PUT')
+
+                    <label>
+                        <span style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Aktualne hasło</span>
+                        <input type="password" name="current_password" autocomplete="current-password"
+                            style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;">
+                        @foreach($errors->updatePassword->get('current_password') as $message)
+                            <span style="display:block;margin-top:6px;color:#991b1b;">{{ $message }}</span>
+                        @endforeach
+                    </label>
+
+                    <label>
+                        <span style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Nowe hasło</span>
+                        <input type="password" name="password" autocomplete="new-password"
+                            style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;">
+                        @foreach($errors->updatePassword->get('password') as $message)
+                            <span style="display:block;margin-top:6px;color:#991b1b;">{{ $message }}</span>
+                        @endforeach
+                    </label>
+
+                    <label>
+                        <span style="display:block;font-size:14px;font-weight:600;margin-bottom:6px;">Powtórz nowe hasło</span>
+                        <input type="password" name="password_confirmation" autocomplete="new-password"
+                            style="width:100%;padding:11px 12px;border:1px solid #d1d5db;border-radius:6px;">
+                    </label>
+
+                    <div>
+                        <button type="submit" style="background:#171717;color:#fff;border:0;padding:12px 20px;border-radius:6px;cursor:pointer;">
+                            Zmień hasło
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </x-app-layout>
