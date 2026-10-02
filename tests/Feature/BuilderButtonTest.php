@@ -257,10 +257,13 @@ class BuilderButtonTest extends TestCase
 
     public function test_visual_builder_allows_precise_line_height_steps(): void
     {
-        $builder = file_get_contents(resource_path('views/admin/pages/builder.blade.php'));
+        $typography = file_get_contents(public_path('js/site-typography.js'));
 
-        $this->assertStringContainsString("{ step: 0.1, min: 0.1, max: 4 }", $builder);
-        $this->assertStringContainsString("Math.max(0.1, Math.min(4, parsed))", $builder);
+        $this->assertStringContainsString("'Wysokość linii'", $typography);
+        $this->assertStringContainsString('step: 0.05, min: 0.1, max: 10', $typography);
+        $this->assertStringContainsString("'Odstęp między literami'", $typography);
+        $this->assertStringContainsString('step: 0.01, min: -10, max: 20', $typography);
+        $this->assertStringContainsString('step: 0.1, min: 1, max: 300', $typography);
     }
 
 
