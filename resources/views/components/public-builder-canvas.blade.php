@@ -311,8 +311,8 @@
         }
 
         #home-public-builder-canvas .page-element[data-builder-id="hero-heading"] [data-builder-typography-target] {
-            font-size: clamp(34px, 10vw, 48px) !important;
-            line-height: .94 !important;
+            font-size: clamp(26px, 7vw, 34px) !important;
+            line-height: 1.02 !important;
             letter-spacing: .01em !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
@@ -330,8 +330,8 @@
         }
 
         #home-public-builder-canvas .page-element[data-builder-id="hero-text"] [data-builder-typography-target] {
-            font-size: clamp(17px, 4.8vw, 24px) !important;
-            line-height: 1.15 !important;
+            font-size: clamp(14px, 4vw, 18px) !important;
+            line-height: 1.2 !important;
             overflow-wrap: normal !important;
             word-break: normal !important;
         }
