@@ -133,7 +133,7 @@
                 <div style="height:1px;width:100%;background:{{ $color }};"></div>
 
             @elseif($type === 'section')
-                <div class="builder-public-text builder-typography-target" style="{{ $typographyCss }}">{{ $content }}</div>
+                <div class="builder-public-text" data-builder-typography-target style="{{ $typographyCss }}">{{ $content }}</div>
 
             @elseif($type === 'thumbnail_gallery')
                 @include('components.builder-thumbnail-gallery', ['element' => $element])
