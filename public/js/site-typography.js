@@ -45,6 +45,7 @@
                     letter_spacing_unit: style.letter_spacing_unit || 'px',
                     word_spacing: number(style.word_spacing, 0),
                     color: style.color || '#222222',
+                    color_alpha: number(style.color_alpha, 100),
                     opacity: number(style.opacity, 100),
                     paragraph_spacing: number(style.paragraph_spacing, 0),
                     margin_top: number(style.margin_top, 0),
@@ -109,7 +110,16 @@
                 node.style.lineHeight = String(number(values.line_height, 1.4)) + (values.line_height_unit === 'px' ? 'px' : '');
                 node.style.letterSpacing = number(values.letter_spacing, 0) + (values.letter_spacing_unit === 'em' ? 'em' : 'px');
                 node.style.wordSpacing = number(values.word_spacing, 0) + 'px';
-                node.style.color = values.color || '#222222';
+                const colorValue = values.color || '#222222';
+                const colorAlpha = Math.max(0, Math.min(100, number(values.color_alpha, 100)));
+                if (/^#[0-9a-f]{6}$/i.test(colorValue) && colorAlpha < 100) {
+                    const red = parseInt(colorValue.slice(1, 3), 16);
+                    const green = parseInt(colorValue.slice(3, 5), 16);
+                    const blue = parseInt(colorValue.slice(5, 7), 16);
+                    node.style.color = `rgba(${red}, ${green}, ${blue}, ${colorAlpha / 100})`;
+                } else {
+                    node.style.color = colorValue;
+                }
                 node.style.opacity = String(Math.max(0, Math.min(100, number(values.opacity, 100))) / 100);
                 node.style.marginTop = number(values.margin_top, 0) + 'px';
                 node.style.marginBottom = number(values.margin_bottom, 0) + 'px';
@@ -343,6 +353,13 @@
 
                     color(fields, className, 'Kolor tekstu', own.color ?? current.color, value => {
                         setValue(item, active, 'color', value);
+                        changed();
+                    });
+
+                    numeric(fields, className, 'Alpha koloru (%)', own.color_alpha ?? '', {
+                        step: 1, min: 0, max: 100, placeholder: String(current.color_alpha ?? 100)
+                    }, value => {
+                        setValue(item, active, 'color_alpha', value);
                         changed();
                     });
 
