@@ -26,6 +26,7 @@
     window.SiteTypography = {
         create(catalog) {
             const textTypes = new Set(catalog.textTypes);
+            const previewBreakpoints = new WeakMap();
             const css = (id) => typeof id === 'string' && Object.hasOwn(catalog.families, id)
                 ? catalog.families[id] : catalog.families.Arial;
 
@@ -88,8 +89,9 @@
                 ensureBreakpoint(item, breakpoint)[key] = value;
             };
 
-            const apply = (node, item, breakpoint = 'desktop') => {
+            const apply = (node, item, breakpoint = null) => {
                 if (!textTypes.has(item.type)) return;
+                breakpoint = breakpoint || previewBreakpoints.get(item) || 'desktop';
                 const values = resolved(item, breakpoint);
                 node.style.fontFamily = css(values.font_family);
 
@@ -209,7 +211,7 @@
                 title.style.marginBottom = '10px';
                 root.appendChild(title);
 
-                let active = root.dataset.breakpoint || 'desktop';
+                let active = previewBreakpoints.get(item) || 'desktop';
                 const tabs = document.createElement('div');
                 tabs.style.display = 'grid';
                 tabs.style.gridTemplateColumns = 'repeat(3, 1fr)';
@@ -230,6 +232,8 @@
                         if (breakpoint === active) tab.classList.add('dark');
                         tab.addEventListener('click', () => {
                             active = breakpoint;
+                            previewBreakpoints.set(item, breakpoint);
+                            render();
                             drawFields();
                             rerenderPanel();
                         });
