@@ -107,7 +107,7 @@
                     } elseif ($menuItem->type === "gallery" && $menuItem->gallery) {
                         $menuUrl = route("portfolio.gallery", $menuItem->gallery);
                     } elseif ($menuItem->type === "url" && $menuItem->url) {
-                        $menuUrl = $menuItem->url;
+                        $menuUrl = \App\Support\BuilderButton::href($menuItem->url) ?? '#';
                     } else {
                         $menuUrl = "#";
                     }
@@ -131,7 +131,7 @@
                                     } elseif ($child->type === "gallery" && $child->gallery) {
                                         $childUrl = route("portfolio.gallery", $child->gallery);
                                     } elseif ($child->type === "url" && $child->url) {
-                                        $childUrl = $child->url;
+                                        $childUrl = \App\Support\BuilderButton::href($child->url) ?? '#';
                                     } else {
                                         $childUrl = "#";
                                     }

@@ -35,6 +35,27 @@ class MenuOrderTest extends TestCase
             ->assertSeeInOrder(['SECOND', 'FIRST', 'CHILD-B', 'CHILD-A']);
     }
 
+    public function test_custom_menu_url_rejects_unsafe_schemes(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $this->post(route('menu.store'), [
+            'title' => 'Niebezpieczny',
+            'type' => 'url',
+            'url' => 'javascript:alert(1)',
+            'published' => '1',
+        ])->assertSessionHasErrors('url');
+
+        $this->post(route('menu.store'), [
+            'title' => 'Bezpieczny',
+            'type' => 'url',
+            'url' => 'https://example.com',
+            'published' => '1',
+        ])->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('menu_items', ['title' => 'Bezpieczny', 'url' => 'https://example.com']);
+    }
+
     public function test_sort_endpoint_rejects_parent_changes_partial_lists_and_duplicates_atomically(): void
     {
         $this->actingAs(User::factory()->create());

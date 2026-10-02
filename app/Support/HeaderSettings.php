@@ -8,8 +8,8 @@ use Illuminate\Validation\Rule;
 class HeaderSettings
 {
     public const DEFAULTS = [
-        'logo' => 'ROBERT WOŹNIAK',
-        'logo_subtitle' => 'FOTOGRAFIA',
+        'logo' => 'MAGDA GUGAŁA',
+        'logo_subtitle' => 'FOTOGRAFIA ŻYWNOŚCI',
         'header_logo_font_family' => 'Arial',
         'header_subtitle_font_family' => 'Arial',
         'header_logo_font_size' => 28,

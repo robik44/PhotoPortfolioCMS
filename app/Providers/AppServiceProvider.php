@@ -25,12 +25,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         View::composer([
-            'admin.pages.builder', 'pages.show', 'welcome', 'about', 'contact',
+            'admin.pages.builder', 'pages.show', 'welcome', 'about', 'contact', 'privacy',
             'portfolio.gallery', 'admin.galleries.create', 'admin.galleries.edit', 'admin.photos.edit',
         ], function ($view) {
             $view->with('siteFonts', app(SiteFontLibrary::class)->catalog());
         });
-        View::composer(['about', 'contact', 'portfolio.gallery'], function ($view) {
+        View::composer(['about', 'contact', 'privacy', 'portfolio.gallery'], function ($view) {
             $view->with('globalHeaderSettings', SiteSetting::whereIn('key', HeaderSettings::keys())
                 ->pluck('value', 'key')->all());
             $view->with('globalHeaderMenuItems', MenuItem::query()

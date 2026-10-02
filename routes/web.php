@@ -102,6 +102,7 @@ Route::get("/", function () {
 Route::get('/o-mnie', [ContentPageController::class, 'show'])->defaults('slug', 'o-mnie')->name('about');
 
 Route::get('/kontakt', [ContentPageController::class, 'show'])->defaults('slug', 'kontakt')->name('contact');
+Route::get('/polityka-prywatnosci', [ContentPageController::class, 'show'])->defaults('slug', 'polityka-prywatnosci')->name('privacy');
 
 Route::get("/portfolio/{gallery:slug}", [GalleryController::class, "publicShow"])
     ->name("portfolio.gallery");
@@ -119,7 +120,7 @@ Route::middleware(["auth"])->group(function () {
     Route::get('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'edit'])->name('seo.edit');
     Route::put('/admin/seo', [\App\Http\Controllers\Admin\SeoController::class, 'update'])->name('seo.update');
     Route::get('/admin/content-pages/{slug}', [ContentPageController::class, 'edit'])
-        ->whereIn('slug', ['o-mnie', 'kontakt'])->name('content-pages.edit');
+        ->whereIn('slug', ['o-mnie', 'kontakt', 'polityka-prywatnosci'])->name('content-pages.edit');
     Route::get('/admin/fonts', [FontLibraryController::class, 'index'])->name('fonts.index');
     Route::post('/admin/fonts', [FontLibraryController::class, 'store'])->name('fonts.store');
     Route::put('/admin/fonts', [FontLibraryController::class, 'update'])->name('fonts.update');

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Gallery;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Support\BuilderButton;
 use Illuminate\Http\Request;
 
 class MenuItemController extends Controller
@@ -53,7 +54,11 @@ class MenuItemController extends Controller
             'type' => ['required', 'in:page,gallery,url'],
             'page_id' => ['nullable', 'exists:pages,id'],
             'gallery_id' => ['nullable', 'exists:galleries,id'],
-            'url' => ['nullable', 'string', 'max:500'],
+            'url' => ['nullable', 'required_if:type,url', 'string', 'max:500', function ($attribute, $value, $fail) {
+                if ($value !== null && trim((string) $value) !== '' && BuilderButton::href($value) === null) {
+                    $fail('Podaj bezpieczny adres URL.');
+                }
+            }],
             'parent_id' => ['nullable', 'exists:menu_items,id'],
             'published' => ['nullable', 'boolean'],
         ]);
@@ -102,7 +107,11 @@ class MenuItemController extends Controller
             'type' => ['required', 'in:page,gallery,url'],
             'page_id' => ['nullable', 'exists:pages,id'],
             'gallery_id' => ['nullable', 'exists:galleries,id'],
-            'url' => ['nullable', 'string', 'max:500'],
+            'url' => ['nullable', 'required_if:type,url', 'string', 'max:500', function ($attribute, $value, $fail) {
+                if ($value !== null && trim((string) $value) !== '' && BuilderButton::href($value) === null) {
+                    $fail('Podaj bezpieczny adres URL.');
+                }
+            }],
             'parent_id' => ['nullable', 'exists:menu_items,id'],
             'published' => ['nullable', 'boolean'],
         ]);
