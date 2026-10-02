@@ -16,6 +16,10 @@
         display: flex;
     }
 
+    .lightbox {
+        touch-action: pan-y pinch-zoom;
+    }
+
     .lightbox-image {
         position: relative;
         z-index: 1;
@@ -188,6 +192,8 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentIndex = 0;
     let openingItem = null;
     let previousOverflow = '';
+    let touchStartX = null;
+    let touchStartY = null;
 
     function showPhoto(index) {
         if (!items.length) return;
@@ -276,6 +282,35 @@ document.addEventListener('DOMContentLoaded', function () {
             showPhoto(currentIndex);
         }
     });
+
+    lightbox.addEventListener('touchstart', function (event) {
+        if (event.touches.length !== 1) {
+            touchStartX = null;
+            touchStartY = null;
+            return;
+        }
+
+        touchStartX = event.touches[0].clientX;
+        touchStartY = event.touches[0].clientY;
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', function (event) {
+        if (touchStartX === null || touchStartY === null || event.changedTouches.length !== 1) return;
+
+        const dx = event.changedTouches[0].clientX - touchStartX;
+        const dy = event.changedTouches[0].clientY - touchStartY;
+
+        touchStartX = null;
+        touchStartY = null;
+
+        if (Math.abs(dx) < 45 || Math.abs(dx) <= Math.abs(dy)) return;
+
+        if (dx < 0) {
+            showPhoto(currentIndex + 1);
+        } else {
+            showPhoto(currentIndex - 1);
+        }
+    }, { passive: true });
 
     lightbox.addEventListener('click', function (event) {
         if (event.target === lightbox) {
