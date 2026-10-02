@@ -43,6 +43,10 @@
             $lineHeight = max(0.45, min(4, (float) ($style['line_height'] ?? 1.4)));
             $letterSpacing = (float) ($style['letter_spacing'] ?? 0);
             $wordSpacing = (float) ($style['word_spacing'] ?? 0);
+            $isTypographyTarget = in_array($type, \App\Services\SiteFontLibrary::TEXT_BLOCKS, true);
+            $typographyCss = $isTypographyTarget
+                ? \App\Support\BuilderTypography::inlineCss($element, $fontCatalog)
+                : '';
         @endphp
 
         <div
@@ -66,6 +70,7 @@
                 @endif
             "
             data-builder-id="{{ $element['id'] ?? '' }}"
+            data-builder-index="{{ $loop->index }}"
         >
             @if($type === 'image')
                 @php
@@ -107,81 +112,53 @@
 
             @elseif($type === 'heading')
                 @php($headingTag = in_array($element['heading_level'] ?? '', ['h1', 'h2', 'h3'], true) ? $element['heading_level'] : 'div')
-                <{{ $headingTag }} class="builder-public-text"
-                    style="
-                        margin:0;
-                        font-family:{{ $fontFamily }};
-                        font-size:{{ $fontSize }}px;
-                        font-weight:{{ $fontWeight }};
-                        color:{{ $color }};
-                        text-align:{{ $textAlign }};
-                        line-height:{{ $lineHeight }};
-                        letter-spacing:{{ $letterSpacing }}px;
-                        word-spacing:{{ $wordSpacing }}px;
-                    "
+                <{{ $headingTag }} class="builder-public-text" data-builder-typography-target
+                    style="margin:0;{{ $typographyCss }}"
                 >{{ $content }}</{{ $headingTag }}>
 
             @elseif($type === 'text')
-                <div class="builder-public-text"
-                    style="
-                        font-family:{{ $fontFamily }};
-                        font-size:{{ $fontSize }}px;
-                        font-weight:{{ $fontWeight }};
-                        color:{{ $color }};
-                        text-align:{{ $textAlign }};
-                        line-height:{{ $lineHeight }};
-                        letter-spacing:{{ $letterSpacing }}px;
-                        word-spacing:{{ $wordSpacing }}px;
-                    "
-                >{!! nl2br(e($content)) !!}</div>
+                <div class="builder-public-text" data-builder-typography-target style="{{ $typographyCss }}">
+{!! nl2br(e($content)) !!}</div>
 
             @elseif($type === 'button')
                 @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
                 <a
-                    class="builder-public-button"
+                    class="builder-public-button" data-builder-typography-target
                     @if($buttonHref) href="{{ $buttonHref }}" @endif
                     @if($buttonHref && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
-                    style="
-                        font-family:{{ $fontFamily }};
-                        font-size:{{ $fontSize }}px;
-                        font-weight:{{ $fontWeight }};
-                        color:{{ $color }};
-                        text-align:{{ $textAlign }};
-                        line-height:{{ $lineHeight }};
-                        letter-spacing:{{ $letterSpacing }}px;
-                        word-spacing:{{ $wordSpacing }}px;
-                        {{ \App\Support\BuilderButton::css($element) }}
-                    "
+                    style="{{ $typographyCss }}{{ \App\Support\BuilderButton::css($element) }}"
                 >{{ $content }}</a>
 
             @elseif($type === 'separator')
                 <div style="height:1px;width:100%;background:{{ $color }};"></div>
 
             @elseif($type === 'section')
-                <div class="builder-public-text"
-                    style="
-                        font-family:{{ $fontFamily }};
-                        font-size:{{ $fontSize }}px;
-                        font-weight:{{ $fontWeight }};
-                        color:{{ $color }};
-                        text-align:{{ $textAlign }};
-                        line-height:{{ $lineHeight }};
-                        letter-spacing:{{ $letterSpacing }}px;
-                        word-spacing:{{ $wordSpacing }}px;
-                    "
-                >{{ $content }}</div>
+                <div class="builder-public-text" data-builder-typography-target style="{{ $typographyCss }}">{{ $content }}</div>
 
             @elseif($type === 'thumbnail_gallery')
                 @include('components.builder-thumbnail-gallery', ['element' => $element])
 
             @elseif($type === 'gallery')
-                @include('components.builder-gallery', ['element' => $element, 'group' => 'builder-'.$loop->index])
+                <div data-builder-typography-target style="{{ $typographyCss }}">
+                    @include('components.builder-gallery', ['element' => $element, 'group' => 'builder-'.$loop->index])
+                </div>
             @endif
         </div>
     @endforeach
 </div>
 
 <style>
+    @foreach($sections as $element)
+        @php($responsiveType = $element['type'] ?? 'text')
+        @if(in_array($responsiveType, \App\Services\SiteFontLibrary::TEXT_BLOCKS, true))
+            {!! \App\Support\BuilderTypography::responsiveCss(
+                $element,
+                $fontCatalog,
+                '#' . $canvasId . ' .page-element[data-builder-index="' . $loop->index . '"] [data-builder-typography-target]'
+            ) !!}
+        @endif
+    @endforeach
+
     .builder-public-canvas {
         position: relative;
         width: 100%;
@@ -206,6 +183,11 @@
         box-sizing: border-box;
         white-space: normal;
         overflow-wrap: anywhere;
+    }
+
+    .builder-public-text p + p,
+    [data-builder-typography-target] p + p {
+        margin-top: var(--typography-paragraph-spacing, 0px);
     }
 
     .page-element-image {

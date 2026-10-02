@@ -785,27 +785,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
         window.builderTypography.apply(box, item);
 
-        box.style.color =
-            item.style.color;
-
-        box.style.fontSize =
-            item.style.font_size + "px";
-
-        box.style.fontWeight =
-            item.style.font_weight;
-
-        box.style.textAlign =
-            item.style.text_align;
-
-        box.style.lineHeight =
-            item.style.line_height;
-
-        box.style.letterSpacing =
-            item.style.letter_spacing + "px";
-
-        box.style.wordSpacing =
-            (item.style.word_spacing || 0) + "px";
-
         if (item.type === "thumbnail_gallery") {
             box.appendChild(window.ThumbnailGallery.preview(item, photos));
         } else if (item.type === "image") {
@@ -955,8 +934,6 @@ document.addEventListener("DOMContentLoaded", function () {
                         gallery.title || "Galeria";
 
                     title.style.padding = "12px";
-                    title.style.fontSize = item.style.font_size + "px";
-                    title.style.fontWeight = item.style.font_weight;
 
                     card.appendChild(title);
 
@@ -1397,7 +1374,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(actions);
 
-        window.builderTypography.field(properties, item, render, 'fve-field');
+        window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
         if (item.type === 'heading') {
@@ -1428,47 +1405,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             );
 
-            field(
-                "Rozmiar czcionki",
-                "number",
-                item.style.font_size,
-                function (value) {
-                    item.style.font_size =
-                        Number(value) || 1;
-                }
-            );
-
-            field(
-                "Kolor tekstu",
-                "color",
-                item.style.color,
-                function (value) {
-                    item.style.color = value;
-                }
-            );
-        }
-
-        if (window.builderTypography.isText(item)) {
-            field('Grubość czcionki', 'number', item.style.font_weight, function (value) {
-                item.style.font_weight = Math.max(100, Math.min(900, Number(value) || 400));
-            });
-            selectField('Wyrównanie tekstu', item.style.text_align || 'left', [
-                ['left', 'Do lewej'],
-                ['center', 'Do środka'],
-                ['right', 'Do prawej']
-            ], function (value) {
-                item.style.text_align = value;
-            });
-            field('Wysokość linii', 'number', item.style.line_height, function (value) {
-                const parsed = Number(value);
-                item.style.line_height = Number.isFinite(parsed) ? Math.max(0.1, Math.min(4, parsed)) : 1.4;
-            }, { step: 0.1, min: 0.1, max: 4 });
-            field('Odstęp między literami (px)', 'number', item.style.letter_spacing, function (value) {
-                item.style.letter_spacing = Number(value) || 0;
-            });
-            field('Odstęp między słowami (px)', 'number', item.style.word_spacing || 0, function (value) {
-                item.style.word_spacing = Number(value) || 0;
-            });
         }
 
         field(

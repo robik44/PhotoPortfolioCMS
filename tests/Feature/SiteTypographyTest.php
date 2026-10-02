@@ -212,4 +212,66 @@ class SiteTypographyTest extends TestCase
         $this->post(route('fonts.store'))->assertRedirect(route('login'));
         $this->get(route('content-pages.edit', 'kontakt'))->assertRedirect(route('login'));
     }
+
+    public function test_builder_typography_supports_decimal_values_and_responsive_overrides(): void
+    {
+        $page = Page::create(['title' => 'Responsive typography', 'slug' => 'responsive-typography', 'published' => true]);
+        $layout = [
+            'version' => 1,
+            'settings' => [],
+            'sections' => [[
+                'id' => 'responsive-heading',
+                'type' => 'heading',
+                'content' => 'Precyzyjna typografia',
+                'heading_level' => 'h1',
+                'position_x' => 5,
+                'position_y' => 5,
+                'element_width' => 70,
+                'style' => [
+                    'font_size' => 42,
+                    'font_weight' => 400,
+                    'line_height' => 1.4,
+                    'letter_spacing' => 0,
+                    'color' => '#222222',
+                    'text_align' => 'left',
+                ],
+                'typography' => [
+                    'desktop' => [
+                        'font_size' => 52.4,
+                        'font_weight' => 300,
+                        'line_height' => 0.95,
+                        'letter_spacing' => -0.02,
+                        'letter_spacing_unit' => 'em',
+                    ],
+                    'tablet' => [
+                        'font_size' => 43.2,
+                    ],
+                    'mobile' => [
+                        'font_size' => 31.6,
+                        'line_height' => 1.02,
+                    ],
+                ],
+            ]],
+        ];
+
+        $this->postJson(route('pages.builder.save', $page), ['content' => $layout])->assertOk();
+        $this->assertSame($layout, $page->fresh()->builder->content);
+
+        $public = $this->get(route('page.public', $page))->assertOk();
+        $public->assertSee('font-size:52.4px;', false)
+            ->assertSee('font-weight:300;', false)
+            ->assertSee('line-height:0.95;', false)
+            ->assertSee('letter-spacing:-0.02em;', false)
+            ->assertSee('@media (max-width:900px)', false)
+            ->assertSee('font-size:43.2px !important;', false)
+            ->assertSee('@media (max-width:520px)', false)
+            ->assertSee('font-size:31.6px !important;', false)
+            ->assertSee('line-height:1.02 !important;', false);
+
+        $layout['sections'][0]['typography']['mobile']['font_family'] = 'not-a-font';
+        $this->postJson(route('pages.builder.save', $page), ['content' => $layout])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('content.sections.0.typography.mobile.font_family');
+    }
+
 }

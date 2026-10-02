@@ -8,8 +8,11 @@ class BuilderContent
 {
     public static function validate(array $content): void
     {
-        foreach ($content['sections'] ?? [] as $element) {
+        foreach ($content['sections'] ?? [] as $index => $element) {
             if (($element['type'] ?? null) === 'button') BuilderButton::validate($element);
+            if (in_array($element['type'] ?? null, \App\Services\SiteFontLibrary::TEXT_BLOCKS, true)) {
+                BuilderTypography::validate($element, $index);
+            }
             if (in_array($element['type'] ?? null, ['image', 'gallery'], true)) {
                 $rules = [
                     'caption' => ['sometimes', 'nullable', 'string'],

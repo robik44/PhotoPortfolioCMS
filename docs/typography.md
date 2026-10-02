@@ -53,3 +53,30 @@ Sprawdza też sumę kontrolną bazy źródłowej. Nie uruchamia migracji.
 
 `node tests/Js/builder-typography.test.mjs` sprawdza selektory Buildera i
 stosowanie/resetowanie typografii w lightboxie.
+
+
+## Responsive typography system (2026-10)
+
+PageBuilder text-like blocks (`heading`, `text`, `button`, `section`, `gallery`) use one shared UI from `public/js/site-typography.js` and one public renderer in `App\\Support\\BuilderTypography`. Do not add parallel font-size/weight/spacing controls in individual builder blocks.
+
+Legacy `element.style` remains the base for compatibility. New overrides are opt-in and stored under:
+
+```json
+{
+  "typography": {
+    "desktop": { "font_size": 52.4, "line_height": 0.95, "letter_spacing": -0.02, "letter_spacing_unit": "em" },
+    "tablet": { "font_size": 43.2 },
+    "mobile": { "font_size": 31.6, "line_height": 1.02 }
+  }
+}
+```
+
+Tablet inherits Desktop; Mobile inherits Tablet then Desktop. Empty override fields are not written. Resetting typography removes the override and reveals the legacy/default value again. No database migration is required.
+
+Shared controls support decimal font size (0.1 px UI step), line-height (0.05), letter spacing (0.01 px/em), word spacing (0.1 px), font weight/style/transform/alignment, color + alpha, opacity, margins, paragraph spacing, text width/max-width/max line length, X/Y offsets, presets and optional fluid `clamp()`.
+
+Gallery and Photo typography continue to use the existing `site_settings` JSON keys, while `TypographySettings` supports the same Desktop/Tablet/Mobile properties. Existing keys such as `title_font_family` and `title_font_size` remain valid; responsive values use names such as `title_tablet_font_size` and `title_mobile_letter_spacing`.
+
+Breakpoints are shared with the current public site: Tablet max-width 900 px, Mobile max-width 520 px.
+
+For future text components, extend the shared helpers rather than copying controls into a new form or block.

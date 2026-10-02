@@ -5,4 +5,11 @@
     @if(isset($typography[$textField.'_font_size']))
         data-{{ $textField }}-font-size="{{ (float) $typography[$textField.'_font_size'] }}px"
     @endif
+
+    @foreach(['desktop', 'tablet', 'mobile'] as $breakpoint)
+        @php($responsiveTypographyCss = \App\Support\TypographySettings::css($typography, $textField, $siteFonts, $breakpoint))
+        @if($responsiveTypographyCss !== '')
+            data-{{ $textField }}-typography-{{ $breakpoint }}="{{ $responsiveTypographyCss }}"
+        @endif
+    @endforeach
 @endforeach

@@ -1,6 +1,18 @@
 @php
     $backLink = \App\Support\GalleryBackLink::read($settings, $gallery->id);
     $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
+
+    $galleryTypographyCss = static function (string $field, string $legacyFamilyField) use ($galleryFonts, $siteFonts): string {
+        $css = \App\Support\TypographySettings::css($galleryFonts, $field, $siteFonts);
+        if (!str_contains($css, 'font-family:')) {
+            $css = 'font-family:' . \App\Support\GalleryTypography::css($galleryFonts, $legacyFamilyField, $siteFonts) . ';' . $css;
+        }
+        return $css;
+    };
+
+    $galleryTitleCss = $galleryTypographyCss('title', 'title_font_family');
+    $galleryDescriptionCss = $galleryTypographyCss('description', 'description_font_family');
+    $galleryCaptionCss = $galleryTypographyCss('caption', 'caption_font_family');
 @endphp
 
 <!DOCTYPE html>
@@ -15,11 +27,37 @@
     * { box-sizing: border-box; }
     body { margin: 0; color: #222; background: {{ $settings['background_color'] ?? '#ffffff' }}; }
     a { color: inherit; text-decoration: none; }
-    #lightbox .lightbox-title, #lightbox .lightbox-description { font-family: {{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }}; }
+    .gallery-page .gallery-caption strong, .gallery-page .gallery-caption span,
+    #lightbox .lightbox-title, #lightbox .lightbox-description { {!! $galleryCaptionCss !!} }
+
     @if(isset($galleryFonts['caption_font_size']))
-        .gallery-page .gallery-caption strong, .gallery-page .gallery-caption span,
         #lightbox .lightbox-title, #lightbox .lightbox-description { font-size: {{ (float) $galleryFonts['caption_font_size'] }}px; }
     @endif
+
+    {!! \App\Support\TypographySettings::responsiveCss($galleryFonts, 'title', $siteFonts, '.gallery-heading h1') !!}
+    {!! \App\Support\TypographySettings::responsiveCss($galleryFonts, 'description', $siteFonts, '.gallery-heading p') !!}
+    {!! \App\Support\TypographySettings::responsiveCss(
+        $galleryFonts,
+        'caption',
+        $siteFonts,
+        '.gallery-page .gallery-caption strong, .gallery-page .gallery-caption span, #lightbox .lightbox-title, #lightbox .lightbox-description'
+    ) !!}
+
+    @foreach($gallery->photos as $responsivePhoto)
+        @php($responsivePhotoTypography = \App\Support\TypographySettings::read($settings, 'photo_'.$responsivePhoto->id.'_typography'))
+        {!! \App\Support\TypographySettings::responsiveCss(
+            $responsivePhotoTypography,
+            'title',
+            $siteFonts,
+            '.gallery-item[data-photo-index="'.$loop->index.'"] .gallery-caption strong'
+        ) !!}
+        {!! \App\Support\TypographySettings::responsiveCss(
+            $responsivePhotoTypography,
+            'description',
+            $siteFonts,
+            '.gallery-item[data-photo-index="'.$loop->index.'"] .gallery-caption span'
+        ) !!}
+    @endforeach
     .gallery-page {
         min-height: 100vh;
         color: #222;
@@ -226,10 +264,10 @@
     @include('components.site-header', ['settings' => $globalHeaderSettings, 'menuItems' => $globalHeaderMenuItems])
 
     <section class="gallery-heading">
-        <h1 style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'title_font_family', $siteFonts) }};@if(isset($galleryFonts['title_font_size']))font-size:{{ (float) $galleryFonts['title_font_size'] }}px;@endif">{{ $gallery->title }}</h1>
+        <h1 style="{{ $galleryTitleCss }}">{{ $gallery->title }}</h1>
 
         @if($gallery->description)
-            <p style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'description_font_family', $siteFonts) }};@if(isset($galleryFonts['description_font_size']))font-size:{{ (float) $galleryFonts['description_font_size'] }}px;@endif">{{ $gallery->description }}</p>
+            <p style="{{ $galleryDescriptionCss }}">{{ $gallery->description }}</p>
         @endif
 
         <a href="{{ url('/') }}#portfolio" class="back-link" @if($backLink) style="{{ \App\Support\TypographySettings::css($backLink, 'back', $siteFonts) }}@if(!empty($backLink['back_color']))color:{{ $backLink['back_color'] }};@endif" @endif>
@@ -261,7 +299,7 @@
                     >
 
                     @if($photo->title || $photo->description)
-                        <div class="gallery-caption" style="font-family:{{ \App\Support\GalleryTypography::css($galleryFonts, 'caption_font_family', $siteFonts) }};">
+                        <div class="gallery-caption" style="{{ $galleryCaptionCss }}">
                             @if($photo->title)
                                 <strong @if($css = \App\Support\TypographySettings::css($photoTypography, 'title', $siteFonts)) style="{{ $css }}" @endif>{{ $photo->title }}</strong>
                             @endif
