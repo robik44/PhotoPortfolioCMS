@@ -66,6 +66,7 @@ class BuilderTypography
                 'letter_spacing_unit' => ['sometimes', 'nullable', 'in:px,em'],
                 'word_spacing' => ['sometimes', 'nullable', 'numeric', 'between:-50,100'],
                 'color' => ['sometimes', 'nullable', 'regex:/^#[0-9a-fA-F]{6}$/'],
+                'color_alpha' => ['sometimes', 'nullable', 'numeric', 'between:0,100'],
                 'opacity' => ['sometimes', 'nullable', 'numeric', 'between:0,100'],
                 'paragraph_spacing' => ['sometimes', 'nullable', 'numeric', 'between:0,500'],
                 'margin_top' => ['sometimes', 'nullable', 'numeric', 'between:-500,500'],
@@ -104,6 +105,7 @@ class BuilderTypography
             'letter_spacing_unit' => 'px',
             'word_spacing' => 0,
             'color' => '#222222',
+            'color_alpha' => 100,
             'opacity' => 100,
             'paragraph_spacing' => 0,
             'margin_top' => 0,
@@ -228,7 +230,15 @@ class BuilderTypography
 
         $color = (string) ($values['color'] ?? '');
         if (preg_match('/^#[0-9a-fA-F]{6}$/', $color)) {
-            $css .= $out('color', $color);
+            $alpha = self::num($values['color_alpha'] ?? 100, 0, 100) ?? 100;
+            if ($alpha >= 100) {
+                $css .= $out('color', $color);
+            } else {
+                $r = hexdec(substr($color, 1, 2));
+                $g = hexdec(substr($color, 3, 2));
+                $b = hexdec(substr($color, 5, 2));
+                $css .= $out('color', 'rgba(' . $r . ',' . $g . ',' . $b . ',' . self::fmt($alpha / 100) . ')');
+            }
         }
 
         $opacity = self::num($values['opacity'] ?? 100, 0, 100);
