@@ -246,6 +246,11 @@ class BuilderTypography
             $css .= $out('opacity', self::fmt($opacity / 100));
         }
 
+        $paragraph = self::num($values['paragraph_spacing'] ?? null, 0, 500);
+        if ($paragraph !== null) {
+            $css .= $out('--typography-paragraph-spacing', self::fmt($paragraph) . 'px');
+        }
+
         foreach (['margin_top' => 'margin-top', 'margin_bottom' => 'margin-bottom'] as $key => $property) {
             $number = self::num($values[$key] ?? null, -500, 500);
             if ($number !== null) {
