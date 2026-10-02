@@ -47,6 +47,15 @@
             $typographyCss = $isTypographyTarget
                 ? \App\Support\BuilderTypography::inlineCss($element, $fontCatalog)
                 : '';
+
+            // Visual typography and semantic HTML are intentionally independent.
+            // Existing headings keep their legacy heading_level. Text blocks default to <p>.
+            $allowedSemanticTags = ['div', 'p', 'h1', 'h2', 'h3', 'small'];
+            $requestedSemanticTag = $element['semantic_tag']
+                ?? ($type === 'heading' ? ($element['heading_level'] ?? 'div') : ($type === 'text' ? 'p' : 'div'));
+            $semanticTag = in_array($requestedSemanticTag, $allowedSemanticTags, true)
+                ? $requestedSemanticTag
+                : 'div';
         @endphp
 
         <div
@@ -111,14 +120,13 @@
                 @endif
 
             @elseif($type === 'heading')
-                @php($headingTag = in_array($element['heading_level'] ?? '', ['h1', 'h2', 'h3'], true) ? $element['heading_level'] : 'div')
-                <{{ $headingTag }} class="builder-public-text" data-builder-typography-target
+                <{{ $semanticTag }} class="builder-public-text" data-builder-typography-target
                     style="margin:0;{{ $typographyCss }}"
-                >{{ $content }}</{{ $headingTag }}>
+                >{{ $content }}</{{ $semanticTag }}>
 
             @elseif($type === 'text')
-                <div class="builder-public-text" data-builder-typography-target style="{{ $typographyCss }}">
-{!! nl2br(e($content)) !!}</div>
+                <{{ $semanticTag }} class="builder-public-text" data-builder-typography-target style="margin:0;{{ $typographyCss }}">
+{!! nl2br(e($content)) !!}</{{ $semanticTag }}>
 
             @elseif($type === 'button')
                 @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
@@ -178,6 +186,7 @@
     }
 
     .builder-public-text {
+        display: block;
         width: 100%;
         min-height: inherit;
         box-sizing: border-box;
