@@ -40,7 +40,13 @@ class BuilderContent
                     'gap' => ['sometimes', 'integer', 'between:0,100'],
                 ])->validate();
             }
+            if (in_array($element['type'] ?? null, ['heading', 'text'], true)) {
+                Validator::make($element, [
+                    'semantic_tag' => ['sometimes', 'in:div,p,h1,h2,h3,small'],
+                ])->validate();
+            }
             if (($element['type'] ?? null) === 'heading') {
+                // Legacy field remains valid so existing saved layouts keep rendering unchanged.
                 Validator::make($element, ['heading_level' => ['sometimes', 'in:div,h1,h2,h3']])->validate();
             }
             if (($element['type'] ?? null) === 'gallery') {
