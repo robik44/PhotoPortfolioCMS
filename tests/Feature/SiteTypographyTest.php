@@ -274,4 +274,58 @@ class SiteTypographyTest extends TestCase
             ->assertJsonValidationErrors('content.sections.0.typography.mobile.font_family');
     }
 
+
+    public function test_builder_separates_visual_typography_from_semantic_html(): void
+    {
+        $page = Page::create(['title' => 'Semantic SEO', 'slug' => 'semantic-seo', 'published' => true]);
+        $layout = [
+            'version' => 1,
+            'settings' => [],
+            'sections' => [
+                [
+                    'id' => 'semantic-heading',
+                    'type' => 'heading',
+                    'content' => 'Fotografia żywności',
+                    // Deliberately different legacy value: semantic_tag must win.
+                    'heading_level' => 'h1',
+                    'semantic_tag' => 'h2',
+                    'typography' => ['desktop' => ['font_size' => 52.4]],
+                ],
+                [
+                    'id' => 'semantic-body',
+                    'type' => 'text',
+                    'content' => 'Tekst opisowy',
+                    'semantic_tag' => 'p',
+                    'typography' => ['desktop' => ['font_size' => 18]],
+                ],
+                [
+                    'id' => 'semantic-small',
+                    'type' => 'text',
+                    'content' => 'Tekst pomocniczy',
+                    'semantic_tag' => 'small',
+                ],
+                [
+                    'id' => 'default-body',
+                    'type' => 'text',
+                    'content' => 'Domyślny akapit',
+                ],
+            ],
+        ];
+
+        $this->postJson(route('pages.builder.save', $page), ['content' => $layout])->assertOk();
+        $this->assertSame($layout, $page->fresh()->builder->content);
+
+        $html = $this->get(route('page.public', $page))->assertOk()->getContent();
+        $this->assertMatchesRegularExpression('/<h2 class="builder-public-text"[^>]*>\\s*Fotografia żywności\\s*<\\/h2>/s', $html);
+        $this->assertMatchesRegularExpression('/<p class="builder-public-text"[^>]*>\\s*Tekst opisowy\\s*<\\/p>/s', $html);
+        $this->assertMatchesRegularExpression('/<small class="builder-public-text"[^>]*>\\s*Tekst pomocniczy\\s*<\\/small>/s', $html);
+        $this->assertMatchesRegularExpression('/<p class="builder-public-text"[^>]*>\\s*Domyślny akapit\\s*<\\/p>/s', $html);
+        $this->assertStringContainsString('font-size:52.4px;', $html);
+
+        $layout['sections'][1]['semantic_tag'] = 'h4';
+        $this->postJson(route('pages.builder.save', $page), ['content' => $layout])
+            ->assertStatus(422)
+            ->assertJsonValidationErrors('content.sections.1.semantic_tag');
+    }
+
 }
