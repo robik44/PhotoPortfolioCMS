@@ -834,6 +834,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 image.style.borderRadius =
                     (item.image_radius || 0) + "px";
 
+                if (item.image_link) {
+                    image.style.cursor = "pointer";
+                    image.title = "Zdjęcie ma ustawiony link";
+                }
+
                 box.appendChild(image);
 
             } else {
@@ -1517,6 +1522,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (item.type === "image") {
 
+            selectField(
+                "Po kliknięciu zdjęcia",
+                item.image_link || "",
+                [
+                    ["", "Brak linku"],
+                    ...(window.builderButtonTargets || []).map(target => [target.url, target.label])
+                ],
+                function (value) {
+                    item.image_link = value || null;
+                }
+            );
+
             field(
                 "Wysokość zdjęcia (px)",
                 "number",
@@ -1692,6 +1709,7 @@ document.addEventListener("DOMContentLoaded", function () {
             photo_id: null,
             photo_url: null,
             photo_title: "",
+            image_link: null,
             image_width: 100,
             image_radius: 0
         };
