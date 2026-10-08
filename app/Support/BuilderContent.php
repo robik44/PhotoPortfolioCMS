@@ -50,6 +50,7 @@ class BuilderContent
                     'photo_settings' => ['sometimes', 'array'],
                     'photo_settings.*.width' => ['sometimes', 'numeric', 'between:0,100'],
                     'photo_settings.*.height' => ['sometimes', 'numeric', 'between:0,1600'],
+                    'photo_settings.*.x_offset' => ['sometimes', 'numeric', 'between:-2000,2000'],
                     'photo_settings.*.fit' => ['sometimes', 'in:cover,contain'],
                 ])->validate();
             }
