@@ -400,10 +400,11 @@ class GalleryController extends Controller
 
     public function destroy(Gallery $gallery)
     {
+        $collectionId = $gallery->gallery_collection_id;
         $gallery->delete();
 
         return redirect()
-            ->route('galleries.index')
-            ->with('success', 'Galeria została usunięta.');
+            ->route('galleries.index', ['collection' => $collectionId])
+            ->with('success', 'Podgaleria została usunięta.');
     }
 }
