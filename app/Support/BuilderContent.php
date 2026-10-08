@@ -24,6 +24,7 @@ class BuilderContent
                     $rules['image_ratio'] = ['sometimes', 'in:auto,1 / 1,4 / 3,3 / 2,16 / 9'];
                     $rules['image_radius'] = ['sometimes', 'numeric', 'between:0,200'];
                     $rules['image_height'] = ['sometimes', 'numeric', 'between:0,2000'];
+                    $rules['image_lightbox'] = ['sometimes', 'boolean'];
                     $rules['image_link'] = ['sometimes', 'nullable', 'string', 'max:2048', function ($attribute, $value, $fail) {
                         if ($value !== null && trim((string) $value) !== '' && BuilderButton::href($value) === null) {
                             $fail('Wybierz prawidłowy cel linku zdjęcia.');
