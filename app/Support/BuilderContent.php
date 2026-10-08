@@ -46,6 +46,11 @@ class BuilderContent
                     'thumbnail_radius' => ['sometimes', 'integer', 'between:0,200'],
                     'thumbnail_ratio' => ['sometimes', 'in:auto,1 / 1,4 / 3,3 / 2,16 / 9'],
                     'thumbnail_fit' => ['sometimes', 'in:cover,contain'],
+                    'group_align' => ['sometimes', 'in:left,center,right'],
+                    'photo_settings' => ['sometimes', 'array'],
+                    'photo_settings.*.width' => ['sometimes', 'numeric', 'between:0,100'],
+                    'photo_settings.*.height' => ['sometimes', 'numeric', 'between:0,1600'],
+                    'photo_settings.*.fit' => ['sometimes', 'in:cover,contain'],
                 ])->validate();
             }
             if (in_array($element['type'] ?? null, ['heading', 'text'], true)) {
