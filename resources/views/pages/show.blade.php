@@ -212,76 +212,9 @@
             background: {{ $backgroundColor }};
         }
 
-        .page-canvas {
-            position: relative;
-            width: 100%;
-            max-width: 1400px;
-            min-height: {{ $pageHeight }}px;
-            margin: 0 auto;
-            overflow: hidden;
-            background: {{ $backgroundColor }};
-        }
-
-        .page-element {
-            position: relative;
-            box-sizing: border-box;
-            margin-bottom: 36px;
-        }
-
-        @if($page->slug === 'o-mnie')
-            .page-canvas { overflow: visible; }
-            .page-element-image.about-full-width-image {
-                margin-left: calc(50% - 50vw) !important;
-                width: 100vw !important;
-                border-radius: 0 !important;
-            }
-            .page-element-image.about-full-width-image img { width:100%; max-width:none; border-radius:0 !important; }
-        @endif
-
-        .page-element-image {
-            overflow: hidden;
-        }
-
-        .page-element-image img {
-            display: block;
-            width: 100%;
-            height: auto;
-            max-width: 100%;
-        }
-
-        .page-element-text,
-        .page-element-heading,
-        .page-element-button,
-        .page-element-section,
-        .page-element-separator,
-        .page-element-gallery,
-        .page-element-thumbnail-gallery {
-            overflow-wrap: anywhere;
-            white-space: normal;
-        }
-
-        .page-element-button a {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            min-height: inherit;
-            box-sizing: border-box;
-            color: #fff;
-            text-decoration: none;
-            white-space: normal;
-            overflow-wrap: anywhere;
-        }
-
-        .page-element-gallery {
-            padding: 20px;
-            background: rgba(247,247,247,.85);
-        }
-
-        .page-element-section {
-            padding: 20px;
-            border: 1px solid rgba(238,238,238,.9);
-        }
+        /* Geometry and element styling are owned by components.public-builder-canvas.
+           Do not override .page-element here: the same absolute geometry must be used
+           in the CMS visual editor and on the public page. */
 
         .empty-page {
             min-height: 500px;
@@ -308,22 +241,6 @@
                 font-size: 11px;
             }
 
-            .page-canvas {
-                width: 100%;
-                min-height: 0;
-                padding-left: 18px;
-                padding-right: 18px;
-            }
-
-            .page-element {
-                max-width: 100%;
-                margin-left: 0 !important;
-            }
-
-            .page-element img {
-                max-width: 100%;
-                height: auto;
-            }
         }
 
         @media (max-width: 520px) {
@@ -372,10 +289,6 @@
                 font-size: 7px;
             }
 
-            .page-canvas {
-                padding-left: 14px;
-                padding-right: 14px;
-            }
         }
     </style>
 </head>
