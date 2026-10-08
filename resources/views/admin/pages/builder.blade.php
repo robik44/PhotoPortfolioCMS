@@ -1945,6 +1945,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (window.ThumbnailGallery?.syncAllFromDom) {
                     window.ThumbnailGallery.syncAllFromDom(data.sections, content);
                 }
+                if (window.ThumbnailGallery?.commitStoredSettings) {
+                    window.ThumbnailGallery.commitStoredSettings(data.sections);
+                }
 
                 const response =
                     await fetch(
