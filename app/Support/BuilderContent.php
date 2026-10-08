@@ -73,6 +73,10 @@ class BuilderContent
                     'gallery_columns' => ['sometimes', 'integer', 'between:1,12'],
                     'gallery_gap' => ['sometimes', 'integer', 'between:0,100'],
                     'gallery_ratio' => ['sometimes', 'in:1 / .7,1 / 1,4 / 3,3 / 2,16 / 9'],
+                    'gallery_align' => ['sometimes', 'in:left,center,right'],
+                    'gallery_card_settings' => ['sometimes', 'array'],
+                    'gallery_card_settings.*.width' => ['sometimes', 'numeric', 'between:5,100'],
+                    'gallery_card_settings.*.x_offset' => ['sometimes', 'numeric', 'between:-2000,2000'],
                 ])->validate();
             }
         }
