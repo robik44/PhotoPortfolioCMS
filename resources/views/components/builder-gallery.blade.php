@@ -18,11 +18,14 @@
     }
     $columns = max(1, min(12, (int) ($element['gallery_columns'] ?? 4)));
     $gap = max(0, min(100, (int) ($element['gallery_gap'] ?? 14)));
+    $align = in_array(($element['gallery_align'] ?? 'left'), ['left','center','right'], true) ? ($element['gallery_align'] ?? 'left') : 'left';
+    $cardSettings = is_array($element['gallery_card_settings'] ?? null) ? $element['gallery_card_settings'] : [];
+    $justify = ['left' => 'flex-start', 'center' => 'center', 'right' => 'flex-end'][$align];
     $cardRatio = in_array(($element['gallery_ratio'] ?? '1 / .7'), ['1 / .7', '1 / 1', '4 / 3', '3 / 2', '16 / 9'], true)
         ? ($element['gallery_ratio'] ?? '1 / .7') : '1 / .7';
     $galleryTitleTag = in_array($galleryTitleTag ?? 'div', ['div', 'h3'], true) ? ($galleryTitleTag ?? 'div') : 'div';
 @endphp
-<div class="builder-gallery-grid" style="--bg-columns:{{ $columns }};--bg-gap:{{ $gap }}px;--bg-ratio:{{ $cardRatio }};">
+<div class="builder-gallery-grid {{ $single ? 'is-single' : 'is-covers' }}" style="--bg-columns:{{ $columns }};--bg-gap:{{ $gap }}px;--bg-ratio:{{ $cardRatio }};--bg-justify:{{ $justify }};">
     @if($single)
         @foreach($galleries->first()?->photos ?? [] as $photo)
             @php
@@ -43,8 +46,15 @@
         @endforeach
     @else
         @foreach($galleries as $gallery)
-            @php($cover = $gallery->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover) ?? $gallery->photos->first())
-            <a href="{{ route('portfolio.gallery', $gallery) }}" class="builder-gallery-card">
+            @php
+                $cover = $gallery->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover) ?? $gallery->photos->first();
+                $local = is_array($cardSettings[$gallery->id] ?? null) ? $cardSettings[$gallery->id] : [];
+                $cardWidth = max(5, min(100, (float) ($local['width'] ?? 0)));
+                $cardOffset = max(-2000, min(2000, (float) ($local['x_offset'] ?? 0)));
+                $defaultBasis = "calc((100% - " . ($columns - 1) . " * var(--bg-gap,14px)) / " . $columns . ")";
+            @endphp
+            <a href="{{ route('portfolio.gallery', $gallery) }}" class="builder-gallery-card"
+               style="flex-basis:{{ $cardWidth > 0 ? $cardWidth.'%' : $defaultBasis }};transform:translateX({{ $cardOffset }}px);">
                 @if($cover)
                     <img src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
                 @else
@@ -59,15 +69,27 @@
 
 <style>
     .builder-gallery-grid {
-        display: grid;
-        grid-template-columns: repeat(var(--bg-columns, 4), minmax(0, 1fr));
         gap: var(--bg-gap, 14px);
         width: 100%;
+    }
+
+    .builder-gallery-grid.is-single {
+        display: grid;
+        grid-template-columns: repeat(var(--bg-columns, 4), minmax(0, 1fr));
+    }
+
+    .builder-gallery-grid.is-covers {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: var(--bg-justify, flex-start);
+        align-items: flex-start;
     }
 
     .builder-gallery-card {
         display: block;
         min-width: 0;
+        box-sizing: border-box;
+        flex: 0 0 auto;
         background: #fff;
         border: 1px solid #e5e5e5;
         overflow: hidden;
