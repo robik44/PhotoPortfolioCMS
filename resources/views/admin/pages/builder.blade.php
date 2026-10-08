@@ -926,11 +926,13 @@ document.addEventListener("DOMContentLoaded", function () {
                             item.gallery_card_settings[key] = {};
                         }
                         const local = item.gallery_card_settings[key];
-                        const defaultWidth = Math.max(5, (100 - ((galleryColumns - 1) * galleryGap / 14)) / galleryColumns);
-                        const width = Number(local.width) > 0 ? Number(local.width) : defaultWidth;
+                        const explicitWidth = Number(local.width) > 0 ? Number(local.width) : 0;
+                        const defaultBasis = "calc((100% - " + Math.max(0, galleryColumns - 1) + " * " + galleryGap + "px) / " + galleryColumns + ")";
                         const offset = Number(local.x_offset) || 0;
 
-                        card.style.flex = "0 0 " + width + "%";
+                        card.style.flex = explicitWidth > 0
+                            ? "0 0 " + explicitWidth + "%"
+                            : "0 0 " + defaultBasis;
                         card.style.transform = "translateX(" + offset + "px)";
                         card.style.cursor = "pointer";
                         card.dataset.galleryCardId = String(gallery.id);
