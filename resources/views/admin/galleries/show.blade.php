@@ -45,7 +45,7 @@
                     flex-wrap:wrap;
                 ">
                     <a
-                        href="{{ route('galleries.index') }}"
+                        href="{{ route('galleries.index', ['collection' => $gallery->gallery_collection_id]) }}"
                         style="
                             display:inline-block;
                             padding:11px 16px;
