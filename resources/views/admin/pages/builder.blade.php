@@ -1603,8 +1603,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 imageTools.appendChild(b);
             }
 
-            imageTool('Wszystkie zdjęcia — ten sam rozmiar', () => {
-                data.sections.filter(section => section.type === 'image').forEach(section => {
+            imageTool('Zwykłe zdjęcia — ten sam rozmiar', () => {
+                data.sections.filter(section => section.type === 'image' && section.id !== 'hero-image').forEach(section => {
                     section.element_width = item.element_width;
                     section.image_height = item.image_height || 0;
                     section.element_height = item.image_height || 0;
@@ -1614,20 +1614,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
             });
 
-            imageTool('Wszystkie zdjęcia — jeden wiersz', () => {
-                data.sections.filter(section => section.type === 'image').forEach(section => {
+            imageTool('Zwykłe zdjęcia — jeden wiersz', () => {
+                data.sections.filter(section => section.type === 'image' && section.id !== 'hero-image').forEach(section => {
                     section.position_y = Number(item.position_y) || 0;
                 });
             });
 
-            imageTool('Wszystkie zdjęcia — jedna kolumna', () => {
-                data.sections.filter(section => section.type === 'image').forEach(section => {
+            imageTool('Zwykłe zdjęcia — jedna kolumna', () => {
+                data.sections.filter(section => section.type === 'image' && section.id !== 'hero-image').forEach(section => {
                     section.position_x = Number(item.position_x) || 0;
                 });
             });
 
             imageTool('Rozłóż zdjęcia równo w poziomie', () => {
-                const images = data.sections.filter(section => section.type === 'image')
+                const images = data.sections.filter(section => section.type === 'image' && section.id !== 'hero-image')
                     .sort((a, b) => (Number(a.position_x) || 0) - (Number(b.position_x) || 0));
                 if (images.length < 2) return;
                 const width = Math.min(Number(item.element_width) || 20, 100 / images.length);
