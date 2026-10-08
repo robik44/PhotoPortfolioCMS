@@ -1983,8 +1983,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     );
                 }
 
-                button.textContent =
-                    "✓ Zapisano";
+                const savedPayload = await response.json().catch(() => ({}));
+                const savedThumbs = savedPayload.thumbnail_settings_count ?? null;
+                button.textContent = savedThumbs === null
+                    ? "✓ Zapisano"
+                    : "✓ Zapisano (" + savedThumbs + " ustawień zdjęć)";
 
                 setTimeout(function () {
                     button.textContent =
@@ -2019,7 +2022,7 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 </script>
 
-<link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
-<script src="{{ asset('js/builder-thumbnail-gallery.js') }}" defer></script>
+<link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}?v={{ @filemtime(public_path('css/thumbnail-gallery.css')) ?: time() }}">
+<script src="{{ asset('js/builder-thumbnail-gallery.js') }}?v={{ @filemtime(public_path('js/builder-thumbnail-gallery.js')) ?: time() }}" defer></script>
 @include('components.photo-library-dialog')
 </x-app-layout>
