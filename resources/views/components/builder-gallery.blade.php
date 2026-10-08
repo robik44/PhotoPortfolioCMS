@@ -1,11 +1,22 @@
 @php
-    $single = ($element['gallery_mode'] ?? 'all') === 'single';
-    $galleries = $single
-        ? \App\Models\Gallery::with('photos')->whereKey($element['gallery_id'] ?? 0)->get()
-        : \App\Models\Gallery::with('photos')->orderBy('sort_order')->orderBy('title')->get();
+    $mode = $element['gallery_mode'] ?? 'all';
+    $single = $mode === 'single';
+    $selectedIds = collect($element['gallery_ids'] ?? [])->filter(fn ($id) => is_numeric($id) && $id > 0)->map(fn ($id) => (int) $id)->unique()->values();
+    if ($single) {
+        $galleries = \App\Models\Gallery::with('photos')->whereKey($element['gallery_id'] ?? 0)->get();
+    } elseif ($mode === 'selected') {
+        $galleryMap = \App\Models\Gallery::with('photos')->whereIn('id', $selectedIds)->get()->keyBy('id');
+        $galleries = $selectedIds->map(fn ($id) => $galleryMap->get($id))->filter()->values();
+    } else {
+        $galleries = \App\Models\Gallery::with('photos')->orderBy('sort_order')->orderBy('title')->get();
+    }
+    $columns = max(1, min(12, (int) ($element['gallery_columns'] ?? 4)));
+    $gap = max(0, min(100, (int) ($element['gallery_gap'] ?? 14)));
+    $cardRatio = in_array(($element['gallery_ratio'] ?? '1 / .7'), ['1 / .7', '1 / 1', '4 / 3', '3 / 2', '16 / 9'], true)
+        ? ($element['gallery_ratio'] ?? '1 / .7') : '1 / .7';
     $galleryTitleTag = in_array($galleryTitleTag ?? 'div', ['div', 'h3'], true) ? ($galleryTitleTag ?? 'div') : 'div';
 @endphp
-<div class="builder-gallery-grid">
+<div class="builder-gallery-grid" style="--bg-columns:{{ $columns }};--bg-gap:{{ $gap }}px;--bg-ratio:{{ $cardRatio }};">
     @if($single)
         @foreach($galleries->first()?->photos ?? [] as $photo)
             @php
@@ -21,7 +32,7 @@
                 @include('components.photo-typography-attributes', ['typography' => $photoTypography])
                 data-photo-url="{{ $photo->imageUrl() }}" data-photo-alt="{{ $photo->alt ?? '' }}"
                 data-photo-title="{{ $photo->title ?? '' }}" data-photo-description="{{ $photo->description ?? '' }}">
-                <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?? '' }}" loading="lazy" style="display:block;width:100%;aspect-ratio:1 / .7;object-fit:cover;">
+                <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?? '' }}" loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
             </article>
         @endforeach
     @else
@@ -29,7 +40,7 @@
             @php($cover = $gallery->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover) ?? $gallery->photos->first())
             <a href="{{ route('portfolio.gallery', $gallery) }}" class="builder-gallery-card">
                 @if($cover)
-                    <img src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:1 / .7;object-fit:cover;">
+                    <img src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
                 @else
                     <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#999;">Brak zdjęcia</div>
                 @endif
@@ -43,8 +54,8 @@
 <style>
     .builder-gallery-grid {
         display: grid;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(var(--bg-columns, 4), minmax(0, 1fr));
+        gap: var(--bg-gap, 14px);
         width: 100%;
     }
 
@@ -70,21 +81,4 @@
         hyphens: none;
     }
 
-    @media (max-width: 900px) {
-        .builder-gallery-grid {
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 16px;
-        }
-    }
-
-    @media (max-width: 560px) {
-        .builder-gallery-grid {
-            grid-template-columns: 1fr;
-            gap: 18px;
-        }
-
-        .builder-gallery-card-title {
-            padding: 14px 16px 16px;
-        }
-    }
 </style>
