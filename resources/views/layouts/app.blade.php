@@ -52,10 +52,33 @@
                 <span>Strony</span>
             </a>
 
-            <a href="{{ route("galleries.index") }}"
-               class="cms-nav-item {{ request()->routeIs("galleries.*") ? "active" : "" }}">
-                <span>▦</span>
-                <span>Galerie</span>
+            @php
+                $galleryCollectionsForNav = \Illuminate\Support\Facades\Schema::hasTable('gallery_collections')
+                    ? \App\Models\GalleryCollection::orderBy('sort_order')->orderBy('name')->get()
+                    : collect();
+                $activeCollectionId = (int) request()->query('collection', 0);
+                if (!$activeCollectionId && request()->route('gallery')) {
+                    $activeCollectionId = (int) optional(request()->route('gallery')->collection)->id;
+                }
+            @endphp
+
+            @forelse($galleryCollectionsForNav as $galleryCollectionNav)
+                <a href="{{ route('galleries.index', ['collection' => $galleryCollectionNav->id]) }}"
+                   class="cms-nav-item {{ request()->routeIs('galleries.*') && $activeCollectionId === (int) $galleryCollectionNav->id ? 'active' : '' }}">
+                    <span>▦</span>
+                    <span>{{ $galleryCollectionNav->name }}</span>
+                </a>
+            @empty
+                <a href="{{ route('galleries.index') }}"
+                   class="cms-nav-item {{ request()->routeIs('galleries.*') ? 'active' : '' }}">
+                    <span>▦</span><span>Galerie</span>
+                </a>
+            @endforelse
+
+            <a href="{{ route('gallery-collections.create') }}"
+               class="cms-nav-item {{ request()->routeIs('gallery-collections.create') ? 'active' : '' }}">
+                <span>＋</span>
+                <span>Dodaj galerię</span>
             </a>
 
             <a href="{{ route("photos.index") }}"
