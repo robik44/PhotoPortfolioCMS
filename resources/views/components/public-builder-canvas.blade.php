@@ -203,8 +203,8 @@
 
     .builder-public-canvas {
         position: relative;
-        width: 100%;
-        max-width: 1400px;
+        width: 1400px;
+        max-width: none;
         min-height: 900px;
         margin: 0 auto;
         overflow: hidden;
@@ -253,143 +253,6 @@
         overflow: visible;
     }
 
-    @media (max-width: 900px) {
-        .builder-public-canvas {
-            width: 100%;
-            min-height: 0;
-            overflow: visible;
-            display: flex;
-            flex-direction: column;
-            gap: 28px;
-            padding: 0 18px 36px;
-        }
-
-        .builder-public-canvas .page-element {
-            position: relative !important;
-            left: 0 !important;
-            top: auto !important;
-            width: 100% !important;
-            min-height: 0 !important;
-            order: var(--mobile-order, 0);
-        }
-
-        .builder-public-canvas .page-element-image img {
-            height: auto !important;
-            object-fit: contain !important;
-        }
-
-        .builder-public-canvas .builder-public-text,
-        .builder-public-canvas [data-builder-typography-target] {
-            overflow-wrap: normal;
-            word-break: normal;
-        }
-
-        #home-public-builder-canvas {
-            padding: 0 0 40px;
-            gap: 28px;
-        }
-
-        #home-public-builder-canvas .page-element:not(.page-element-image) {
-            padding-left: 18px;
-            padding-right: 18px;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-image"] {
-            position: relative !important;
-            left: 0 !important;
-            top: auto !important;
-            width: 100% !important;
-            padding: 0 !important;
-            overflow: hidden;
-            order: 0;
-            z-index: 10 !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-image"] img {
-            width: 100% !important;
-            height: clamp(360px, 110vw, 500px) !important;
-            object-fit: cover !important;
-            border-radius: 0 !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-heading"] {
-            position: absolute !important;
-            left: 5% !important;
-            top: 34px !important;
-            bottom: auto !important;
-            width: 88% !important;
-            padding: 0 !important;
-            order: 0;
-            z-index: 120 !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-heading"] [data-builder-typography-target] {
-            font-size: clamp(26px, 7vw, 34px) !important;
-            line-height: 1.02 !important;
-            letter-spacing: .01em !important;
-            overflow-wrap: normal !important;
-            word-break: normal !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-text"] {
-            position: absolute !important;
-            left: 5% !important;
-            top: auto !important;
-            bottom: 28px !important;
-            width: 82% !important;
-            padding: 0 !important;
-            order: 0;
-            z-index: 120 !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-text"] [data-builder-typography-target] {
-            font-size: clamp(14px, 4vw, 18px) !important;
-            line-height: 1.2 !important;
-            overflow-wrap: normal !important;
-            word-break: normal !important;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="portfolio-heading"] {
-            margin-top: 8px;
-        }
-
-        #home-public-builder-canvas .page-element-text:not([data-builder-id="hero-text"]) [data-builder-typography-target] {
-            font-size: clamp(15px, 4.2vw, 18px) !important;
-            line-height: 1.5 !important;
-            letter-spacing: 0 !important;
-            word-spacing: normal !important;
-            overflow-wrap: normal !important;
-            word-break: normal !important;
-        }
-
-        #home-public-builder-canvas .page-element-heading:not([data-builder-id="hero-heading"]) [data-builder-typography-target] {
-            overflow-wrap: normal !important;
-            word-break: normal !important;
-        }
-    }
-
-    @media (max-width: 560px) {
-        .builder-public-canvas {
-            gap: 24px;
-            padding-left: 14px;
-            padding-right: 14px;
-        }
-
-        #home-public-builder-canvas {
-            padding-left: 0;
-            padding-right: 0;
-        }
-
-        #home-public-builder-canvas .page-element:not(.page-element-image) {
-            padding-left: 16px;
-            padding-right: 16px;
-        }
-
-        #home-public-builder-canvas .page-element[data-builder-id="hero-heading"],
-        #home-public-builder-canvas .page-element[data-builder-id="hero-text"] {
-            padding: 0 !important;
-        }
-    }
 </style>
 
 <script>
