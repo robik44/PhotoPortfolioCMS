@@ -1,14 +1,20 @@
 @php
     $mode = $element['gallery_mode'] ?? 'all';
     $single = $mode === 'single';
+    $collectionId = is_numeric($element['gallery_collection_id'] ?? null) ? (int) $element['gallery_collection_id'] : null;
     $selectedIds = collect($element['gallery_ids'] ?? [])->filter(fn ($id) => is_numeric($id) && $id > 0)->map(fn ($id) => (int) $id)->unique()->values();
+
+    $galleryQuery = \App\Models\Gallery::with('photos')
+        ->where('published', true)
+        ->when($collectionId, fn ($query) => $query->where('gallery_collection_id', $collectionId));
+
     if ($single) {
-        $galleries = \App\Models\Gallery::with('photos')->whereKey($element['gallery_id'] ?? 0)->get();
+        $galleries = (clone $galleryQuery)->whereKey($element['gallery_id'] ?? 0)->get();
     } elseif ($mode === 'selected') {
-        $galleryMap = \App\Models\Gallery::with('photos')->whereIn('id', $selectedIds)->get()->keyBy('id');
+        $galleryMap = (clone $galleryQuery)->whereIn('id', $selectedIds)->get()->keyBy('id');
         $galleries = $selectedIds->map(fn ($id) => $galleryMap->get($id))->filter()->values();
     } else {
-        $galleries = \App\Models\Gallery::with('photos')->orderBy('sort_order')->orderBy('title')->get();
+        $galleries = $galleryQuery->orderBy('sort_order')->orderBy('title')->get();
     }
     $columns = max(1, min(12, (int) ($element['gallery_columns'] ?? 4)));
     $gap = max(0, min(100, (int) ($element['gallery_gap'] ?? 14)));
