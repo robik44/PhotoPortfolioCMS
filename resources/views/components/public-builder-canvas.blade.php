@@ -98,6 +98,9 @@
                     $photoAlt = $photoRecord?->alt ?: ($element['photo_title'] ?? '');
                     $imageRadius = max(0, (int) ($element['image_radius'] ?? 0));
                     $imageHeight = max(0, (int) ($element['image_height'] ?? $element['element_height'] ?? 0));
+                    $imageFit = ($element['image_fit'] ?? 'cover') === 'contain' ? 'contain' : 'cover';
+                    $imageRatio = in_array(($element['image_ratio'] ?? 'auto'), ['auto', '1 / 1', '4 / 3', '3 / 2', '16 / 9'], true)
+                        ? ($element['image_ratio'] ?? 'auto') : 'auto';
                     $isPriorityImage = $canvasId === 'home-public-builder-canvas'
                         && ($element['id'] ?? null) === 'hero-image';
                 @endphp
@@ -117,7 +120,17 @@
                         style="
                             display:block;
                             width:100%;
-                            @if($imageHeight > 0) height:{{ $imageHeight }}px;object-fit:cover; @else height:auto; @endif
+                            @if($imageHeight > 0)
+                                height:{{ $imageHeight }}px;
+                                object-fit:{{ $imageFit }};
+                            @elseif($imageRatio !== 'auto')
+                                aspect-ratio:{{ $imageRatio }};
+                                height:auto;
+                                object-fit:{{ $imageFit }};
+                            @else
+                                height:auto;
+                                object-fit:contain;
+                            @endif
                             border-radius:{{ $imageRadius }}px;
                         "
                     >
