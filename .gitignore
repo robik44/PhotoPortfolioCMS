@@ -30,3 +30,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /backup-before-stabilization/
+
+# Deployment/data archives kept only on the server
+/foodfoto-*.tar.gz
