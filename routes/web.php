@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\GalleryController;
+use App\Http\Controllers\Admin\GalleryCollectionController;
 use App\Http\Controllers\Admin\FontLibraryController;
 use App\Http\Controllers\Admin\HeaderSettingController;
 use App\Http\Controllers\Admin\MenuItemController;
@@ -139,6 +140,12 @@ Route::middleware(["auth"])->group(function () {
 
     Route::post("/admin/home-builder", [\App\Http\Controllers\Admin\HomeBuilderController::class, "save"])
         ->name("home-builder.save");
+
+    Route::get('/gallery-collections/create', [GalleryCollectionController::class, 'create'])->name('gallery-collections.create');
+    Route::post('/gallery-collections', [GalleryCollectionController::class, 'store'])->name('gallery-collections.store');
+    Route::get('/gallery-collections/{galleryCollection}/edit', [GalleryCollectionController::class, 'edit'])->name('gallery-collections.edit');
+    Route::put('/gallery-collections/{galleryCollection}', [GalleryCollectionController::class, 'update'])->name('gallery-collections.update');
+    Route::delete('/gallery-collections/{galleryCollection}', [GalleryCollectionController::class, 'destroy'])->name('gallery-collections.destroy');
 
     Route::resource("galleries", GalleryController::class);
 
