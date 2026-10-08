@@ -866,11 +866,23 @@ document.addEventListener("DOMContentLoaded", function () {
                     : collectionGalleries;
 
             const grid = document.createElement("div");
+            const galleryColumns = Math.max(1, Math.min(12, Number(item.gallery_columns) || 4));
+            const galleryGap = Math.max(0, Math.min(100, Number(item.gallery_gap) || 14));
 
-            grid.style.display = "grid";
-            grid.style.gridTemplateColumns =
-                "repeat(" + Math.max(1, Math.min(12, Number(item.gallery_columns) || 4)) + ", minmax(0, 1fr))";
-            grid.style.gap = Math.max(0, Math.min(100, Number(item.gallery_gap) || 14)) + "px";
+            if (item.gallery_mode === "single") {
+                grid.style.display = "grid";
+                grid.style.gridTemplateColumns = "repeat(" + galleryColumns + ", minmax(0, 1fr))";
+            } else {
+                grid.style.display = "flex";
+                grid.style.flexWrap = "wrap";
+                grid.style.alignItems = "flex-start";
+                grid.style.justifyContent = item.gallery_align === "center"
+                    ? "center"
+                    : item.gallery_align === "right"
+                        ? "flex-end"
+                        : "flex-start";
+            }
+            grid.style.gap = galleryGap + "px";
             grid.style.width = "100%";
 
             if (!galleryList.length) {
@@ -900,6 +912,38 @@ document.addEventListener("DOMContentLoaded", function () {
                     card.style.background = "#fff";
                     card.style.border = "1px solid #e5e5e5";
                     card.style.overflow = "hidden";
+
+                    if (item.gallery_mode !== "single") {
+                        if (!item.gallery_card_settings || typeof item.gallery_card_settings !== "object" || Array.isArray(item.gallery_card_settings)) {
+                            item.gallery_card_settings = {};
+                        }
+                        const key = String(gallery.id);
+                        if (!item.gallery_card_settings[key] || typeof item.gallery_card_settings[key] !== "object") {
+                            item.gallery_card_settings[key] = {};
+                        }
+                        const local = item.gallery_card_settings[key];
+                        const defaultWidth = Math.max(5, (100 - ((galleryColumns - 1) * galleryGap / 14)) / galleryColumns);
+                        const width = Number(local.width) > 0 ? Number(local.width) : defaultWidth;
+                        const offset = Number(local.x_offset) || 0;
+
+                        card.style.flex = "0 0 " + width + "%";
+                        card.style.transform = "translateX(" + offset + "px)";
+                        card.style.cursor = "pointer";
+                        card.dataset.galleryCardId = String(gallery.id);
+
+                        if (Number(item.gallery_selected_id) === Number(gallery.id)) {
+                            card.style.outline = "3px solid #111";
+                            card.style.outlineOffset = "3px";
+                        }
+
+                        card.addEventListener("click", function (event) {
+                            event.stopPropagation();
+                            item.gallery_selected_id = Number(gallery.id);
+                            selected = item.id;
+                            render();
+                            showProperties(item);
+                        });
+                    }
 
                     if (gallery.cover_url) {
 
@@ -1471,6 +1515,68 @@ document.addEventListener("DOMContentLoaded", function () {
                 properties.appendChild(selectedWrap);
             }
 
+            if (item.gallery_mode !== 'single') {
+                selectField('Wyrównanie okładek w boksie', item.gallery_align || 'left', [
+                    ['left', 'Do lewej'],
+                    ['center', 'Wyśrodkuj'],
+                    ['right', 'Do prawej']
+                ], value => { item.gallery_align = value; });
+
+                const equalize = document.createElement('button');
+                equalize.type = 'button';
+                equalize.className = 'fve-button';
+                equalize.style.width = '100%';
+                equalize.style.marginBottom = '14px';
+                equalize.textContent = 'Wyrównaj okładki — ten sam rozmiar';
+                equalize.addEventListener('click', () => {
+                    const ids = availableGalleries.map(gallery => Number(gallery.id));
+                    if (!item.gallery_card_settings || typeof item.gallery_card_settings !== 'object' || Array.isArray(item.gallery_card_settings)) {
+                        item.gallery_card_settings = {};
+                    }
+                    const count = Math.max(1, ids.length);
+                    const gap = Math.max(0, Number(item.gallery_gap) || 0);
+                    const width = Math.max(5, Math.min(100, (100 - Math.max(0, count - 1) * gap / 14) / count));
+                    ids.forEach(id => {
+                        item.gallery_card_settings[String(id)] = { width: width, x_offset: 0 };
+                    });
+                    render();
+                    showProperties(item);
+                });
+                properties.appendChild(equalize);
+
+                const selectedCover = availableGalleries.find(gallery => Number(gallery.id) === Number(item.gallery_selected_id));
+                if (selectedCover) {
+                    if (!item.gallery_card_settings || typeof item.gallery_card_settings !== 'object' || Array.isArray(item.gallery_card_settings)) {
+                        item.gallery_card_settings = {};
+                    }
+                    const key = String(selectedCover.id);
+                    if (!item.gallery_card_settings[key] || typeof item.gallery_card_settings[key] !== 'object') {
+                        item.gallery_card_settings[key] = {};
+                    }
+                    const local = item.gallery_card_settings[key];
+
+                    const selectedTitle = document.createElement('div');
+                    selectedTitle.className = 'fve-field';
+                    selectedTitle.innerHTML = '<label>Wybrana okładka</label><div style="padding:9px 10px;background:#f5f5f5;border-radius:5px;">' + selectedCover.title + '</div>';
+                    properties.appendChild(selectedTitle);
+
+                    field('Szerokość wybranej okładki (%)', 'number', local.width || '', value => {
+                        local.width = Math.max(5, Math.min(100, Number(value) || 5));
+                    }, { min: 5, max: 100, step: 0.1 });
+
+                    field('Przesunięcie X wybranej okładki (px)', 'number', local.x_offset || 0, value => {
+                        local.x_offset = Math.max(-2000, Math.min(2000, Number(value) || 0));
+                    }, { min: -2000, max: 2000, step: 1 });
+                } else {
+                    const tip = document.createElement('div');
+                    tip.className = 'fve-field';
+                    tip.style.color = '#777';
+                    tip.style.fontSize = '12px';
+                    tip.textContent = 'Kliknij konkretną okładkę w podglądzie, aby zmienić tylko jej szerokość lub położenie.';
+                    properties.appendChild(tip);
+                }
+            }
+
             field('Kolumny galerii', 'number', item.gallery_columns || 4, value => {
                 item.gallery_columns = Math.max(1, Math.min(12, Math.round(Number(value) || 4)));
             }, { min: 1, max: 12, step: 1 });
@@ -1829,6 +1935,8 @@ document.addEventListener("DOMContentLoaded", function () {
             gallery_collection_id: galleryCollections.length ? Number(galleryCollections[0].id) : null,
             gallery_mode: "all",
             gallery_ids: [],
+            gallery_align: "left",
+            gallery_card_settings: {},
             gallery_columns: 4,
             gallery_gap: 14,
             gallery_ratio: "1 / .7"
