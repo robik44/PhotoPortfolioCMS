@@ -586,7 +586,8 @@ document.addEventListener("DOMContentLoaded", function () {
         @json($photosForBuilder ?? []);
 
     @php
-        $galleriesForEditor = \App\Models\Gallery::with("photos")
+        $galleriesForEditor = \App\Models\Gallery::with(["photos", "collection"])
+            ->orderBy("gallery_collection_id")
             ->orderBy("sort_order")
             ->orderBy("title")
             ->get()
@@ -599,6 +600,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     "id" => $gallery->id,
                     "title" => $gallery->title,
                     "description" => $gallery->description,
+                    "gallery_collection_id" => $gallery->gallery_collection_id,
+                    "gallery_collection_name" => optional($gallery->collection)->name,
                     "cover_url" => $cover
                         ? asset("storage/photos/" . basename($cover->filename))
                         : null,
@@ -612,6 +615,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const galleries =
         @json($galleriesForEditor);
+
+    const galleryCollections =
+        @json(\App\Models\GalleryCollection::orderBy('sort_order')->orderBy('name')->get(['id','name'])->values());
 
     @php
         $menuItemsForEditor = \App\Models\MenuItem::query()
@@ -847,13 +853,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else if (item.type === "gallery") {
 
-            const selectedGallery = galleries.find(gallery => Number(gallery.id) === Number(item.gallery_id));
+            const collectionId = Number(item.gallery_collection_id) || 0;
+            const collectionGalleries = collectionId
+                ? galleries.filter(gallery => Number(gallery.gallery_collection_id) === collectionId)
+                : galleries;
+            const selectedGallery = collectionGalleries.find(gallery => Number(gallery.id) === Number(item.gallery_id));
             const selectedIds = Array.isArray(item.gallery_ids) ? item.gallery_ids.map(Number) : [];
             const galleryList = item.gallery_mode === "single"
                 ? (selectedGallery?.photos || [])
                 : item.gallery_mode === "selected"
-                    ? selectedIds.map(id => galleries.find(gallery => Number(gallery.id) === id)).filter(Boolean)
-                    : galleries;
+                    ? selectedIds.map(id => collectionGalleries.find(gallery => Number(gallery.id) === id)).filter(Boolean)
+                    : collectionGalleries;
 
             const grid = document.createElement("div");
 
@@ -1395,14 +1405,39 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
         if (item.type === 'gallery') {
+            const fallbackCollectionId = galleryCollections.length ? Number(galleryCollections[0].id) : 0;
+            if (!item.gallery_collection_id && fallbackCollectionId) {
+                item.gallery_collection_id = fallbackCollectionId;
+            }
+
+            selectField(
+                'Źródło galerii',
+                item.gallery_collection_id || '',
+                [['', 'Wybierz galerię'], ...galleryCollections.map(module => [module.id, module.name])],
+                value => {
+                    item.gallery_collection_id = value ? Number(value) : null;
+                    item.gallery_id = null;
+                    item.gallery_ids = [];
+                }
+            );
+
+            const availableGalleries = item.gallery_collection_id
+                ? galleries.filter(gallery => Number(gallery.gallery_collection_id) === Number(item.gallery_collection_id))
+                : [];
+
             selectField('Tryb galerii', item.gallery_mode || 'all', [
-                ['all', 'Wszystkie galerie'],
-                ['selected', 'Wybrane galerie — osobny boks'],
-                ['single', 'Jedna galeria — zdjęcia z powiększaniem']
+                ['all', 'Wszystkie podgalerie z wybranej galerii'],
+                ['selected', 'Wybrane podgalerie — osobny boks'],
+                ['single', 'Jedna podgaleria — zdjęcia z powiększaniem']
             ], value => { item.gallery_mode = value; });
 
             if (item.gallery_mode === 'single') {
-                selectField('Wybierz galerię', item.gallery_id || '', [['', 'Wybierz galerię'], ...galleries.map(gallery => [gallery.id, gallery.title])], value => { item.gallery_id = value ? Number(value) : null; });
+                selectField(
+                    'Wybierz podgalerię',
+                    item.gallery_id || '',
+                    [['', 'Wybierz podgalerię'], ...availableGalleries.map(gallery => [gallery.id, gallery.title])],
+                    value => { item.gallery_id = value ? Number(value) : null; }
+                );
             }
 
             if (item.gallery_mode === 'selected') {
@@ -1410,9 +1445,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 const selectedWrap = document.createElement('div');
                 selectedWrap.className = 'fve-field';
                 const selectedLabel = document.createElement('label');
-                selectedLabel.textContent = 'Galerie w tym boksie';
+                selectedLabel.textContent = 'Podgalerie w tym boksie';
                 selectedWrap.appendChild(selectedLabel);
-                galleries.forEach(gallery => {
+                availableGalleries.forEach(gallery => {
                     const row = document.createElement('label');
                     row.style.display = 'flex';
                     row.style.alignItems = 'center';
@@ -1452,7 +1487,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 ['16 / 9', '16:9']
             ], value => { item.gallery_ratio = value; });
         }
-
 
         if (item.type === 'thumbnail_gallery') {
             window.ThumbnailGallery.properties(properties, item, photos, render, 'fve-field');
@@ -1792,6 +1826,7 @@ document.addEventListener("DOMContentLoaded", function () {
             image_radius: 0,
             image_fit: "cover",
             image_ratio: "auto",
+            gallery_collection_id: galleryCollections.length ? Number(galleryCollections[0].id) : null,
             gallery_mode: "all",
             gallery_ids: [],
             gallery_columns: 4,
