@@ -40,6 +40,7 @@
         const settings = { ...defaults, ...item };
         const grid = document.createElement('div');
         grid.className = 'thumbnail-gallery-grid';
+        grid.dataset.thumbnailGalleryId = item.id || '';
         const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
         grid.style.setProperty('--tg-justify', alignMap[settings.group_align] || 'flex-start');
         const selectedIds = getSelection(item);
@@ -56,7 +57,10 @@
 
             const individual = getPhotoSettings(item, id);
             const individualWidth = Number(individual.width) || 0;
+            const individualOffsetX = Number(individual.x_offset) || 0;
             if (individualWidth > 0) card.style.flexBasis = Math.max(5, Math.min(100, individualWidth)) + '%';
+            card.style.transform = 'translateX(' + individualOffsetX + 'px)';
+            card.style.position = 'relative';
             if (selectedIds.has(Number(id))) card.classList.add('is-selected');
 
             const image = document.createElement('img');
@@ -103,6 +107,112 @@
             });
 
             card.appendChild(image);
+
+            const moveHandle = document.createElement('button');
+            moveHandle.type = 'button';
+            moveHandle.textContent = '↔';
+            moveHandle.title = 'Przeciągnij zaznaczone miniatury w lewo lub w prawo';
+            moveHandle.setAttribute('aria-label', 'Przesuń miniaturę');
+            Object.assign(moveHandle.style, {
+                position: 'absolute', left: '6px', top: '6px', width: '30px', height: '25px',
+                border: '0', borderRadius: '4px', background: 'rgba(0,0,0,.78)', color: '#fff',
+                cursor: 'ew-resize', zIndex: '7', display: selectedIds.has(Number(id)) ? 'block' : 'none'
+            });
+
+            const resizeHandle = document.createElement('button');
+            resizeHandle.type = 'button';
+            resizeHandle.title = 'Przeciągnij, aby zmienić szerokość zaznaczonych miniaturek';
+            resizeHandle.setAttribute('aria-label', 'Zmień szerokość miniatury');
+            Object.assign(resizeHandle.style, {
+                position: 'absolute', right: '-8px', bottom: '-8px', width: '18px', height: '18px',
+                border: '2px solid #fff', borderRadius: '3px', background: '#111',
+                cursor: 'nwse-resize', zIndex: '8', display: selectedIds.has(Number(id)) ? 'block' : 'none'
+            });
+
+            function ensureActiveSelection() {
+                const numericId = Number(id);
+                if (!selectedIds.has(numericId)) {
+                    selectedIds.clear();
+                    selectedIds.add(numericId);
+                }
+            }
+
+            function selectedCards() {
+                return [...selectedIds].map(photoId => ({
+                    id: Number(photoId),
+                    card: grid.querySelector('.thumbnail-gallery-item[data-photo-id="' + Number(photoId) + '"]')
+                })).filter(entry => entry.card);
+            }
+
+            moveHandle.addEventListener('mousedown', event => {
+                if (event.button !== 0) return;
+                event.preventDefault();
+                event.stopPropagation();
+                ensureActiveSelection();
+
+                const startX = event.clientX;
+                const gridRect = grid.getBoundingClientRect();
+                const scale = Math.max(0.01, gridRect.width / Math.max(1, grid.offsetWidth));
+                const starts = new Map([...selectedIds].map(photoId => [
+                    Number(photoId),
+                    Number(getPhotoSettings(item, photoId).x_offset) || 0
+                ]));
+
+                function onMove(moveEvent) {
+                    const dx = (moveEvent.clientX - startX) / scale;
+                    starts.forEach((start, photoId) => {
+                        const settingsForPhoto = getPhotoSettings(item, photoId);
+                        settingsForPhoto.x_offset = Math.max(-2000, Math.min(2000, start + dx));
+                        const node = grid.querySelector('.thumbnail-gallery-item[data-photo-id="' + photoId + '"]');
+                        if (node) node.style.transform = 'translateX(' + settingsForPhoto.x_offset + 'px)';
+                    });
+                }
+
+                function onUp() {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    if (typeof onSelectionChange === 'function') onSelectionChange();
+                }
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            resizeHandle.addEventListener('mousedown', event => {
+                if (event.button !== 0) return;
+                event.preventDefault();
+                event.stopPropagation();
+                ensureActiveSelection();
+
+                const startX = event.clientX;
+                const gridRect = grid.getBoundingClientRect();
+                const starts = new Map(selectedCards().map(entry => [
+                    entry.id,
+                    Number(getPhotoSettings(item, entry.id).width) || (entry.card.getBoundingClientRect().width / gridRect.width * 100)
+                ]));
+
+                function onMove(moveEvent) {
+                    const deltaPercent = ((moveEvent.clientX - startX) / Math.max(1, gridRect.width)) * 100;
+                    starts.forEach((start, photoId) => {
+                        const width = Math.max(5, Math.min(100, start + deltaPercent));
+                        getPhotoSettings(item, photoId).width = width;
+                        const node = grid.querySelector('.thumbnail-gallery-item[data-photo-id="' + photoId + '"]');
+                        if (node) node.style.flexBasis = width + '%';
+                    });
+                }
+
+                function onUp() {
+                    document.removeEventListener('mousemove', onMove);
+                    document.removeEventListener('mouseup', onUp);
+                    if (typeof onSelectionChange === 'function') onSelectionChange();
+                }
+
+                document.addEventListener('mousemove', onMove);
+                document.addEventListener('mouseup', onUp);
+            });
+
+            card.appendChild(moveHandle);
+            card.appendChild(resizeHandle);
             grid.appendChild(card);
         }
         if (!grid.children.length) {
@@ -297,6 +407,7 @@
 
         numericSetting('Szerokość zaznaczonych (% boxu)', 'width', 5, 100, 0);
         numericSetting('Wysokość zaznaczonych (px, 0 = auto)', 'height', 0, 1600, 0);
+        numericSetting('Przesunięcie poziome zaznaczonych (px)', 'x_offset', -2000, 2000, 0);
 
         const fitLabel = document.createElement('label');
         fitLabel.style.display = 'block';
@@ -337,6 +448,64 @@
             render();
         });
         selectionBox.appendChild(sameSize);
+
+        const selectedAlignTitle = document.createElement('div');
+        selectedAlignTitle.textContent = 'Wyrównanie zaznaczonych w boxie';
+        selectedAlignTitle.style.marginTop = '12px';
+        selectedAlignTitle.style.marginBottom = '6px';
+        selectedAlignTitle.style.fontSize = '12px';
+        selectionBox.appendChild(selectedAlignTitle);
+
+        function currentGrid() {
+            return [...document.querySelectorAll('.thumbnail-gallery-grid')]
+                .find(node => node.dataset.thumbnailGalleryId === String(item.id || '')) || null;
+        }
+
+        function alignSelected(mode) {
+            const ids = selectedIdsArray();
+            const gridNode = currentGrid();
+            if (!ids.length || !gridNode) return;
+
+            const gridRect = gridNode.getBoundingClientRect();
+            const scale = Math.max(0.01, gridRect.width / Math.max(1, gridNode.offsetWidth));
+            const nodes = ids.map(id => gridNode.querySelector('.thumbnail-gallery-item[data-photo-id="' + Number(id) + '"]')).filter(Boolean);
+            if (!nodes.length) return;
+
+            const rects = nodes.map(node => node.getBoundingClientRect());
+            const left = Math.min(...rects.map(rect => rect.left));
+            const right = Math.max(...rects.map(rect => rect.right));
+            const width = right - left;
+
+            let targetLeft = gridRect.left;
+            if (mode === 'center') targetLeft = gridRect.left + (gridRect.width - width) / 2;
+            if (mode === 'right') targetLeft = gridRect.right - width;
+
+            const delta = (targetLeft - left) / scale;
+            ids.forEach(id => {
+                const photoSetting = getPhotoSettings(item, id);
+                photoSetting.x_offset = Math.max(-2000, Math.min(2000, (Number(photoSetting.x_offset) || 0) + delta));
+            });
+        }
+
+        [['left', 'Zaznaczone do lewej'], ['center', 'Zaznaczone na środek'], ['right', 'Zaznaczone do prawej']].forEach(([mode, title]) => {
+            const alignSelectedButton = document.createElement('button');
+            alignSelectedButton.type = 'button';
+            alignSelectedButton.className = 'cms-button';
+            alignSelectedButton.style.marginRight = '6px';
+            alignSelectedButton.style.marginBottom = '6px';
+            alignSelectedButton.textContent = title;
+            alignSelectedButton.addEventListener('click', () => {
+                alignSelected(mode);
+                render();
+            });
+            selectionBox.appendChild(alignSelectedButton);
+        });
+
+        action('Wyzeruj przesunięcie zaznaczonych', () => {
+            selectedIdsArray().forEach(id => {
+                getPhotoSettings(item, id).x_offset = 0;
+            });
+        });
 
         const alignTitle = document.createElement('div');
         alignTitle.textContent = 'Położenie całej grupy w boxie';
