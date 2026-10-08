@@ -792,7 +792,9 @@ document.addEventListener("DOMContentLoaded", function () {
         window.builderTypography.apply(box, item);
 
         if (item.type === "thumbnail_gallery") {
-            box.appendChild(window.ThumbnailGallery.preview(item, photos));
+            box.appendChild(window.ThumbnailGallery.preview(item, photos, function () {
+                showProperties(item);
+            }));
         } else if (item.type === "image") {
 
             if (item.photo_url) {
