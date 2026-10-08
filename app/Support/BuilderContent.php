@@ -65,6 +65,7 @@ class BuilderContent
             }
             if (($element['type'] ?? null) === 'gallery') {
                 Validator::make($element, [
+                    'gallery_collection_id' => ['sometimes', 'nullable', 'integer', 'exists:gallery_collections,id'],
                     'gallery_mode' => ['sometimes', 'in:all,selected,single'],
                     'gallery_id' => ['required_if:gallery_mode,single', 'nullable', 'integer', 'exists:galleries,id'],
                     'gallery_ids' => ['sometimes', 'array', 'list', 'max:200'],
