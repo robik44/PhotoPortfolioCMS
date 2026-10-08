@@ -1,5 +1,15 @@
 (() => {
-    const defaults = { photo_ids: [], columns_desktop: 5, columns_tablet: 3, columns_mobile: 2, gap: 20 };
+    const defaults = {
+        photo_ids: [],
+        columns_desktop: 5,
+        columns_tablet: 3,
+        columns_mobile: 2,
+        gap: 20,
+        thumbnail_height: 0,
+        thumbnail_ratio: 'auto',
+        thumbnail_fit: 'cover',
+        thumbnail_radius: 0
+    };
     function initialize(item) {
         Object.assign(item, { ...defaults, photo_ids: [] });
     }
@@ -19,6 +29,19 @@
             image.src = photo.thumbnail_url || photo.url;
             image.alt = photo.alt || photo.title || '';
             image.draggable = false;
+            image.style.width = '100%';
+            image.style.display = 'block';
+            image.style.borderRadius = (Number(settings.thumbnail_radius) || 0) + 'px';
+            image.style.objectFit = settings.thumbnail_fit === 'contain' ? 'contain' : 'cover';
+            if (Number(settings.thumbnail_height) > 0) {
+                image.style.height = Number(settings.thumbnail_height) + 'px';
+            } else if (settings.thumbnail_ratio && settings.thumbnail_ratio !== 'auto') {
+                image.style.aspectRatio = settings.thumbnail_ratio;
+                image.style.height = 'auto';
+            } else {
+                image.style.height = 'auto';
+                image.style.objectFit = 'contain';
+            }
             grid.appendChild(image);
         }
         if (!grid.children.length) {
@@ -125,6 +148,8 @@
         for (const [key, label, min, max] of [
             ['columns_desktop', 'Kolumny — desktop', 1, 12], ['columns_tablet', 'Kolumny — tablet', 1, 12],
             ['columns_mobile', 'Kolumny — telefon', 1, 12], ['gap', 'Odstęp (px)', 0, 100],
+            ['thumbnail_height', 'Wysokość miniatury (px, 0 = auto)', 0, 1200],
+            ['thumbnail_radius', 'Zaokrąglenie miniatury (px)', 0, 200],
         ]) {
             const wrapper = document.createElement('label');
             wrapper.className = fieldClass;
@@ -141,6 +166,38 @@
             wrapper.appendChild(input);
             container.appendChild(wrapper);
         }
+
+        function selectSetting(key, label, values) {
+            const wrapper = document.createElement('label');
+            wrapper.className = fieldClass;
+            wrapper.textContent = label;
+            const select = document.createElement('select');
+            values.forEach(([value, title]) => {
+                const option = document.createElement('option');
+                option.value = value;
+                option.textContent = title;
+                select.appendChild(option);
+            });
+            select.value = item[key] ?? defaults[key];
+            select.addEventListener('change', () => {
+                item[key] = select.value;
+                render();
+            });
+            wrapper.appendChild(select);
+            container.appendChild(wrapper);
+        }
+
+        selectSetting('thumbnail_ratio', 'Proporcja miniatury', [
+            ['auto', 'Naturalna'],
+            ['1 / 1', '1:1'],
+            ['4 / 3', '4:3'],
+            ['3 / 2', '3:2'],
+            ['16 / 9', '16:9'],
+        ]);
+        selectSetting('thumbnail_fit', 'Kadrowanie miniatury', [
+            ['cover', 'Wypełnij / przytnij'],
+            ['contain', 'Pokaż całe zdjęcie'],
+        ]);
     }
 
     // Expand only canvases containing the new block; existing layouts are untouched.
