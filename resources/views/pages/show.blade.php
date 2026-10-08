@@ -292,15 +292,6 @@
             font-size: 15px;
         }
 
-        .site-footer {
-            border-top: 1px solid rgba(238,238,238,.9);
-            padding: 30px 40px;
-            text-align: center;
-            color: #888;
-            font-size: 13px;
-            background: {{ $backgroundColor }};
-        }
-
         @media (max-width: 900px) {
             .header-inner {
                 flex-direction: column;
@@ -406,10 +397,7 @@
 </main>
 
 
-<footer class="site-footer site-typography">
-    {{ $settings["footer_text"] ?? "Fotografia" }}
-    <span aria-hidden="true"> · </span><a href="{{ route('privacy') }}" style="text-decoration:underline;text-underline-offset:3px;">Polityka prywatności</a>
-</footer>
+@include('components.site-footer', ['settings' => $settings])
 
 @if(collect($sections)->contains('type', 'gallery'))
     @include('components.gallery-lightbox')
