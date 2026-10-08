@@ -7,7 +7,51 @@
 @include('components.header-font-faces', ['fonts' => $headerFonts])
 
 <style>
-    .site-header { z-index: 5000 !important; background: #fff !important; }
+    /* One shared header geometry for every current/future public page and the visual builder. */
+    .site-header {
+        position: sticky;
+        top: 0;
+        z-index: 5000 !important;
+        width: 100%;
+        background: #fff !important;
+        border-bottom: 1px solid #eee;
+        box-sizing: border-box;
+    }
+    .site-header .header-inner {
+        width: 100%;
+        max-width: 1400px;
+        min-height: 76px;
+        margin: 0 auto;
+        padding-left: 28px;
+        padding-right: 28px;
+        padding-top: var(--header-padding-top);
+        padding-bottom: var(--header-padding-bottom);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
+        box-sizing: border-box;
+    }
+    .site-header .logo {
+        color: inherit;
+        text-decoration: none;
+    }
+    .site-header .main-menu {
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        font-size: 13px;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+    .site-header .main-menu a {
+        color: #222;
+        text-decoration: none;
+    }
+    .site-header .main-menu-link {
+        transition: opacity .2s;
+    }
+    .site-header .main-menu-link:hover { opacity: .55; }
     .site-header .header-inner { padding-top: var(--header-padding-top); padding-bottom: var(--header-padding-bottom); }
     .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-transform: none !important; }
     .site-header .logo span { display: block; text-transform: none !important; }
