@@ -31,6 +31,34 @@ return new class extends Migration
         ]);
 
         DB::table('galleries')->update(['gallery_collection_id' => $defaultId]);
+
+        // Existing builder blocks must stay attached to the original gallery module.
+        // Otherwise adding a new module later would make legacy "all galleries" blocks
+        // unexpectedly display subgalleries from every module.
+        if (Schema::hasTable('page_builders')) {
+            DB::table('page_builders')->orderBy('id')->get()->each(function ($builder) use ($defaultId) {
+                $content = json_decode($builder->content ?? '', true);
+                if (!is_array($content) || !is_array($content['sections'] ?? null)) {
+                    return;
+                }
+
+                $changed = false;
+                foreach ($content['sections'] as &$section) {
+                    if (($section['type'] ?? null) === 'gallery' && empty($section['gallery_collection_id'])) {
+                        $section['gallery_collection_id'] = $defaultId;
+                        $changed = true;
+                    }
+                }
+                unset($section);
+
+                if ($changed) {
+                    DB::table('page_builders')->where('id', $builder->id)->update([
+                        'content' => json_encode($content, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                        'updated_at' => now(),
+                    ]);
+                }
+            });
+        }
     }
 
     public function down(): void
