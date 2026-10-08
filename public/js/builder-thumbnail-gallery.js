@@ -14,6 +14,23 @@
     };
 
     const selections = new WeakMap();
+    const settingsStore = new Map();
+
+    function settingsKey(item) {
+        return String(item?.id || '');
+    }
+
+    function ensureSettingsStore(item) {
+        const key = settingsKey(item);
+        if (!settingsStore.has(key)) {
+            const initial = item?.photo_settings && typeof item.photo_settings === 'object' && !Array.isArray(item.photo_settings)
+                ? JSON.parse(JSON.stringify(item.photo_settings))
+                : {};
+            settingsStore.set(key, initial);
+        }
+        if (item) item.photo_settings = settingsStore.get(key);
+        return settingsStore.get(key);
+    }
 
     function getSelection(item) {
         if (!selections.has(item)) selections.set(item, new Set());
@@ -21,12 +38,11 @@
     }
 
     function getPhotoSettings(item, id) {
-        if (!item.photo_settings || typeof item.photo_settings !== 'object' || Array.isArray(item.photo_settings)) {
-            item.photo_settings = {};
-        }
+        const store = ensureSettingsStore(item);
         const key = String(id);
-        if (!item.photo_settings[key] || typeof item.photo_settings[key] !== 'object') item.photo_settings[key] = {};
-        return item.photo_settings[key];
+        if (!store[key] || typeof store[key] !== 'object' || Array.isArray(store[key])) store[key] = {};
+        item.photo_settings = store;
+        return store[key];
     }
     function initialize(item) {
         Object.assign(item, {
@@ -34,6 +50,7 @@
             photo_ids: [],
             photo_settings: {}
         });
+        settingsStore.set(settingsKey(item), item.photo_settings);
     }
 
     function preview(item, photos, onSelectionChange = null) {
@@ -282,9 +299,21 @@
         });
     }
 
+    function commitStoredSettings(sections) {
+        (sections || []).filter(section => section?.type === 'thumbnail_gallery').forEach(section => {
+            const key = settingsKey(section);
+            if (settingsStore.has(key)) {
+                section.photo_settings = JSON.parse(JSON.stringify(settingsStore.get(key)));
+            } else {
+                ensureSettingsStore(section);
+            }
+        });
+    }
+
     function syncAllFromDom(sections, root = document) {
         (sections || []).filter(section => section?.type === 'thumbnail_gallery')
             .forEach(section => syncFromDom(section, root));
+        commitStoredSettings(sections);
     }
 
     function properties(container, item, photos, render, fieldClass) {
@@ -671,5 +700,5 @@
         }));
         canvas.style.minHeight = `${Math.ceil(height)}px`;
     }
-    window.ThumbnailGallery = { initialize, preview, properties, fitCanvas, syncFromDom, syncAllFromDom };
+    window.ThumbnailGallery = { initialize, preview, properties, fitCanvas, syncFromDom, syncAllFromDom, commitStoredSettings };
 })();
