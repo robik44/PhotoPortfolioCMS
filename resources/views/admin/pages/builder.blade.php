@@ -3,6 +3,22 @@
     <script src="{{ asset('js/site-typography.js') }}"></script>
     <script src="{{ asset('js/builder-button.js') }}"></script>
     @php
+        $builderHeaderSettings = \App\Models\SiteSetting::pluck('value', 'key')->toArray();
+        $builderHeaderMenuItems = \App\Models\MenuItem::query()
+            ->whereNull('parent_id')
+            ->where('published', true)
+            ->with([
+                'page',
+                'gallery',
+                'children' => function ($query) {
+                    $query->where('published', true)
+                        ->with(['page', 'gallery'])
+                        ->orderBy('sort_order');
+                },
+            ])
+            ->orderBy('sort_order')
+            ->get();
+
         $buttonTargets = collect([
             ['url' => url('/'), 'label' => 'START'],
             ['url' => url('/').'#portfolio', 'label' => 'Portfolio'],
@@ -235,6 +251,16 @@
         font-size: 12px;
         letter-spacing: .08em;
         text-transform: uppercase;
+    }
+
+    .fve-public-header-preview {
+        position: relative;
+        z-index: 5000;
+    }
+
+    .fve-public-header-preview a {
+        pointer-events: none;
+        cursor: default;
     }
 
     .fve-content {
@@ -481,26 +507,12 @@
 
                 <div class="fve-page" id="fve-page">
 
-                    <header class="fve-header">
-
-                        <div>
-                            <div
-                                class="fve-logo"
-                                id="fve-logo"
-                            ></div>
-
-                            <div
-                                class="fve-logo-subtitle"
-                                id="fve-logo-subtitle"
-                            ></div>
-                        </div>
-
-                        <nav
-                            class="fve-menu"
-                            id="fve-menu"
-                        ></nav>
-
-                    </header>
+                    <div class="fve-public-header-preview">
+                        @include('components.site-header', [
+                            'settings' => $builderHeaderSettings,
+                            'menuItems' => $builderHeaderMenuItems,
+                        ])
+                    </div>
 
                     <main
                         class="fve-content"
@@ -745,29 +757,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function renderHeader() {
-
-        document.getElementById("fve-logo").textContent =
-            settings.logo || "MAGDA GUGAŁA";
-
-        document.getElementById("fve-logo-subtitle").textContent =
-            settings.logo_subtitle || "FOTOGRAFIA";
-
-        const menu =
-            document.getElementById("fve-menu");
-
-        menu.innerHTML = "";
-
-        menuItems.forEach(function (item) {
-
-            const a =
-                document.createElement("span");
-
-            a.textContent = item.title;
-
-            a.style.cursor = "default";
-
-            menu.appendChild(a);
-        });
+        // Header is rendered by the same shared Blade component as the public site.
     }
 
     function createElementContent(item) {
