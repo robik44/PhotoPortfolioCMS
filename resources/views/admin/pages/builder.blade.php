@@ -1167,7 +1167,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             element.addEventListener("mousedown", function (event) {
 
-                if (event.target.closest(".fve-resize-handle")) {
+                if (
+                    event.target.closest(".fve-resize-handle")
+                    || (item.type === "thumbnail_gallery" && event.target.closest(".thumbnail-gallery-item"))
+                ) {
                     return;
                 }
 
