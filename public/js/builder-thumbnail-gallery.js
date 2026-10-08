@@ -253,6 +253,40 @@
         return grid;
     }
 
+    function syncFromDom(item, root = document) {
+        if (!item || item.type !== 'thumbnail_gallery') return;
+        const grid = [...root.querySelectorAll('.thumbnail-gallery-grid')]
+            .find(node => node.dataset.thumbnailGalleryId === String(item.id || ''));
+        if (!grid) return;
+
+        grid.querySelectorAll('.thumbnail-gallery-item[data-photo-id]').forEach(card => {
+            const id = Number(card.dataset.photoId);
+            if (!id) return;
+            const settings = getPhotoSettings(item, id);
+
+            const basis = parseFloat(card.style.flexBasis || '');
+            if (Number.isFinite(basis) && basis > 0) settings.width = basis;
+
+            const transform = card.style.transform || '';
+            const match = transform.match(/translateX\((-?[0-9.]+)px\)/);
+            if (match) settings.x_offset = Number(match[1]) || 0;
+
+            const image = card.querySelector('img');
+            if (image) {
+                const height = parseFloat(image.style.height || '');
+                if (Number.isFinite(height) && height > 0) settings.height = height;
+                if (image.style.objectFit === 'cover' || image.style.objectFit === 'contain') {
+                    settings.fit = image.style.objectFit;
+                }
+            }
+        });
+    }
+
+    function syncAllFromDom(sections, root = document) {
+        (sections || []).filter(section => section?.type === 'thumbnail_gallery')
+            .forEach(section => syncFromDom(section, root));
+    }
+
     function properties(container, item, photos, render, fieldClass) {
         const library = new Map(photos.map(photo => [Number(photo.id), photo]));
         const button = document.createElement('button');
@@ -422,13 +456,15 @@
             }
 
             input.placeholder = ids.length ? 'różne wartości' : 'najpierw zaznacz zdjęcia';
-            input.addEventListener('change', () => {
+            const applyNumericValue = () => {
                 const value = Math.max(min, Math.min(max, Number(input.value) || fallback));
                 selectedIdsArray().forEach(id => {
                     getPhotoSettings(item, id)[key] = value;
                 });
                 render();
-            });
+            };
+            input.addEventListener('input', applyNumericValue);
+            input.addEventListener('change', applyNumericValue);
 
             wrapper.appendChild(input);
             selectionBox.appendChild(wrapper);
@@ -635,5 +671,5 @@
         }));
         canvas.style.minHeight = `${Math.ceil(height)}px`;
     }
-    window.ThumbnailGallery = { initialize, preview, properties, fitCanvas };
+    window.ThumbnailGallery = { initialize, preview, properties, fitCanvas, syncFromDom, syncAllFromDom };
 })();
