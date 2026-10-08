@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Gallery extends Model
@@ -12,10 +13,16 @@ class Gallery extends Model
         'title',
         'slug',
         'description',
+        'gallery_collection_id',
         'sort_order',
     ];
 
     protected $casts = ['indexable' => 'boolean', 'published' => 'boolean'];
+
+    public function collection(): BelongsTo
+    {
+        return $this->belongsTo(GalleryCollection::class, 'gallery_collection_id');
+    }
 
     public function photos(): BelongsToMany
     {
