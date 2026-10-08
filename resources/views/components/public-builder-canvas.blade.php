@@ -108,8 +108,22 @@
                         && ($element['id'] ?? null) === 'hero-image';
                 @endphp
                 @if($photoUrl)
-                    @php($imageHref = \App\Support\BuilderButton::href($element['image_link'] ?? null))
-                    @if($imageHref)<a href="{{ $imageHref }}" class="builder-public-image-link" style="display:block;">@endif
+                    @php
+                        $imageZoom = (bool) ($element['image_lightbox'] ?? false);
+                        $imageHref = $imageZoom ? null : \App\Support\BuilderButton::href($element['image_link'] ?? null);
+                    @endphp
+                    @if($imageZoom)
+                        <button
+                            type="button"
+                            class="builder-zoom-trigger"
+                            data-builder-image-zoom
+                            data-zoom-url="{{ $photoUrl }}"
+                            data-zoom-alt="{{ $photoAlt }}"
+                            aria-label="{{ $photoAlt ? 'Powiększ zdjęcie: '.$photoAlt : 'Powiększ zdjęcie' }}"
+                        >
+                    @elseif($imageHref)
+                        <a href="{{ $imageHref }}" class="builder-public-image-link" style="display:block;">
+                    @endif
                     <img
                         src="{{ $photoUrl }}"
                         alt="{{ $photoAlt }}"
@@ -137,7 +151,11 @@
                             border-radius:{{ $imageRadius }}px;
                         "
                     >
-                    @if($imageHref)</a>@endif
+                    @if($imageZoom)
+                        </button>
+                    @elseif($imageHref)
+                        </a>
+                    @endif
                     @if(trim($element['caption'] ?? '') !== '')
                         <div
                             class="page-image-caption"
