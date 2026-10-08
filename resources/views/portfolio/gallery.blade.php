@@ -320,9 +320,7 @@
 
 </div>
 
-<footer style="padding:28px;text-align:center;border-top:1px solid #eee;color:#777;font-size:13px;">
-    <a href="{{ route('privacy') }}" style="text-decoration:underline;text-underline-offset:3px;">Polityka prywatności</a>
-</footer>
+@include('components.site-footer', ['settings' => $settings])
 
 @include('components.gallery-lightbox')
 </body>
