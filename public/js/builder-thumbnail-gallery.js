@@ -8,16 +8,41 @@
         thumbnail_height: 0,
         thumbnail_ratio: 'auto',
         thumbnail_fit: 'cover',
-        thumbnail_radius: 0
+        thumbnail_radius: 0,
+        group_align: 'left',
+        photo_settings: {}
     };
-    function initialize(item) {
-        Object.assign(item, { ...defaults, photo_ids: [] });
+
+    const selections = new WeakMap();
+
+    function getSelection(item) {
+        if (!selections.has(item)) selections.set(item, new Set());
+        return selections.get(item);
     }
 
-    function preview(item, photos) {
+    function getPhotoSettings(item, id) {
+        if (!item.photo_settings || typeof item.photo_settings !== 'object' || Array.isArray(item.photo_settings)) {
+            item.photo_settings = {};
+        }
+        const key = String(id);
+        if (!item.photo_settings[key] || typeof item.photo_settings[key] !== 'object') item.photo_settings[key] = {};
+        return item.photo_settings[key];
+    }
+    function initialize(item) {
+        Object.assign(item, {
+            ...defaults,
+            photo_ids: [],
+            photo_settings: {}
+        });
+    }
+
+    function preview(item, photos, onSelectionChange = null) {
         const settings = { ...defaults, ...item };
         const grid = document.createElement('div');
         grid.className = 'thumbnail-gallery-grid';
+        const alignMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+        grid.style.setProperty('--tg-justify', alignMap[settings.group_align] || 'flex-start');
+        const selectedIds = getSelection(item);
         for (const [key, variable] of Object.entries({ columns_desktop: 'desktop', columns_tablet: 'tablet', columns_mobile: 'mobile', gap: 'gap' })) {
             grid.style.setProperty(`--tg-${variable}`, settings[key] + (variable === 'gap' ? 'px' : ''));
         }
@@ -25,6 +50,15 @@
         for (const id of item.photo_ids || []) {
             const photo = library.get(Number(id));
             if (!photo) continue;
+            const card = document.createElement('div');
+            card.className = 'thumbnail-gallery-item';
+            card.dataset.photoId = String(id);
+
+            const individual = getPhotoSettings(item, id);
+            const individualWidth = Number(individual.width) || 0;
+            if (individualWidth > 0) card.style.flexBasis = Math.max(5, Math.min(100, individualWidth)) + '%';
+            if (selectedIds.has(Number(id))) card.classList.add('is-selected');
+
             const image = document.createElement('img');
             image.src = photo.thumbnail_url || photo.url;
             image.alt = photo.alt || photo.title || '';
@@ -32,8 +66,14 @@
             image.style.width = '100%';
             image.style.display = 'block';
             image.style.borderRadius = (Number(settings.thumbnail_radius) || 0) + 'px';
-            image.style.objectFit = settings.thumbnail_fit === 'contain' ? 'contain' : 'cover';
-            if (Number(settings.thumbnail_height) > 0) {
+
+            const individualFit = individual.fit === 'contain' ? 'contain' : (settings.thumbnail_fit === 'contain' ? 'contain' : 'cover');
+            const individualHeight = Number(individual.height) || 0;
+            image.style.objectFit = individualFit;
+
+            if (individualHeight > 0) {
+                image.style.height = individualHeight + 'px';
+            } else if (Number(settings.thumbnail_height) > 0) {
                 image.style.height = Number(settings.thumbnail_height) + 'px';
             } else if (settings.thumbnail_ratio && settings.thumbnail_ratio !== 'auto') {
                 image.style.aspectRatio = settings.thumbnail_ratio;
@@ -42,7 +82,28 @@
                 image.style.height = 'auto';
                 image.style.objectFit = 'contain';
             }
-            grid.appendChild(image);
+
+            card.addEventListener('click', event => {
+                event.preventDefault();
+                event.stopPropagation();
+
+                const numericId = Number(id);
+                if (event.shiftKey || event.metaKey || event.ctrlKey) {
+                    selectedIds.has(numericId) ? selectedIds.delete(numericId) : selectedIds.add(numericId);
+                } else {
+                    selectedIds.clear();
+                    selectedIds.add(numericId);
+                }
+
+                grid.querySelectorAll('.thumbnail-gallery-item').forEach(node => {
+                    node.classList.toggle('is-selected', selectedIds.has(Number(node.dataset.photoId)));
+                });
+
+                if (typeof onSelectionChange === 'function') onSelectionChange();
+            });
+
+            card.appendChild(image);
+            grid.appendChild(card);
         }
         if (!grid.children.length) {
             const empty = document.createElement('p');
@@ -144,6 +205,162 @@
         container.appendChild(hint);
         container.appendChild(list);
         drawList();
+
+        const selectionBox = document.createElement('div');
+        selectionBox.className = fieldClass;
+        selectionBox.style.padding = '12px';
+        selectionBox.style.border = '1px solid #ddd';
+        selectionBox.style.borderRadius = '6px';
+        selectionBox.style.background = '#fafafa';
+
+        const selectionTitle = document.createElement('strong');
+        selectionTitle.textContent = 'Edycja zaznaczonych miniaturek';
+        selectionTitle.style.display = 'block';
+        selectionTitle.style.marginBottom = '8px';
+        selectionBox.appendChild(selectionTitle);
+
+        const selectionInfo = document.createElement('div');
+        selectionInfo.style.fontSize = '12px';
+        selectionInfo.style.marginBottom = '10px';
+        selectionBox.appendChild(selectionInfo);
+
+        function selectedIdsArray() {
+            return [...getSelection(item)].filter(id => (item.photo_ids || []).map(Number).includes(Number(id)));
+        }
+
+        function refreshSelectionInfo() {
+            const ids = selectedIdsArray();
+            selectionInfo.textContent = ids.length
+                ? 'Zaznaczono: ' + ids.length
+                : 'Kliknij miniaturę w podglądzie. Shift/Cmd/Ctrl + klik zaznacza kilka.';
+        }
+
+        function action(text, callback) {
+            const control = document.createElement('button');
+            control.type = 'button';
+            control.className = 'cms-button';
+            control.style.marginRight = '6px';
+            control.style.marginBottom = '6px';
+            control.textContent = text;
+            control.addEventListener('click', () => {
+                callback();
+                render();
+                refreshSelectionInfo();
+            });
+            selectionBox.appendChild(control);
+        }
+
+        action('Zaznacz wszystkie', () => {
+            const selection = getSelection(item);
+            selection.clear();
+            (item.photo_ids || []).forEach(id => selection.add(Number(id)));
+        });
+
+        action('Wyczyść zaznaczenie', () => {
+            getSelection(item).clear();
+        });
+
+        function numericSetting(label, key, min, max, fallback = 0) {
+            const wrapper = document.createElement('label');
+            wrapper.style.display = 'block';
+            wrapper.style.marginTop = '10px';
+            wrapper.style.fontSize = '12px';
+            wrapper.textContent = label;
+
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.min = min;
+            input.max = max;
+            input.step = key === 'width' ? '0.1' : '1';
+            input.style.width = '100%';
+
+            const ids = selectedIdsArray();
+            if (ids.length) {
+                const values = ids.map(id => Number(getPhotoSettings(item, id)[key]) || fallback);
+                input.value = values.every(value => value === values[0]) ? values[0] : '';
+            } else {
+                input.value = '';
+            }
+
+            input.placeholder = ids.length ? 'różne wartości' : 'najpierw zaznacz zdjęcia';
+            input.addEventListener('change', () => {
+                const value = Math.max(min, Math.min(max, Number(input.value) || fallback));
+                selectedIdsArray().forEach(id => {
+                    getPhotoSettings(item, id)[key] = value;
+                });
+                render();
+            });
+
+            wrapper.appendChild(input);
+            selectionBox.appendChild(wrapper);
+        }
+
+        numericSetting('Szerokość zaznaczonych (% boxu)', 'width', 5, 100, 0);
+        numericSetting('Wysokość zaznaczonych (px, 0 = auto)', 'height', 0, 1600, 0);
+
+        const fitLabel = document.createElement('label');
+        fitLabel.style.display = 'block';
+        fitLabel.style.marginTop = '10px';
+        fitLabel.style.fontSize = '12px';
+        fitLabel.textContent = 'Kadrowanie zaznaczonych';
+
+        const fitSelect = document.createElement('select');
+        fitSelect.style.width = '100%';
+        [['cover', 'Wypełnij / przytnij'], ['contain', 'Pokaż całe zdjęcie']].forEach(([value, title]) => {
+            const option = document.createElement('option');
+            option.value = value;
+            option.textContent = title;
+            fitSelect.appendChild(option);
+        });
+        fitSelect.addEventListener('change', () => {
+            selectedIdsArray().forEach(id => {
+                getPhotoSettings(item, id).fit = fitSelect.value;
+            });
+            render();
+        });
+        fitLabel.appendChild(fitSelect);
+        selectionBox.appendChild(fitLabel);
+
+        const sameSize = document.createElement('button');
+        sameSize.type = 'button';
+        sameSize.className = 'cms-button';
+        sameSize.style.width = '100%';
+        sameSize.style.marginTop = '10px';
+        sameSize.textContent = 'Nadaj zaznaczonym ten sam rozmiar';
+        sameSize.addEventListener('click', () => {
+            const ids = selectedIdsArray();
+            if (ids.length < 2) return;
+            const source = { ...getPhotoSettings(item, ids[0]) };
+            ids.slice(1).forEach(id => {
+                item.photo_settings[String(id)] = { ...source };
+            });
+            render();
+        });
+        selectionBox.appendChild(sameSize);
+
+        const alignTitle = document.createElement('div');
+        alignTitle.textContent = 'Położenie całej grupy w boxie';
+        alignTitle.style.marginTop = '12px';
+        alignTitle.style.marginBottom = '6px';
+        alignTitle.style.fontSize = '12px';
+        selectionBox.appendChild(alignTitle);
+
+        [['left', 'Do lewej'], ['center', 'Wyśrodkuj'], ['right', 'Do prawej']].forEach(([value, title]) => {
+            const alignButton = document.createElement('button');
+            alignButton.type = 'button';
+            alignButton.className = 'cms-button';
+            alignButton.style.marginRight = '6px';
+            alignButton.style.marginBottom = '6px';
+            alignButton.textContent = title;
+            alignButton.addEventListener('click', () => {
+                item.group_align = value;
+                render();
+            });
+            selectionBox.appendChild(alignButton);
+        });
+
+        refreshSelectionInfo();
+        container.appendChild(selectionBox);
 
         for (const [key, label, min, max] of [
             ['columns_desktop', 'Kolumny — desktop', 1, 12], ['columns_tablet', 'Kolumny — tablet', 1, 12],
