@@ -66,10 +66,20 @@ class HomeBuilderController extends Controller
             ]
         );
 
+        $savedSections = $builder->fresh()->content['sections'] ?? [];
+        $thumbnailSettingsCount = collect($savedSections)
+            ->where('type', 'thumbnail_gallery')
+            ->sum(function ($section) {
+                return collect($section['photo_settings'] ?? [])
+                    ->filter(fn ($settings) => is_array($settings) && count($settings) > 0)
+                    ->count();
+            });
+
         return response()->json([
             "success" => true,
             "message" => "Strona główna została zapisana.",
             "builder_id" => $builder->id,
+            "thumbnail_settings_count" => $thumbnailSettingsCount,
         ]);
     }
 
