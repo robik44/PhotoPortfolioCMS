@@ -807,10 +807,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 image.style.width = "100%";
 
+                const imageFit = item.image_fit === "contain" ? "contain" : "cover";
+                const imageRatio = item.image_ratio || "auto";
                 if (item.image_height && Number(item.image_height) > 0) {
-                    image.style.height =
-                        Number(item.image_height) + "px";
-                    image.style.objectFit = "cover";
+                    image.style.height = Number(item.image_height) + "px";
+                    image.style.objectFit = imageFit;
+                } else if (imageRatio !== "auto") {
+                    image.style.aspectRatio = imageRatio;
+                    image.style.height = "auto";
+                    image.style.objectFit = imageFit;
                 } else {
                     image.style.height = "auto";
                     image.style.objectFit = "contain";
@@ -863,15 +868,19 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (item.type === "gallery") {
 
             const selectedGallery = galleries.find(gallery => Number(gallery.id) === Number(item.gallery_id));
+            const selectedIds = Array.isArray(item.gallery_ids) ? item.gallery_ids.map(Number) : [];
             const galleryList = item.gallery_mode === "single"
-                ? (selectedGallery?.photos || []) : galleries;
+                ? (selectedGallery?.photos || [])
+                : item.gallery_mode === "selected"
+                    ? selectedIds.map(id => galleries.find(gallery => Number(gallery.id) === id)).filter(Boolean)
+                    : galleries;
 
             const grid = document.createElement("div");
 
             grid.style.display = "grid";
             grid.style.gridTemplateColumns =
-                "repeat(4, minmax(0, 1fr))";
-            grid.style.gap = "14px";
+                "repeat(" + Math.max(1, Math.min(12, Number(item.gallery_columns) || 4)) + ", minmax(0, 1fr))";
+            grid.style.gap = Math.max(0, Math.min(100, Number(item.gallery_gap) || 14)) + "px";
             grid.style.width = "100%";
 
             if (!galleryList.length) {
@@ -880,7 +889,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 empty.textContent = item.gallery_mode === 'single'
                     ? (selectedGallery ? 'Ta galeria nie zawiera jeszcze zdjęć.' : 'Wybierz galerię we właściwościach elementu.')
-                    : 'Brak galerii. Dodaj galerie w module Galerie.';
+                    : item.gallery_mode === 'selected'
+                        ? 'Wybierz galerie do tego boksu we właściwościach elementu.'
+                        : 'Brak galerii. Dodaj galerie w module Galerie.';
 
                 empty.style.padding = "40px";
                 empty.style.textAlign = "center";
@@ -910,7 +921,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                         image.style.display = "block";
                         image.style.width = "100%";
-                        image.style.aspectRatio = "1 / 0.7";
+                        image.style.aspectRatio = item.gallery_ratio || "1 / .7";
                         image.style.objectFit = "cover";
 
                         card.appendChild(image);
@@ -1401,10 +1412,62 @@ document.addEventListener("DOMContentLoaded", function () {
             );
         }
         if (item.type === 'gallery') {
-            selectField('Tryb galerii', item.gallery_mode || 'all', [['all', 'Wszystkie galerie'], ['single', 'Wybrana galeria']], value => { item.gallery_mode = value; });
+            selectField('Tryb galerii', item.gallery_mode || 'all', [
+                ['all', 'Wszystkie galerie'],
+                ['selected', 'Wybrane galerie — osobny boks'],
+                ['single', 'Jedna galeria — zdjęcia z powiększaniem']
+            ], value => { item.gallery_mode = value; });
+
             if (item.gallery_mode === 'single') {
                 selectField('Wybierz galerię', item.gallery_id || '', [['', 'Wybierz galerię'], ...galleries.map(gallery => [gallery.id, gallery.title])], value => { item.gallery_id = value ? Number(value) : null; });
             }
+
+            if (item.gallery_mode === 'selected') {
+                if (!Array.isArray(item.gallery_ids)) item.gallery_ids = [];
+                const selectedWrap = document.createElement('div');
+                selectedWrap.className = 'fve-field';
+                const selectedLabel = document.createElement('label');
+                selectedLabel.textContent = 'Galerie w tym boksie';
+                selectedWrap.appendChild(selectedLabel);
+                galleries.forEach(gallery => {
+                    const row = document.createElement('label');
+                    row.style.display = 'flex';
+                    row.style.alignItems = 'center';
+                    row.style.gap = '8px';
+                    row.style.margin = '6px 0';
+                    const checkbox = document.createElement('input');
+                    checkbox.type = 'checkbox';
+                    checkbox.checked = item.gallery_ids.map(Number).includes(Number(gallery.id));
+                    checkbox.addEventListener('change', () => {
+                        const ids = new Set(item.gallery_ids.map(Number));
+                        checkbox.checked ? ids.add(Number(gallery.id)) : ids.delete(Number(gallery.id));
+                        item.gallery_ids = [...ids];
+                        render();
+                    });
+                    const name = document.createElement('span');
+                    name.textContent = gallery.title;
+                    row.appendChild(checkbox);
+                    row.appendChild(name);
+                    selectedWrap.appendChild(row);
+                });
+                properties.appendChild(selectedWrap);
+            }
+
+            field('Kolumny galerii', 'number', item.gallery_columns || 4, value => {
+                item.gallery_columns = Math.max(1, Math.min(12, Math.round(Number(value) || 4)));
+            }, { min: 1, max: 12, step: 1 });
+
+            field('Odstęp galerii (px)', 'number', item.gallery_gap ?? 14, value => {
+                item.gallery_gap = Math.max(0, Math.min(100, Math.round(Number(value) || 0)));
+            }, { min: 0, max: 100, step: 1 });
+
+            selectField('Proporcja kart galerii', item.gallery_ratio || '1 / .7', [
+                ['1 / .7', 'Domyślna'],
+                ['1 / 1', '1:1'],
+                ['4 / 3', '4:3'],
+                ['3 / 2', '3:2'],
+                ['16 / 9', '16:9']
+            ], value => { item.gallery_ratio = value; });
         }
 
 
@@ -1432,9 +1495,9 @@ document.addEventListener("DOMContentLoaded", function () {
             "number",
             item.position_x,
             function (value) {
-                item.position_x =
-                    Number(value) || 0;
-            }
+                item.position_x = Math.max(0, Math.min(100 - (Number(item.element_width) || 0), Number(value) || 0));
+            },
+            { min: 0, max: 100, step: 0.1 }
         );
 
         field(
@@ -1442,9 +1505,9 @@ document.addEventListener("DOMContentLoaded", function () {
             "number",
             item.position_y,
             function (value) {
-                item.position_y =
-                    Number(value) || 0;
-            }
+                item.position_y = Math.max(0, Number(value) || 0);
+            },
+            { min: 0, step: 0.1 }
         );
 
         field(
@@ -1454,14 +1517,15 @@ document.addEventListener("DOMContentLoaded", function () {
             function (value) {
                 item.element_width =
                     Math.max(
-                        5,
+                        1,
                         Math.min(
                             100 - (Number(item.position_x) || 0),
-                            Number(value) || 5
+                            Number(value) || 1
                         )
                     );
                 item.position_x = Math.max(0, Math.min(item.position_x || 0, 100 - item.element_width));
-            }
+            },
+            { min: 1, max: 100, step: 0.1 }
         );
 
         field(
@@ -1495,14 +1559,89 @@ document.addEventListener("DOMContentLoaded", function () {
                 "number",
                 item.image_height || 0,
                 function (value) {
-                    item.image_height =
-                        Math.max(
-                            0,
-                            Number(value) || 0
-                        );
+                    item.image_height = Math.max(0, Number(value) || 0);
                     item.element_height = item.image_height;
-                }
+                },
+                { min: 0, max: 2000, step: 1 }
             );
+
+            selectField('Kadrowanie zdjęcia', item.image_fit || 'cover', [
+                ['cover', 'Wypełnij / przytnij'],
+                ['contain', 'Pokaż całe zdjęcie']
+            ], value => { item.image_fit = value; });
+
+            selectField('Proporcja zdjęcia (gdy wysokość = 0)', item.image_ratio || 'auto', [
+                ['auto', 'Naturalna'],
+                ['1 / 1', '1:1'],
+                ['4 / 3', '4:3'],
+                ['3 / 2', '3:2'],
+                ['16 / 9', '16:9']
+            ], value => { item.image_ratio = value; });
+
+            field('Zaokrąglenie zdjęcia (px)', 'number', item.image_radius || 0, value => {
+                item.image_radius = Math.max(0, Math.min(200, Number(value) || 0));
+            }, { min: 0, max: 200, step: 1 });
+
+            const imageTools = document.createElement('div');
+            imageTools.className = 'fve-field';
+            const imageToolsLabel = document.createElement('label');
+            imageToolsLabel.textContent = 'Precyzyjne układanie zdjęć';
+            imageTools.appendChild(imageToolsLabel);
+
+            function imageTool(text, callback) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'fve-button';
+                b.style.width = '100%';
+                b.style.marginBottom = '7px';
+                b.textContent = text;
+                b.addEventListener('click', () => {
+                    callback();
+                    render();
+                    showProperties(item);
+                });
+                imageTools.appendChild(b);
+            }
+
+            imageTool('Wszystkie zdjęcia — ten sam rozmiar', () => {
+                data.sections.filter(section => section.type === 'image').forEach(section => {
+                    section.element_width = item.element_width;
+                    section.image_height = item.image_height || 0;
+                    section.element_height = item.image_height || 0;
+                    section.image_fit = item.image_fit || 'cover';
+                    section.image_ratio = item.image_ratio || 'auto';
+                    section.image_radius = item.image_radius || 0;
+                });
+            });
+
+            imageTool('Wszystkie zdjęcia — jeden wiersz', () => {
+                data.sections.filter(section => section.type === 'image').forEach(section => {
+                    section.position_y = Number(item.position_y) || 0;
+                });
+            });
+
+            imageTool('Wszystkie zdjęcia — jedna kolumna', () => {
+                data.sections.filter(section => section.type === 'image').forEach(section => {
+                    section.position_x = Number(item.position_x) || 0;
+                });
+            });
+
+            imageTool('Rozłóż zdjęcia równo w poziomie', () => {
+                const images = data.sections.filter(section => section.type === 'image')
+                    .sort((a, b) => (Number(a.position_x) || 0) - (Number(b.position_x) || 0));
+                if (images.length < 2) return;
+                const width = Math.min(Number(item.element_width) || 20, 100 / images.length);
+                const free = Math.max(0, 100 - width * images.length);
+                const gap = images.length > 1 ? free / (images.length - 1) : 0;
+                images.forEach((section, index) => {
+                    section.element_width = width;
+                    section.position_x = index * (width + gap);
+                    section.position_y = Number(item.position_y) || 0;
+                });
+            });
+
+            imageTools.appendChild(document.createElement('hr'));
+            properties.appendChild(imageTools);
 
             const button =
                 document.createElement("button");
@@ -1667,7 +1806,14 @@ document.addEventListener("DOMContentLoaded", function () {
             photo_title: "",
             image_link: null,
             image_width: 100,
-            image_radius: 0
+            image_radius: 0,
+            image_fit: "cover",
+            image_ratio: "auto",
+            gallery_mode: "all",
+            gallery_ids: [],
+            gallery_columns: 4,
+            gallery_gap: 14,
+            gallery_ratio: "1 / .7"
         };
 
         window.builderTypography.initialize(item);
