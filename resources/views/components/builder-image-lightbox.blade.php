@@ -33,7 +33,7 @@
         align-items: center;
         justify-content: center;
         padding: 40px;
-        background: rgba(0,0,0,.94);
+        background: rgba(0,0,0,.28);
         overscroll-behavior: contain;
     }
 
@@ -45,8 +45,8 @@
         display: block;
         width: auto;
         height: auto;
-        max-width: calc(100vw - 80px);
-        max-height: calc(100vh - 80px);
+        max-width: 50vw;
+        max-height: 50vh;
         object-fit: contain;
         object-position: center;
         user-select: none;
@@ -81,8 +81,8 @@
         }
 
         .builder-image-lightbox-image {
-            max-width: calc(100vw - 40px);
-            max-height: calc(100vh - 80px);
+            max-width: 72vw;
+            max-height: 58vh;
         }
 
         .builder-image-lightbox-close {
