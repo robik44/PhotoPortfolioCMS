@@ -110,6 +110,7 @@
 
             const moveHandle = document.createElement('button');
             moveHandle.type = 'button';
+            moveHandle.className = 'thumbnail-gallery-move-handle';
             moveHandle.textContent = '↔';
             moveHandle.title = 'Przeciągnij zaznaczone miniatury w lewo lub w prawo';
             moveHandle.setAttribute('aria-label', 'Przesuń miniaturę');
@@ -121,11 +122,13 @@
 
             const resizeHandle = document.createElement('button');
             resizeHandle.type = 'button';
-            resizeHandle.title = 'Przeciągnij, aby zmienić szerokość zaznaczonych miniaturek';
+            resizeHandle.className = 'thumbnail-gallery-resize-handle';
+            resizeHandle.title = 'Przeciągnij, aby proporcjonalnie powiększyć lub zmniejszyć zaznaczone miniatury';
             resizeHandle.setAttribute('aria-label', 'Zmień szerokość miniatury');
             Object.assign(resizeHandle.style, {
-                position: 'absolute', right: '-8px', bottom: '-8px', width: '18px', height: '18px',
-                border: '2px solid #fff', borderRadius: '3px', background: '#111',
+                position: 'absolute', right: '-10px', bottom: '-10px', width: '24px', height: '24px',
+                border: '3px solid #fff', borderRadius: '4px', background: '#111',
+                boxShadow: '0 0 0 1px rgba(0,0,0,.4)',
                 cursor: 'nwse-resize', zIndex: '8', display: selectedIds.has(Number(id)) ? 'block' : 'none'
             });
 
@@ -185,19 +188,45 @@
                 ensureActiveSelection();
 
                 const startX = event.clientX;
+                const startY = event.clientY;
                 const gridRect = grid.getBoundingClientRect();
-                const starts = new Map(selectedCards().map(entry => [
-                    entry.id,
-                    Number(getPhotoSettings(item, entry.id).width) || (entry.card.getBoundingClientRect().width / gridRect.width * 100)
-                ]));
+
+                const starts = new Map(selectedCards().map(entry => {
+                    const rect = entry.card.getBoundingClientRect();
+                    const settingsForPhoto = getPhotoSettings(item, entry.id);
+                    const widthPercent = Number(settingsForPhoto.width) || (rect.width / gridRect.width * 100);
+                    const heightPx = Number(settingsForPhoto.height) || Math.max(1, rect.height);
+                    return [entry.id, {
+                        widthPercent,
+                        heightPx,
+                        renderedWidth: Math.max(1, rect.width),
+                        renderedHeight: Math.max(1, rect.height)
+                    }];
+                }));
 
                 function onMove(moveEvent) {
-                    const deltaPercent = ((moveEvent.clientX - startX) / Math.max(1, gridRect.width)) * 100;
+                    const dx = moveEvent.clientX - startX;
+                    const dy = moveEvent.clientY - startY;
+                    const primary = starts.values().next().value;
+                    if (!primary) return;
+
+                    const scaleX = (primary.renderedWidth + dx) / primary.renderedWidth;
+                    const scaleY = (primary.renderedHeight + dy) / primary.renderedHeight;
+                    const scale = Math.max(0.15, Math.min(6, Math.max(scaleX, scaleY)));
+
                     starts.forEach((start, photoId) => {
-                        const width = Math.max(5, Math.min(100, start + deltaPercent));
-                        getPhotoSettings(item, photoId).width = width;
+                        const width = Math.max(5, Math.min(100, start.widthPercent * scale));
+                        const height = Math.max(20, Math.min(1600, start.heightPx * scale));
+                        const settingsForPhoto = getPhotoSettings(item, photoId);
+                        settingsForPhoto.width = width;
+                        settingsForPhoto.height = height;
+
                         const node = grid.querySelector('.thumbnail-gallery-item[data-photo-id="' + photoId + '"]');
-                        if (node) node.style.flexBasis = width + '%';
+                        if (node) {
+                            node.style.flexBasis = width + '%';
+                            const imgNode = node.querySelector('img');
+                            if (imgNode) imgNode.style.height = height + 'px';
+                        }
                     });
                 }
 
