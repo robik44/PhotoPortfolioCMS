@@ -13,6 +13,14 @@
                     <form method="POST" action="{{ route('galleries.update', $gallery) }}">
                         @csrf
                         @method('PUT')
+                        <div class="mb-6">
+                            <label for="gallery_collection_id" class="block font-medium text-sm text-gray-700">Galeria nadrzędna</label>
+                            <select id="gallery_collection_id" name="gallery_collection_id" required style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;">
+                                @foreach($collections as $module)
+                                    <option value="{{ $module->id }}" @selected((int) old('gallery_collection_id', $gallery->gallery_collection_id) === (int) $module->id)>{{ $module->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
                         <div class="mb-6">
                             <label for="title" class="block font-medium text-sm text-gray-700">
@@ -71,7 +79,7 @@
                             </button>
 
                             <a
-                                href="{{ route('galleries.index') }}"
+                                href="{{ route('galleries.index', ['collection' => $gallery->gallery_collection_id]) }}"
                                 style="margin-left:15px; color:#2563eb; text-decoration:none;"
                             >
                                 Anuluj
