@@ -9,7 +9,7 @@
         align-items: center;
         justify-content: center;
         padding: 40px;
-        background: rgba(0,0,0,.94);
+        background: rgba(0,0,0,.28);
     }
 
     .lightbox.is-open {
@@ -20,25 +20,35 @@
         touch-action: pan-y pinch-zoom;
     }
 
+    .lightbox-frame {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 72vw;
+        max-height: 72vh;
+    }
+
     .lightbox-image {
         position: relative;
         z-index: 1;
-        max-width: calc(100vw - 150px);
-        max-height: calc(100vh - 150px);
+        max-width: 72vw;
+        max-height: 72vh;
         width: auto;
         height: auto;
         object-fit: contain;
         object-position: center;
         user-select: none;
         display: block;
+        box-shadow: 0 16px 50px rgba(0,0,0,.28);
     }
 
     #lightbox .lightbox-close {
-        position: fixed !important;
-        top: max(22px, env(safe-area-inset-top)) !important;
-        right: max(28px, env(safe-area-inset-right)) !important;
+        position: absolute !important;
+        top: 0 !important;
+        right: 0 !important;
         left: auto !important;
-        transform: none !important;
+        transform: translate(45%, -45%) !important;
         z-index: 2147483647 !important;
         display: flex !important;
         align-items: center !important;
@@ -72,7 +82,7 @@
 
     .lightbox-prev,
     .lightbox-next {
-        position: fixed !important;
+        position: absolute !important;
         top: 50% !important;
         transform: translateY(-50%) !important;
         z-index: 2147483647 !important;
@@ -103,13 +113,15 @@
     }
 
     .lightbox-prev {
-        left: 6vw !important;
+        left: 0 !important;
         right: auto !important;
+        transform: translate(-130%, -50%) !important;
     }
 
     .lightbox-next {
-        right: 6vw !important;
+        right: 0 !important;
         left: auto !important;
+        transform: translate(130%, -50%) !important;
     }
 
     .lightbox-info {
@@ -137,9 +149,14 @@
             padding: 20px;
         }
 
+        .lightbox-frame {
+            max-width: 86vw;
+            max-height: 70vh;
+        }
+
         .lightbox-image {
-            max-width: calc(100vw - 40px);
-            max-height: calc(100vh - 140px);
+            max-width: 86vw;
+            max-height: 70vh;
             width: auto;
             height: auto;
             object-fit: contain;
@@ -153,23 +170,25 @@
     }
 </style>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" aria-hidden="true">
-    <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Zamknij">×</button>
+    <div class="lightbox-frame">
+        <img class="lightbox-image" id="lightboxImage" src="" alt="">
 
-    <img class="lightbox-image" id="lightboxImage" src="" alt="">
+        <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Zamknij">×</button>
 
-    <button
-    class="lightbox-prev"
-    id="lightboxPrev"
-    type="button"
-    aria-label="Poprzednie zdjęcie"
->‹</button>
+        <button
+        class="lightbox-prev"
+        id="lightboxPrev"
+        type="button"
+        aria-label="Poprzednie zdjęcie"
+    >‹</button>
 
-    <button
-    class="lightbox-next"
-    id="lightboxNext"
-    type="button"
-    aria-label="Następne zdjęcie"
->›</button>
+        <button
+        class="lightbox-next"
+        id="lightboxNext"
+        type="button"
+        aria-label="Następne zdjęcie"
+    >›</button>
+    </div>
 
     <div class="lightbox-info">
         <div class="lightbox-title" id="lightboxTitle"></div>
