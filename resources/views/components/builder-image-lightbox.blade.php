@@ -41,21 +41,32 @@
         display: flex;
     }
 
+    .builder-image-lightbox-frame {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        max-width: 72vw;
+        max-height: 72vh;
+    }
+
     .builder-image-lightbox-image {
         display: block;
         width: auto;
         height: auto;
-        max-width: 50vw;
-        max-height: 50vh;
+        max-width: 72vw;
+        max-height: 72vh;
         object-fit: contain;
         object-position: center;
         user-select: none;
+        box-shadow: 0 16px 50px rgba(0,0,0,.28);
     }
 
     .builder-image-lightbox-close {
-        position: fixed;
-        top: max(22px, env(safe-area-inset-top));
-        right: max(28px, env(safe-area-inset-right));
+        position: absolute;
+        top: 0;
+        right: 0;
+        transform: translate(45%, -45%);
         z-index: 2147483647;
         display: flex;
         align-items: center;
@@ -80,9 +91,14 @@
             padding: 20px;
         }
 
+        .builder-image-lightbox-frame {
+            max-width: 86vw;
+            max-height: 70vh;
+        }
+
         .builder-image-lightbox-image {
-            max-width: 72vw;
-            max-height: 58vh;
+            max-width: 86vw;
+            max-height: 70vh;
         }
 
         .builder-image-lightbox-close {
@@ -94,8 +110,10 @@
 </style>
 
 <div class="builder-image-lightbox" id="builderImageLightbox" role="dialog" aria-modal="true" aria-label="Powiększone zdjęcie" aria-hidden="true">
-    <button type="button" class="builder-image-lightbox-close" id="builderImageLightboxClose" aria-label="Zamknij">×</button>
-    <img class="builder-image-lightbox-image" id="builderImageLightboxImage" src="" alt="">
+    <div class="builder-image-lightbox-frame">
+        <img class="builder-image-lightbox-image" id="builderImageLightboxImage" src="" alt="">
+        <button type="button" class="builder-image-lightbox-close" id="builderImageLightboxClose" aria-label="Zamknij">×</button>
+    </div>
 </div>
 
 <script>
