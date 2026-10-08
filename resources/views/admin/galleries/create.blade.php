@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Dodaj galerię
+            Dodaj podgalerię
         </h2>
     </x-slot>
 
@@ -12,6 +12,14 @@
 
                     <form method="POST" action="{{ route('galleries.store') }}">
                         @csrf
+                        <div class="mb-6">
+                            <label for="gallery_collection_id" class="block font-medium text-sm text-gray-700">Galeria nadrzędna</label>
+                            <select id="gallery_collection_id" name="gallery_collection_id" required style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;">
+                                @foreach($collections as $module)
+                                    <option value="{{ $module->id }}" @selected((int) old('gallery_collection_id', $collection?->id) === (int) $module->id)>{{ $module->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
 
                         <div class="mb-6">
                             <label for="title" class="block font-medium text-sm text-gray-700">
@@ -70,7 +78,7 @@
                             </button>
 
                             <a
-                                href="{{ route('galleries.index') }}"
+                                href="{{ route('galleries.index', ['collection' => $collection?->id]) }}"
                                 style="margin-left:15px; color:#2563eb; text-decoration:none;"
                             >
                                 Anuluj
