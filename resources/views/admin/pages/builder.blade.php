@@ -810,7 +810,11 @@ document.addEventListener("DOMContentLoaded", function () {
                 image.style.borderRadius =
                     (item.image_radius || 0) + "px";
 
-                if (item.image_link) {
+                if (item.image_lightbox) {
+                    image.style.cursor = "zoom-in";
+                    image.style.transition = "transform .22s ease, filter .22s ease";
+                    image.title = "To zdjęcie będzie można powiększyć";
+                } else if (item.image_link) {
                     image.style.cursor = "pointer";
                     image.title = "Zdjęcie ma ustawiony link";
                 }
@@ -1679,13 +1683,20 @@ document.addEventListener("DOMContentLoaded", function () {
 
             selectField(
                 "Po kliknięciu zdjęcia",
-                item.image_link || "",
+                item.image_lightbox ? "__lightbox__" : (item.image_link || ""),
                 [
-                    ["", "Brak linku"],
+                    ["", "Brak akcji"],
+                    ["__lightbox__", "Powiększ zdjęcie"],
                     ...(window.builderButtonTargets || []).map(target => [target.url, target.label])
                 ],
                 function (value) {
-                    item.image_link = value || null;
+                    if (value === "__lightbox__") {
+                        item.image_lightbox = true;
+                        item.image_link = null;
+                    } else {
+                        item.image_lightbox = false;
+                        item.image_link = value || null;
+                    }
                 }
             );
 
@@ -1940,6 +1951,7 @@ document.addEventListener("DOMContentLoaded", function () {
             photo_url: null,
             photo_title: "",
             image_link: null,
+            image_lightbox: false,
             image_width: 100,
             image_radius: 0,
             image_fit: "cover",
