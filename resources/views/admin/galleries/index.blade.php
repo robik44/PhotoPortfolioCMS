@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            Galerie
+            {{ $collection?->name ?? 'Galerie' }}
         </h2>
     </x-slot>
 
@@ -39,19 +39,23 @@
                         font-size:30px;
                         font-weight:400;
                     ">
-                        Galerie
+                        {{ $collection?->name ?? 'Galerie' }}
                     </h1>
 
                     <p style="
                         margin:8px 0 0;
                         color:#777;
                     ">
-                        Przeciągnij galerie, aby zmienić ich kolejność.
+                        To niezależny moduł galerii. Dodawaj tu podgalerie i zdjęcia; później wybierzesz ten moduł w builderze dowolnej strony.
                     </p>
                 </div>
 
+                <div style="display:flex;gap:10px;align-items:center;">
+                @if($collection)
+                    <a href="{{ route('gallery-collections.edit', $collection) }}" class="cms-button">Ustawienia</a>
+                @endif
                 <a
-                    href="{{ route('galleries.create') }}"
+                    href="{{ route('galleries.create', ['collection' => $collection?->id]) }}"
                     style="
                         display:inline-block;
                         background:#171717;
@@ -63,8 +67,9 @@
                         white-space:nowrap;
                     "
                 >
-                    + Dodaj galerię
+                    + Dodaj podgalerię
                 </a>
+                </div>
 
             </div>
 
@@ -280,7 +285,7 @@
                     </p>
 
                     <a
-                        href="{{ route('galleries.create') }}"
+                        href="{{ route('galleries.create', ['collection' => $collection?->id]) }}"
                         style="
                             display:inline-block;
                             background:#171717;
@@ -290,7 +295,7 @@
                             text-decoration:none;
                         "
                     >
-                        Dodaj pierwszą galerię
+                        Dodaj pierwszą podgalerię
                     </a>
                 </div>
 
@@ -370,7 +375,8 @@
                 },
 
                 body: JSON.stringify({
-                    galleries: galleries
+                    galleries: galleries,
+                    gallery_collection_id: {{ (int) ($collection?->id ?? 0) }}
                 })
 
             })
