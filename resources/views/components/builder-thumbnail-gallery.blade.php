@@ -22,10 +22,14 @@
                 $individual = is_array($photoSettings[(string) $id] ?? null) ? $photoSettings[(string) $id] : [];
                 $individualWidth = max(0, min(100, (float) ($individual['width'] ?? 0)));
                 $individualHeight = max(0, min(1600, (int) ($individual['height'] ?? 0)));
+                $individualOffsetX = max(-2000, min(2000, (float) ($individual['x_offset'] ?? 0)));
                 $individualFit = ($individual['fit'] ?? $thumbnailFit) === 'contain' ? 'contain' : 'cover';
             @endphp
             <div class="thumbnail-gallery-item"
-                 @if($individualWidth > 0) style="flex-basis:{{ $individualWidth }}%;" @endif>
+                 style="
+                    @if($individualWidth > 0) flex-basis:{{ $individualWidth }}%; @endif
+                    transform:translateX({{ $individualOffsetX }}px);
+                 ">
                 <img
                     src="{{ $photo->thumbnailUrl() }}"
                     alt="{{ $photo->alt ?: $photo->title ?: '' }}"
