@@ -1942,6 +1942,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
             try {
 
+                if (window.ThumbnailGallery?.syncAllFromDom) {
+                    window.ThumbnailGallery.syncAllFromDom(data.sections, content);
+                }
+
                 const response =
                     await fetch(
                         "{{ $builderSaveUrl }}",
