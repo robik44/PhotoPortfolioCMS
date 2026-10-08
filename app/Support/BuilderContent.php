@@ -38,6 +38,10 @@ class BuilderContent
                     'columns_tablet' => ['sometimes', 'integer', 'between:1,12'],
                     'columns_mobile' => ['sometimes', 'integer', 'between:1,12'],
                     'gap' => ['sometimes', 'integer', 'between:0,100'],
+                    'thumbnail_height' => ['sometimes', 'integer', 'between:0,1200'],
+                    'thumbnail_radius' => ['sometimes', 'integer', 'between:0,200'],
+                    'thumbnail_ratio' => ['sometimes', 'in:auto,1 / 1,4 / 3,3 / 2,16 / 9'],
+                    'thumbnail_fit' => ['sometimes', 'in:cover,contain'],
                 ])->validate();
             }
             if (in_array($element['type'] ?? null, ['heading', 'text'], true)) {
@@ -51,8 +55,10 @@ class BuilderContent
             }
             if (($element['type'] ?? null) === 'gallery') {
                 Validator::make($element, [
-                    'gallery_mode' => ['sometimes', 'in:all,single'],
+                    'gallery_mode' => ['sometimes', 'in:all,selected,single'],
                     'gallery_id' => ['required_if:gallery_mode,single', 'nullable', 'integer', 'exists:galleries,id'],
+                    'gallery_ids' => ['sometimes', 'array', 'list', 'max:200'],
+                    'gallery_ids.*' => ['integer', 'distinct', 'exists:galleries,id'],
                 ])->validate();
             }
         }
