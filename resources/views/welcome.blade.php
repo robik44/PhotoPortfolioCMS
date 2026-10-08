@@ -76,7 +76,7 @@
     @include('components.seo-meta', ['seo' => \App\Support\Seo::meta(null)])
 
     @if(collect($homeSections ?? [])->contains('type', 'thumbnail_gallery'))
-        <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}?v={{ @filemtime(public_path('css/thumbnail-gallery.css')) ?: time() }}">
     @endif
 
     <style>
