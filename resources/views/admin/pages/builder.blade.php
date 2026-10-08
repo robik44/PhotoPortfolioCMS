@@ -258,7 +258,8 @@
         z-index: 5000;
     }
 
-    .fve-public-header-preview a {
+    .fve-public-header-preview a,
+    .fve-public-footer-preview a {
         pointer-events: none;
         cursor: default;
     }
@@ -267,19 +268,7 @@
         position: relative;
         min-height: 900px;
         background: #fff;
-        padding-bottom: 80px;
-    }
-
-    .fve-footer {
-        min-height: 110px;
-        border-top: 1px solid #eee;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 30px;
-        box-sizing: border-box;
-        color: #777;
-        font-size: 12px;
+        padding-bottom: 0;
     }
 
     .fve-element {
@@ -519,10 +508,9 @@
                         id="fve-content"
                     ></main>
 
-                    <footer
-                        class="fve-footer"
-                        id="fve-footer"
-                    ></footer>
+                    <div class="fve-public-footer-preview">
+                        @include('components.site-footer', ['settings' => $builderHeaderSettings])
+                    </div>
 
                 </div>
 
@@ -1248,11 +1236,11 @@ document.addEventListener("DOMContentLoaded", function () {
         requestAnimationFrame(function () {
             let maxBottom = 900;
             content.querySelectorAll(".fve-element").forEach(function (element) {
-                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 80);
+                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 40);
             });
             content.style.height = maxBottom + "px";
             content.style.minHeight = maxBottom + "px";
-            page.style.minHeight = (maxBottom + 206) + "px";
+            page.style.minHeight = "0";
             updateZoom();
         });
         window.ThumbnailGallery.fitCanvas(content);
