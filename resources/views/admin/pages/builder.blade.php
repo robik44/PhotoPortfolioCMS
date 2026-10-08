@@ -994,6 +994,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 box.appendChild(grid);
             }
 
+        } else if (item.type === "text") {
+
+            const textValue = item.content || "";
+            const lines = textValue.split("\n");
+
+            lines.forEach(function (line, index) {
+                box.appendChild(document.createTextNode(line));
+                if (index < lines.length - 1) {
+                    box.appendChild(document.createElement("br"));
+                }
+            });
+
         } else {
 
             box.textContent =
