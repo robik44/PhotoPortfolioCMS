@@ -13,6 +13,12 @@
                 </label>
                 <button class="cms-button cms-button-primary" type="submit">Zapisz</button>
             </form>
+
+            <form method="POST" action="{{ route('gallery-collections.destroy', $galleryCollection) }}" style="margin-top:28px;padding-top:22px;border-top:1px solid #eee;" onsubmit="return confirm('Usunąć ten moduł galerii? Można to zrobić tylko, gdy nie ma w nim podgalerii.');">
+                @csrf
+                @method('DELETE')
+                <button type="submit" class="cms-button cms-button-danger">Usuń ten moduł</button>
+            </form>
         </div>
     </div>
 </x-app-layout>
