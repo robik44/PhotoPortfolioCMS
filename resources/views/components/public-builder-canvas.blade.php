@@ -27,7 +27,10 @@
 
             $x = max(0, min(100, (float) ($element['position_x'] ?? 5)));
             $y = max(0, (float) ($element['position_y'] ?? 5));
-            $width = max(5, min(100 - $x, (float) ($element['element_width'] ?? 38)));
+            // Keep the public geometry identical to the visual editor.
+            // The editor allows a box to extend past the right edge and clips it at the canvas.
+            // Do not shrink the box based on X here, because that changes all inner percentage sizing.
+            $width = max(1, min(100, (float) ($element['element_width'] ?? 38)));
             $height = max(0, (float) ($element['element_height'] ?? 0));
             $top = ($y / 100) * $designHeight;
             $zIndex = $layerMap[$type] ?? 100;
