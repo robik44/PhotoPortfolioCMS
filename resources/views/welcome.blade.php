@@ -378,14 +378,6 @@
             border-bottom: 1px solid #222;
         }
 
-        .site-footer {
-            padding: 30px 28px;
-            border-top: 1px solid #eee;
-            color: #888;
-            font-size: 12px;
-            text-align: center;
-        }
-
         /* Responsive layout: desktop 4, tablet 2, phone 1. */
         @media (max-width: 900px) {
             .header-inner {
@@ -512,10 +504,7 @@
     ])
 </main>
 
-<footer class="site-footer site-typography">
-    {{ $settings['footer_text'] }}
-    <span aria-hidden="true"> · </span><a href="{{ route('privacy') }}" style="text-decoration:underline;text-underline-offset:3px;">Polityka prywatności</a>
-</footer>
+@include('components.site-footer', ['settings' => $settings])
 
 @if(collect($homeSections ?? [])->contains('type', 'gallery'))
     @include('components.gallery-lightbox')
