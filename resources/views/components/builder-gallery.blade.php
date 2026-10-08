@@ -49,7 +49,8 @@
             @php
                 $cover = $gallery->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover) ?? $gallery->photos->first();
                 $local = is_array($cardSettings[$gallery->id] ?? null) ? $cardSettings[$gallery->id] : [];
-                $cardWidth = max(5, min(100, (float) ($local['width'] ?? 0)));
+                $rawWidth = isset($local['width']) && is_numeric($local['width']) ? (float) $local['width'] : 0;
+                $cardWidth = $rawWidth > 0 ? max(5, min(100, $rawWidth)) : 0;
                 $cardOffset = max(-2000, min(2000, (float) ($local['x_offset'] ?? 0)));
                 $defaultBasis = "calc((100% - " . ($columns - 1) . " * var(--bg-gap,14px)) / " . $columns . ")";
             @endphp
