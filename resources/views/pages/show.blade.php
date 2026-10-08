@@ -315,6 +315,9 @@
 @if(collect($sections)->contains('type', 'gallery'))
     @include('components.gallery-lightbox')
 @endif
+@if(collect($sections)->contains(fn ($section) => ($section['type'] ?? null) === 'image' && !empty($section['image_lightbox'])))
+    @include('components.builder-image-lightbox')
+@endif
 <script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
 
 </body>
