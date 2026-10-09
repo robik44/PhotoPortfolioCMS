@@ -913,9 +913,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     const card =
                         document.createElement("div");
 
-                    card.style.background = "#fff";
-                    card.style.border = "1px solid #e5e5e5";
-                    card.style.overflow = "hidden";
+                    card.style.background = "transparent";
+                    card.style.border = "0";
+                    card.style.overflow = "visible";
 
                     if (item.gallery_mode !== "single") {
                         if (!item.gallery_card_settings || typeof item.gallery_card_settings !== "object" || Array.isArray(item.gallery_card_settings)) {
@@ -990,7 +990,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     title.textContent =
                         gallery.title || "Galeria";
 
-                    title.style.padding = "12px";
+                    title.style.padding = "12px 0 0";
 
                     card.appendChild(title);
 
