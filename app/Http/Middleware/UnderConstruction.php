@@ -16,10 +16,9 @@ class UnderConstruction
         $authenticatedAdminRoute = auth()->check()
             && in_array('auth', $request->route()?->gatherMiddleware() ?? [], true);
 
-        // Logged-in CMS users can preview the real public site while maintenance mode is on.
-        // The preview flag alone is not enough: an authenticated session is required.
-        $authenticatedPreview = auth()->check()
-            && $request->boolean('cms_preview');
+        // Any authenticated CMS user can browse the real public site while
+        // maintenance mode is enabled. Guests still see the construction page.
+        $authenticatedPreview = auth()->check();
 
         if (!$enabled || $authenticatedAdminRoute || $authenticatedPreview
             || $request->routeIs('login', 'logout', 'password.*', 'verification.*')
