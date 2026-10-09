@@ -13,9 +13,13 @@
 
 <body class="cms-body">
 @php
-    $viewSiteUrl = request()->routeIs('galleries.edit')
+    $viewSiteBaseUrl = request()->routeIs('galleries.edit')
         ? route('portfolio.gallery', request()->route('gallery'))
         : url('/');
+
+    $viewSiteUrl = $viewSiteBaseUrl
+        . (str_contains($viewSiteBaseUrl, '?') ? '&' : '?')
+        . 'cms_preview=1';
 @endphp
 
 <div class="cms-shell">
