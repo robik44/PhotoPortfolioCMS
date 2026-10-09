@@ -91,16 +91,16 @@
         min-width: 0;
         box-sizing: border-box;
         flex: 0 0 auto;
-        background: #fff;
-        border: 1px solid #e5e5e5;
-        overflow: hidden;
+        background: transparent;
+        border: 0;
+        overflow: visible;
         color: inherit;
         text-decoration: none;
     }
 
     .builder-gallery-card-title {
         margin: 0;
-        padding: 12px;
+        padding: 12px 0 0;
         font: inherit;
         color: inherit;
         text-align: inherit;
