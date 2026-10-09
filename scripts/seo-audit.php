@@ -117,19 +117,40 @@ foreach ($slugs as $slug) {
 echo PHP_EOL."=== SITEMAP.XML ===".PHP_EOL;
 
 try {
-    $xml = app(SeoController::class)->sitemap()->getContent();
+    $settings = \App\Support\Seo::settings();
+    $maintenance = (string) ($settings['site_under_construction'] ?? '0') === '1';
+    $globalIndexing = (string) ($settings['seo_indexable'] ?? '1') !== '0';
 
-    $pass('Strona główna w sitemap', str_contains($xml, '<loc>'.e(url('/')).'</loc>') || str_contains($xml, '<loc>'.url('/').'</loc>'));
+    if ($maintenance) {
+        echo "INFO Sitemap jest celowo wstrzymana, bo aktywny jest tryb „Strona w budowie”.\n";
+        echo "INFO To prawidłowe zachowanie: w tym trybie SEO::indexing() = false, więc sitemap nie publikuje adresów.\n";
+        echo "INFO Po wyłączeniu „Strona w budowie” adresy pojawią się automatycznie.\n";
 
-    foreach ($slugs as $slug) {
-        $page = $pages->get($slug);
-        if (!$page) {
-            $pass("{$slug} w sitemap", false, 'brak strony');
-            continue;
+        $pass('Globalne SEO jest włączone na przyszły start', $globalIndexing);
+
+        foreach ($slugs as $slug) {
+            $page = $pages->get($slug);
+            $pass(
+                "{$slug} gotowa do sitemap po starcie",
+                (bool) $page && (bool) $page->published && (bool) $page->indexable,
+                $page ? \App\Support\Seo::pageUrl($page) : 'brak strony'
+            );
         }
+    } else {
+        $xml = app(SeoController::class)->sitemap()->getContent();
 
-        $url = \App\Support\Seo::pageUrl($page);
-        $pass("{$slug} w sitemap", str_contains($xml, $url), $url);
+        $pass('Strona główna w sitemap', str_contains($xml, '<loc>'.e(url('/')).'</loc>') || str_contains($xml, '<loc>'.url('/').'</loc>'));
+
+        foreach ($slugs as $slug) {
+            $page = $pages->get($slug);
+            if (!$page) {
+                $pass("{$slug} w sitemap", false, 'brak strony');
+                continue;
+            }
+
+            $url = \App\Support\Seo::pageUrl($page);
+            $pass("{$slug} w sitemap", str_contains($xml, $url), $url);
+        }
     }
 } catch (Throwable $e) {
     $pass('Generowanie sitemap', false, $e->getMessage());
