@@ -111,7 +111,7 @@
 
 <div class="builder-image-lightbox" id="builderImageLightbox" role="dialog" aria-modal="true" aria-label="Powiększone zdjęcie" aria-hidden="true">
     <div class="builder-image-lightbox-frame">
-        <img class="builder-image-lightbox-image" id="builderImageLightboxImage" src="" alt="">
+        <img class="builder-image-lightbox-image" id="builderImageLightboxImage" alt="Podgląd zdjęcia" aria-hidden="true">
         <button type="button" class="builder-image-lightbox-close" id="builderImageLightboxClose" aria-label="Zamknij">×</button>
     </div>
 </div>
@@ -144,7 +144,8 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!modal.classList.contains('is-open')) return;
         modal.classList.remove('is-open');
         modal.setAttribute('aria-hidden', 'true');
-        modalImage.src = '';
+        modalImage.removeAttribute('src');
+        modalImage.alt = 'Podgląd zdjęcia';
         document.body.style.overflow = previousOverflow;
         opener?.focus({preventScroll: true});
     }
