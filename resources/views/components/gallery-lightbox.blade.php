@@ -171,7 +171,7 @@
 </style>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Podgląd zdjęcia" aria-hidden="true">
     <div class="lightbox-frame">
-        <img class="lightbox-image" id="lightboxImage" src="" alt="">
+        <img class="lightbox-image" id="lightboxImage" alt="Podgląd zdjęcia" aria-hidden="true">
 
         <button class="lightbox-close" id="lightboxClose" type="button" aria-label="Zamknij">×</button>
 
@@ -259,7 +259,8 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeLightbox() {
         lightbox.classList.remove('is-open');
         lightbox.setAttribute('aria-hidden', 'true');
-        image.src = '';
+        image.removeAttribute('src');
+        image.alt = 'Podgląd zdjęcia';
         document.body.style.overflow = previousOverflow;
         openingItem?.focus({ preventScroll: true });
     }
