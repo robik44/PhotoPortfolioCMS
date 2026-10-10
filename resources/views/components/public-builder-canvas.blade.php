@@ -176,8 +176,13 @@
                 >{{ $content }}</{{ $semanticTag }}>
 
             @elseif($type === 'text')
+                @php
+                    $textLink = \App\Support\BuilderButton::href($element['text_link'] ?? null);
+                    $exactEmail = filter_var(trim((string) $content), FILTER_VALIDATE_EMAIL) ? trim((string) $content) : null;
+                    $textHref = $textLink ?: ($exactEmail ? 'mailto:'.$exactEmail : null);
+                @endphp
                 <{{ $semanticTag }} class="builder-public-text" data-builder-typography-target style="margin:0;{{ $typographyCss }}">
-{!! nl2br(e($content)) !!}</{{ $semanticTag }}>
+@if($textHref)<a href="{{ $textHref }}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">{!! nl2br(e($content)) !!}</a>@else{!! nl2br(e($content)) !!}@endif</{{ $semanticTag }}>
 
             @elseif($type === 'button')
                 @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
