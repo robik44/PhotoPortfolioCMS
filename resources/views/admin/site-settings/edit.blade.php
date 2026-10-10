@@ -332,6 +332,34 @@
 
                         <div>
                             <label
+                                for="contact_email"
+                                style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;"
+                            >
+                                Publiczny adres e-mail
+                            </label>
+
+                            <input
+                                id="contact_email"
+                                type="email"
+                                name="contact_email"
+                                value="{{ old('contact_email', $settings['contact_email'] ?? '') }}"
+                                placeholder="np. kontakt@foodfoto.pl"
+                                style="
+                                    width:100%;
+                                    padding:11px 12px;
+                                    border:1px solid #d1d5db;
+                                    border-radius:6px;
+                                    background:#fff;
+                                "
+                            >
+
+                            <p style="margin:8px 0 0;font-size:13px;color:#6b7280;">
+                                Adres używany publicznie na stronie Kontakt i w danych strukturalnych SEO. Nie zmienia adresu logowania do CMS.
+                            </p>
+                        </div>
+
+                        <div>
+                            <label
                                 for="footer_text"
                                 style="display:block;font-size:14px;font-weight:600;margin-bottom:8px;"
                             >
