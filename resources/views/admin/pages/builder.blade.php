@@ -285,6 +285,110 @@
         outline-offset: 3px;
     }
 
+    .fve-element.group-selected:not(.primary-selected) {
+        outline: 2px solid #6b7280;
+        outline-offset: 3px;
+    }
+
+    .fve-ruler-top {
+        position: relative;
+        height: 28px;
+        margin-left: 28px;
+        width: 1400px;
+        background: #f7f7f7;
+        border: 1px solid #d8d8d8;
+        border-bottom: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+        font: 10px/1 Arial, sans-serif;
+        color: #666;
+    }
+
+    .fve-ruler-left {
+        position: absolute;
+        top: 28px;
+        left: 0;
+        width: 28px;
+        height: calc(100% - 28px);
+        background: #f7f7f7;
+        border: 1px solid #d8d8d8;
+        border-right: 0;
+        overflow: hidden;
+        box-sizing: border-box;
+        font: 10px/1 Arial, sans-serif;
+        color: #666;
+        z-index: 5;
+    }
+
+    .fve-ruler-canvas {
+        position: relative;
+        margin-left: 28px;
+    }
+
+    .fve-ruler-tick {
+        position: absolute;
+        box-sizing: border-box;
+        pointer-events: none;
+    }
+
+    .fve-ruler-top .fve-ruler-tick {
+        bottom: 0;
+        border-left: 1px solid #aaa;
+        height: 7px;
+    }
+
+    .fve-ruler-top .fve-ruler-tick.major {
+        height: 13px;
+    }
+
+    .fve-ruler-left .fve-ruler-tick {
+        right: 0;
+        border-top: 1px solid #aaa;
+        width: 7px;
+    }
+
+    .fve-ruler-left .fve-ruler-tick.major {
+        width: 13px;
+    }
+
+    .fve-ruler-label {
+        position: absolute;
+        font-size: 9px;
+        color: #777;
+        pointer-events: none;
+    }
+
+    .fve-ruler-top .fve-ruler-label {
+        top: 3px;
+        transform: translateX(3px);
+    }
+
+    .fve-ruler-left .fve-ruler-label {
+        right: 14px;
+        transform: translateY(3px) rotate(-90deg);
+        transform-origin: right top;
+    }
+
+    .fve-snap-guide {
+        position: absolute;
+        z-index: 999999;
+        pointer-events: none;
+        display: none;
+        background: #d12c77;
+    }
+
+    .fve-snap-guide.vertical {
+        top: 0;
+        bottom: 0;
+        width: 1px;
+    }
+
+    .fve-snap-guide.horizontal {
+        left: 0;
+        right: 0;
+        height: 1px;
+    }
+
     .fve-resize-handle {
         position: absolute;
         right: -8px;
@@ -300,7 +404,7 @@
         z-index: 1000;
     }
 
-    .fve-element.selected .fve-resize-handle {
+    .fve-element.primary-selected .fve-resize-handle {
         display: block;
     }
 
@@ -339,7 +443,7 @@
         z-index: 999;
     }
 
-    .fve-element.selected .fve-delete {
+    .fve-element.primary-selected .fve-delete {
         display: block;
     }
 
@@ -493,7 +597,9 @@
         <main class="fve-stage" id="fve-stage">
 
             <div class="fve-page-wrap" id="fve-page-wrap">
-
+                <div class="fve-ruler-top" id="fve-ruler-top"></div>
+                <div class="fve-ruler-left" id="fve-ruler-left"></div>
+                <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
                     <div class="fve-public-header-preview">
@@ -513,6 +619,7 @@
                     </div>
 
                 </div>
+                </div>
 
             </div>
 
@@ -527,7 +634,7 @@
             <div id="fve-properties">
 
                 <p style="color:#888;line-height:1.6;font-size:13px;">
-                    Kliknij element na stronie, aby go edytować.
+                    Kliknij element na stronie, aby go edytować. Shift/Cmd/Ctrl + klik zaznacza kilka elementów.
                 </p>
 
             </div>
@@ -572,6 +679,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
     let zoom = 0.70;
     let selected = null;
+    const selectedIds = new Set();
+    const rulerTop = document.getElementById("fve-ruler-top");
+    const rulerLeft = document.getElementById("fve-ruler-left");
     const isHomeBuilder = @json($isHomeBuilder ?? false);
 
     let data = @json($builder->content ?? [
@@ -650,6 +760,178 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (!Array.isArray(data.sections)) {
         data.sections = [];
+    }
+
+    function syncSelection(primaryId = null) {
+        if (primaryId !== null) {
+            selected = primaryId;
+            selectedIds.add(primaryId);
+        }
+
+        if (selected && !selectedIds.has(selected)) {
+            selected = selectedIds.size ? Array.from(selectedIds)[0] : null;
+        }
+    }
+
+    function selectOnly(id) {
+        selectedIds.clear();
+        selectedIds.add(id);
+        selected = id;
+    }
+
+    function toggleSelection(id) {
+        if (selectedIds.has(id)) {
+            selectedIds.delete(id);
+            if (selected === id) selected = selectedIds.size ? Array.from(selectedIds)[0] : null;
+        } else {
+            selectedIds.add(id);
+            selected = id;
+        }
+    }
+
+    function selectedItems() {
+        return data.sections.filter(item => selectedIds.has(item.id));
+    }
+
+    function renderRulers() {
+        if (!rulerTop || !rulerLeft) return;
+        rulerTop.innerHTML = "";
+        rulerLeft.innerHTML = "";
+
+        for (let x = 0; x <= 1400; x += 20) {
+            const tick = document.createElement("span");
+            tick.className = "fve-ruler-tick" + (x % 100 === 0 ? " major" : "");
+            tick.style.left = x + "px";
+            rulerTop.appendChild(tick);
+
+            if (x % 100 === 0 && x < 1400) {
+                const label = document.createElement("span");
+                label.className = "fve-ruler-label";
+                label.style.left = x + "px";
+                label.textContent = x;
+                rulerTop.appendChild(label);
+            }
+        }
+
+        const height = Math.max(900, content.offsetHeight || 900);
+        rulerLeft.style.height = height + "px";
+        for (let y = 0; y <= height; y += 20) {
+            const tick = document.createElement("span");
+            tick.className = "fve-ruler-tick" + (y % 100 === 0 ? " major" : "");
+            tick.style.top = y + "px";
+            rulerLeft.appendChild(tick);
+
+            if (y % 100 === 0) {
+                const label = document.createElement("span");
+                label.className = "fve-ruler-label";
+                label.style.top = y + "px";
+                label.textContent = y;
+                rulerLeft.appendChild(label);
+            }
+        }
+    }
+
+    function ensureSnapGuides() {
+        let vertical = content.querySelector(".fve-snap-guide.vertical");
+        let horizontal = content.querySelector(".fve-snap-guide.horizontal");
+
+        if (!vertical) {
+            vertical = document.createElement("div");
+            vertical.className = "fve-snap-guide vertical";
+            content.appendChild(vertical);
+        }
+        if (!horizontal) {
+            horizontal = document.createElement("div");
+            horizontal.className = "fve-snap-guide horizontal";
+            content.appendChild(horizontal);
+        }
+
+        return { vertical, horizontal };
+    }
+
+    function hideSnapGuides() {
+        const guides = ensureSnapGuides();
+        guides.vertical.style.display = "none";
+        guides.horizontal.style.display = "none";
+    }
+
+    function elementGeometry(item) {
+        const node = content.querySelector('.fve-element[data-id="' + CSS.escape(item.id) + '"]');
+        const x = (Number(item.position_x) || 0) / 100 * 1400;
+        const y = (Number(item.position_y) || 0) / 100 * 900;
+        const width = (Number(item.element_width) || 0) / 100 * 1400;
+        const height = node ? node.getBoundingClientRect().height / zoom : Math.max(24, Number(item.element_height) || 24);
+        return { x, y, width, height, right: x + width, bottom: y + height, cx: x + width / 2, cy: y + height / 2 };
+    }
+
+    function snapGroup(groupIds, proposedDxPx, proposedDyPx, starts) {
+        const threshold = 7;
+        const moving = groupIds.map(id => {
+            const start = starts.get(id);
+            return {
+                id,
+                x: start.x + proposedDxPx,
+                y: start.y + proposedDyPx,
+                width: start.width,
+                height: start.height,
+            };
+        });
+
+        const bounds = {
+            x: Math.min(...moving.map(g => g.x)),
+            y: Math.min(...moving.map(g => g.y)),
+            right: Math.max(...moving.map(g => g.x + g.width)),
+            bottom: Math.max(...moving.map(g => g.y + g.height)),
+        };
+        bounds.cx = (bounds.x + bounds.right) / 2;
+        bounds.cy = (bounds.y + bounds.bottom) / 2;
+
+        const xTargets = [0, 700, 1400];
+        const yTargets = [0];
+        data.sections.forEach(other => {
+            if (groupIds.includes(other.id)) return;
+            const g = elementGeometry(other);
+            xTargets.push(g.x, g.cx, g.right);
+            yTargets.push(g.y, g.cy, g.bottom);
+        });
+
+        let bestX = null;
+        let bestY = null;
+        [bounds.x, bounds.cx, bounds.right].forEach(edge => {
+            xTargets.forEach(target => {
+                const delta = target - edge;
+                if (Math.abs(delta) <= threshold && (!bestX || Math.abs(delta) < Math.abs(bestX.delta))) {
+                    bestX = { delta, target };
+                }
+            });
+        });
+        [bounds.y, bounds.cy, bounds.bottom].forEach(edge => {
+            yTargets.forEach(target => {
+                const delta = target - edge;
+                if (Math.abs(delta) <= threshold && (!bestY || Math.abs(delta) < Math.abs(bestY.delta))) {
+                    bestY = { delta, target };
+                }
+            });
+        });
+
+        const guides = ensureSnapGuides();
+        if (bestX) {
+            guides.vertical.style.left = bestX.target + "px";
+            guides.vertical.style.display = "block";
+        } else {
+            guides.vertical.style.display = "none";
+        }
+        if (bestY) {
+            guides.horizontal.style.top = bestY.target + "px";
+            guides.horizontal.style.display = "block";
+        } else {
+            guides.horizontal.style.display = "none";
+        }
+
+        return {
+            dx: proposedDxPx + (bestX ? bestX.delta : 0),
+            dy: proposedDyPx + (bestY ? bestY.delta : 0),
+        };
     }
 
     function ensureItem(item, index) {
@@ -1088,8 +1370,11 @@ document.addEventListener("DOMContentLoaded", function () {
             element.style.zIndex =
                 layerMap[item.type] || 100;
 
+            if (selectedIds.has(item.id)) {
+                element.classList.add("selected", "group-selected");
+            }
             if (selected === item.id) {
-                element.classList.add("selected");
+                element.classList.add("primary-selected");
             }
 
             const inner =
@@ -1115,10 +1400,11 @@ document.addEventListener("DOMContentLoaded", function () {
                         return x.id !== item.id;
                     });
 
-                selected = null;
+                selectedIds.delete(item.id);
+                selected = selectedIds.size ? Array.from(selectedIds)[0] : null;
 
                 render();
-                showProperties(null);
+                showProperties(selected ? itemForSelection() : null);
             });
 
             element.appendChild(remove);
@@ -1142,7 +1428,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 resizing = true;
-                selected = item.id;
+                selectOnly(item.id);
                 resizeStartX = event.clientX;
                 resizeStartY = event.clientY;
                 resizeStartWidth = Number(item.element_width) || 5;
@@ -1210,95 +1496,149 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             let dragging = false;
+            let dragMoved = false;
             let startX = 0;
             let startY = 0;
-            let startLeft = 0;
-            let startTop = 0;
+            let dragIds = [];
+            let dragStarts = new Map();
 
             element.addEventListener("mousedown", function (event) {
-
                 if (
                     event.target.closest(".fve-resize-handle")
+                    || event.target.closest(".fve-delete")
                     || (item.type === "thumbnail_gallery" && event.target.closest(".thumbnail-gallery-item"))
                 ) {
                     return;
                 }
 
-                if (event.button !== 0) {
+                if (event.button !== 0) return;
+
+                if (event.shiftKey || event.metaKey || event.ctrlKey) {
+                    toggleSelection(item.id);
+                    render();
+                    showProperties(itemForSelection());
+                    event.preventDefault();
+                    event.stopPropagation();
                     return;
                 }
 
+                if (!selectedIds.has(item.id)) {
+                    selectOnly(item.id);
+                } else {
+                    selected = item.id;
+                }
+
                 dragging = true;
-
-                selected = item.id;
-
+                dragMoved = false;
                 startX = event.clientX;
                 startY = event.clientY;
+                dragIds = Array.from(selectedIds);
+                dragStarts = new Map();
 
-                startLeft = item.position_x;
-                startTop = item.position_y;
-
-                element.style.cursor = "grabbing";
+                dragIds.forEach(id => {
+                    const movingItem = data.sections.find(section => section.id === id);
+                    if (!movingItem) return;
+                    const g = elementGeometry(movingItem);
+                    dragStarts.set(id, {
+                        x: g.x,
+                        y: g.y,
+                        width: g.width,
+                        height: g.height,
+                        position_x: Number(movingItem.position_x) || 0,
+                        position_y: Number(movingItem.position_y) || 0,
+                    });
+                    const node = content.querySelector('.fve-element[data-id="' + CSS.escape(id) + '"]');
+                    if (node) node.style.cursor = "grabbing";
+                });
 
                 event.preventDefault();
                 event.stopPropagation();
-
+                render();
                 showProperties(item);
             });
 
             document.addEventListener("mousemove", function (event) {
+                if (!dragging) return;
 
-                if (!dragging) {
-                    return;
-                }
+                const rawDxPx = (event.clientX - startX) / zoom;
+                const rawDyPx = (event.clientY - startY) / zoom;
+                if (Math.abs(rawDxPx) > 1 || Math.abs(rawDyPx) > 1) dragMoved = true;
 
-                const rect =
-                    content.getBoundingClientRect();
+                const snapped = snapGroup(dragIds, rawDxPx, rawDyPx, dragStarts);
 
-                const dx =
-                    ((event.clientX - startX) / rect.width) * 100;
+                // Keep the whole group inside the left/right edge and above the top edge.
+                let minX = Infinity;
+                let maxRight = -Infinity;
+                let minY = Infinity;
+                dragIds.forEach(id => {
+                    const s = dragStarts.get(id);
+                    if (!s) return;
+                    minX = Math.min(minX, s.x + snapped.dx);
+                    maxRight = Math.max(maxRight, s.x + s.width + snapped.dx);
+                    minY = Math.min(minY, s.y + snapped.dy);
+                });
 
-                const dyPx = (event.clientY - startY) / zoom;
-                const dy = (dyPx / 900) * 100;
+                let dxPx = snapped.dx;
+                let dyPx = snapped.dy;
+                if (minX < 0) dxPx -= minX;
+                if (maxRight > 1400) dxPx -= (maxRight - 1400);
+                if (minY < 0) dyPx -= minY;
 
-                item.position_x =
-                    Math.max(
-                        0,
-                        Math.min(
-                            100 - item.element_width,
-                            startLeft + dx
-                        )
-                    );
+                dragIds.forEach(id => {
+                    const movingItem = data.sections.find(section => section.id === id);
+                    const s = dragStarts.get(id);
+                    if (!movingItem || !s) return;
 
-                item.position_y = Math.max(0, startTop + dy);
+                    movingItem.position_x = ((s.x + dxPx) / 1400) * 100;
+                    movingItem.position_y = ((s.y + dyPx) / 900) * 100;
 
-                element.style.left =
-                    item.position_x + "%";
-
-                element.style.top =
-                    ((Number(item.position_y) || 0) / 100 * 900) + "px";
+                    const node = content.querySelector('.fve-element[data-id="' + CSS.escape(id) + '"]');
+                    if (node) {
+                        node.style.left = movingItem.position_x + "%";
+                        node.style.top = ((Number(movingItem.position_y) || 0) / 100 * 900) + "px";
+                    }
+                });
             });
 
             document.addEventListener("mouseup", function () {
+                if (!dragging) return;
 
-                if (!dragging) {
+                dragging = false;
+                hideSnapGuides();
+
+                dragIds.forEach(id => {
+                    const node = content.querySelector('.fve-element[data-id="' + CSS.escape(id) + '"]');
+                    if (node) node.style.cursor = "move";
+                });
+
+                if (dragIds.some(id => {
+                    const movingItem = data.sections.find(section => section.id === id);
+                    return movingItem && movingItem.type === 'thumbnail_gallery';
+                })) {
+                    window.ThumbnailGallery.fitCanvas(content);
+                }
+
+                showProperties(itemForSelection());
+                renderRulers();
+            });
+
+            element.addEventListener("click", function (event) {
+                if (dragMoved) {
+                    dragMoved = false;
+                    event.preventDefault();
+                    event.stopPropagation();
                     return;
                 }
 
-                dragging = false;
+                if (event.shiftKey || event.metaKey || event.ctrlKey) {
+                    toggleSelection(item.id);
+                } else if (!selectedIds.has(item.id) || selectedIds.size > 1) {
+                    selectOnly(item.id);
+                } else {
+                    selected = item.id;
+                }
 
-                element.style.cursor = "move";
-
-                if (item.type === 'thumbnail_gallery') window.ThumbnailGallery.fitCanvas(content);
-                showProperties(item);
-            });
-
-            element.addEventListener("click", function () {
-
-                selected = item.id;
-
-                showProperties(item);
-
+                showProperties(itemForSelection());
                 render();
             });
 
@@ -1314,9 +1654,19 @@ document.addEventListener("DOMContentLoaded", function () {
             content.style.minHeight = maxBottom + "px";
             page.style.minHeight = "0";
             updateZoom();
+            renderRulers();
         });
         window.ThumbnailGallery.fitCanvas(content);
     }
+
+    content.addEventListener("mousedown", function (event) {
+        if (event.target !== content) return;
+        selectedIds.clear();
+        selected = null;
+        hideSnapGuides();
+        render();
+        showProperties(null);
+    });
 
     function field(labelText, type, value, callback, options = {}) {
 
@@ -1391,7 +1741,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!item) {
 
             properties.innerHTML =
-                "<p style='color:#888;line-height:1.6;font-size:13px;'>Kliknij element na stronie, aby go edytować.</p>";
+                "<p style='color:#888;line-height:1.6;font-size:13px;'>Kliknij element, aby go edytować. Shift/Cmd/Ctrl + klik zaznacza kilka elementów. Przeciągnięcie jednego z zaznaczonych przesuwa całą grupę.</p>";
 
             return;
         }
