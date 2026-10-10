@@ -45,3 +45,17 @@
         'caption' => $seo['image_alt'] ?: null,
     ] : null,
 ], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+
+@php
+    $structuredSettings = \App\Support\Seo::settings();
+    $structuredEmail = trim((string) ($structuredSettings['contact_email'] ?? ''));
+    $organization = array_filter([
+        '@context' => 'https://schema.org',
+        '@type' => 'Organization',
+        '@id' => url('/').'#organization',
+        'name' => $seo['site_name'],
+        'url' => url('/'),
+        'email' => $structuredEmail !== '' ? $structuredEmail : null,
+    ], fn ($value) => $value !== null && $value !== '');
+@endphp
+<script type="application/ld+json">{!! json_encode($organization, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
