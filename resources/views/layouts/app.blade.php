@@ -7,6 +7,7 @@
         <meta name="robots" content="noindex, nofollow">
 
     <title>{{ config("app.name", "Photo Portfolio CMS") }}</title>
+    <link rel="icon" href="{{ asset(\App\Models\SiteSetting::where("key", "favicon")->value("value") ? "storage/".\App\Models\SiteSetting::where("key", "favicon")->value("value") : "favicon-mg.svg") }}">
 
     @vite(["resources/css/app.css", "resources/js/app.js"])
 </head>
