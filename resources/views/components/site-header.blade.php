@@ -147,7 +147,7 @@
 
                 @php
                     if ($menuItem->type === "page" && $menuItem->page) {
-                        $menuUrl = route("page.public", $menuItem->page);
+                        $menuUrl = \App\Support\Seo::pageUrl($menuItem->page);
                     } elseif ($menuItem->type === "gallery" && $menuItem->gallery) {
                         $menuUrl = route("portfolio.gallery", $menuItem->gallery);
                     } elseif ($menuItem->type === "url" && $menuItem->url) {
@@ -171,7 +171,7 @@
 
                                 @php
                                     if ($child->type === "page" && $child->page) {
-                                        $childUrl = route("page.public", $child->page);
+                                        $childUrl = \App\Support\Seo::pageUrl($child->page);
                                     } elseif ($child->type === "gallery" && $child->gallery) {
                                         $childUrl = route("portfolio.gallery", $child->gallery);
                                     } elseif ($child->type === "url" && $child->url) {
