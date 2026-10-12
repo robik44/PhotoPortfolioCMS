@@ -1,5 +1,24 @@
 @php
     $backLink = \App\Support\GalleryBackLink::read($settings, $gallery->id);
+    // Contextual links connect portfolio examples with the corresponding services.
+    // Keep test galleries and any future galleries unchanged.
+    $relatedServices = [
+        'zywnosc' => [
+            ['slug' => 'fotografia-zywnosci', 'label' => 'Fotografia żywności'],
+            ['slug' => 'fotografia-kulinarna', 'label' => 'Fotografia kulinarna'],
+        ],
+        'stylizacja' => [
+            ['slug' => 'food-styling', 'label' => 'Food styling i stylizacja żywności'],
+        ],
+        'opakowania' => [
+            ['slug' => 'zdjecia-na-opakowania', 'label' => 'Zdjęcia na opakowania'],
+            ['slug' => 'fotografia-produktowa-zywnosci', 'label' => 'Fotografia produktowa żywności'],
+        ],
+        'czasopisma' => [
+            ['slug' => 'fotografia-kulinarna', 'label' => 'Fotografia kulinarna'],
+        ],
+    ][$gallery->slug] ?? [];
+
     $galleryFonts = \App\Support\GalleryTypography::read($settings, $gallery->id);
 
     $galleryTypographyCss = static function (string $field, string $legacyFamilyField) use ($galleryFonts, $siteFonts): string {
@@ -137,6 +156,20 @@
         font-size: 15px;
     }
 
+    .related-services {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+        margin-top: 20px;
+        font-size: 12px;
+        line-height: 1.6;
+    }
+    .related-services a {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+    .related-services a:hover { opacity: .65; }
+
     .back-link {
         display: inline-block;
         margin-top: 24px;
@@ -268,6 +301,14 @@
 
         @if($gallery->description)
             <p style="{{ $galleryDescriptionCss }}">{{ $gallery->description }}</p>
+        @endif
+
+        @if(count($relatedServices))
+            <nav class="related-services" aria-label="Powiązane usługi">
+                @foreach($relatedServices as $service)
+                    <a href="{{ url('/strona/'.$service['slug']) }}">{{ $service['label'] }}</a>
+                @endforeach
+            </nav>
         @endif
 
         <a href="{{ url('/') }}#portfolio" class="back-link" @if($backLink) style="{{ \App\Support\TypographySettings::css($backLink, 'back', $siteFonts) }}@if(!empty($backLink['back_color']))color:{{ $backLink['back_color'] }};@endif" @endif>
