@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<rect width="512" height="512" rx="104" fill="#f4f0e9"/>
-<path d="M103 361V148h32l115 150 114-150h31v213h-34V201L251 342h-4L137 201v160z" fill="#1b1a19"/>
-<path d="M398 286c-18-19-42-29-71-29-52 0-88 37-88 88s36 87 88 87c25 0 48-8 65-21v-56h-67v-28h99v98c-25 25-59 39-99 39-71 0-121-51-121-119 0-70 52-119 124-119 40 0 72 14 94 39z" fill="#1b1a19" transform="translate(12 -20) scale(.9)"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="100" fill="#f4f0e9"/><text x="105" y="337" font-family="GFS Didot, Didot, Times New Roman, serif" font-size="245" fill="#202020">M</text><text x="263" y="374" font-family="GFS Didot, Didot, Times New Roman, serif" font-size="203" fill="#202020">G</text></svg>
