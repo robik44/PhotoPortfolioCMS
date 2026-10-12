@@ -50,7 +50,7 @@ class LegacyRedirectController extends Controller
             || in_array($source, ['/robots.txt', '/sitemap.xml'], true)) {
             throw ValidationException::withMessages(['source_path' => 'Nieprawidłowy adres źródłowy.']);
         }
-        if (LegacyRedirect::where('source_path', $source)->when($ignoreId, fn ($q) => $q->whereKeyNot($ignoreId))->exists()) {
+        if (LegacyRedirect::where('source_path', $source)->when($ignoreId, fn ($q) => $q->where('id', '!=', $ignoreId))->exists()) {
             throw ValidationException::withMessages(['source_path' => 'Ten adres źródłowy już istnieje.']);
         }
         // Prevent redirects into CMS/auth and loops via other configured redirects.
