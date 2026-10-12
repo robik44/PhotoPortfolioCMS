@@ -16,6 +16,19 @@ use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Route;
 
+// Permanent redirects from the previous FoodFoto website.
+// Keep these before public and CMS routes to avoid accidental route conflicts.
+foreach ([
+    '/reklamowe.html' => '/strona/fotografia-reklamowa-zywnosci',
+    '/gallery.html' => '/portfolio/zywnosc',
+    '/etykiety-2-2.html' => '/portfolio/opakowania',
+    '/przyprawy-p.html' => '/portfolio/kamis-przyprawy',
+    '/contacts.html' => '/kontakt',
+    '/privacy-policy.html' => '/polityka-prywatnosci',
+] as $legacyPath => $destination) {
+    Route::redirect($legacyPath, $destination, 301);
+}
+
 Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
 
