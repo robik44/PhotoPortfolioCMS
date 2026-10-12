@@ -23,6 +23,8 @@
                 $individualWidth = max(0, min(100, (float) ($individual['width'] ?? 0)));
                 $individualHeight = max(0, min(1600, (int) ($individual['height'] ?? 0)));
                 $individualOffsetX = max(-2000, min(2000, (float) ($individual['x_offset'] ?? 0)));
+                $thumbnailFile = public_path('storage/'.\App\Models\Photo::storagePath($photo->thumbnail ?: ($photo->webp ?: $photo->filename)));
+                $thumbnailSize = is_file($thumbnailFile) ? @getimagesize($thumbnailFile) : false;
                 $individualFit = ($individual['fit'] ?? $thumbnailFit) === 'contain' ? 'contain' : 'cover';
             @endphp
             <div class="thumbnail-gallery-item"
@@ -33,6 +35,7 @@
                 <img
                     src="{{ $photo->thumbnailUrl() }}"
                     alt="{{ $photo->alt ?: $photo->title ?: '' }}"
+                    @if($thumbnailSize) width="{{ $thumbnailSize[0] }}" height="{{ $thumbnailSize[1] }}" @endif
                     loading="lazy"
                     decoding="async"
                     draggable="false"
