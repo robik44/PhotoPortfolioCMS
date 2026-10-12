@@ -1,3 +1,8 @@
+@php
+    $faviconPath = \App\Models\SiteSetting::where('key', 'favicon')->value('value');
+    $faviconUrl = $faviconPath ? asset('storage/'.$faviconPath) : asset('favicon-mg.svg');
+@endphp
+<link rel="icon" href="{{ $faviconUrl }}" type="{{ $faviconPath ? 'image/png' : 'image/svg+xml' }}">
 <title>{{ $seo['title'] }}</title>
 @if($seo['description'] !== '')
 <meta name="description" content="{{ $seo['description'] }}">
