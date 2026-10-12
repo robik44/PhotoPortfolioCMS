@@ -13,7 +13,7 @@ class CanonicalHost
         // Only redirect FoodFoto's real production hosts, never local or preview environments.
         $host = strtolower($request->getHost());
         if (app()->environment('production') && in_array($host, ['foodfoto.pl', 'www.foodfoto.pl'], true)
-            && ($host !== 'www.foodfoto.pl' || !$request->isSecure())) {
+            && $host !== 'www.foodfoto.pl') {
             return redirect()->away('https://www.foodfoto.pl'.$request->getRequestUri(), 301);
         }
 
