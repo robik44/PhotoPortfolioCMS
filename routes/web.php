@@ -16,19 +16,6 @@ use App\Models\MenuItem;
 use App\Models\SiteSetting;
 use Illuminate\Support\Facades\Route;
 
-// Permanent redirects from the previous FoodFoto website.
-// Keep these before public and CMS routes to avoid accidental route conflicts.
-foreach ([
-    '/reklamowe.html' => '/strona/fotografia-reklamowa-zywnosci',
-    '/gallery.html' => '/portfolio/zywnosc',
-    '/etykiety-2-2.html' => '/portfolio/opakowania',
-    '/przyprawy-p.html' => '/portfolio/kamis-przyprawy',
-    '/contacts.html' => '/kontakt',
-    '/privacy-policy.html' => '/polityka-prywatnosci',
-] as $legacyPath => $destination) {
-    Route::redirect($legacyPath, $destination, 301);
-}
-
 Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap'])->name('sitemap');
 Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
 
@@ -128,6 +115,10 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'index'])->name('seo.redirects.index');
+    Route::post('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'store'])->name('seo.redirects.store');
+    Route::put('/admin/seo/redirects/{redirect}', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'update'])->name('seo.redirects.update');
+    Route::delete('/admin/seo/redirects/{redirect}', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'destroy'])->name('seo.redirects.destroy');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
