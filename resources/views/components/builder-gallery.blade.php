@@ -35,17 +35,13 @@
                     if (!empty($element['caption_font_'.$property])) $photoTypography['description_font_'.$property] = $element['caption_font_'.$property];
                 }
             @endphp
-            @php
-                $photoFile = public_path('storage/'.\App\Models\Photo::storagePath($photo->webp ?: $photo->filename));
-                $photoSize = is_file($photoFile) ? @getimagesize($photoFile) : false;
-            @endphp
             <article class="gallery-item builder-gallery-card" role="button" tabindex="0" style="cursor:zoom-in;"
                 aria-label="{{ 'Otwórz zdjęcie: '.($photo->title ?: $photo->alt) }}"
                 data-gallery-group="{{ $group }}"
                 @include('components.photo-typography-attributes', ['typography' => $photoTypography])
                 data-photo-url="{{ $photo->imageUrl() }}" data-photo-alt="{{ $photo->alt ?? '' }}"
                 data-photo-title="{{ $photo->title ?? '' }}" data-photo-description="{{ $photo->description ?? '' }}">
-                <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: ($photo->title ?: '') }}" @if($photoSize) width="{{ $photoSize[0] }}" height="{{ $photoSize[1] }}" @endif loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
+                <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: ($photo->title ?: '') }}" loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
             </article>
         @endforeach
     @else
@@ -61,11 +57,7 @@
             <a href="{{ route('portfolio.gallery', $gallery) }}" class="builder-gallery-card"
                style="flex-basis:{{ $cardWidth > 0 ? $cardWidth.'%' : $defaultBasis }};transform:translateX({{ $cardOffset }}px);">
                 @if($cover)
-                    @php
-                        $coverFile = public_path('storage/'.\App\Models\Photo::storagePath($cover->webp ?: $cover->filename));
-                        $coverSize = is_file($coverFile) ? @getimagesize($coverFile) : false;
-                    @endphp
-                    <img src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}" @if($coverSize) width="{{ $coverSize[0] }}" height="{{ $coverSize[1] }}" @endif loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
+                    <img src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}" loading="lazy" style="display:block;width:100%;aspect-ratio:var(--bg-ratio,1 / .7);object-fit:cover;">
                 @else
                     <div style="height:120px;display:flex;align-items:center;justify-content:center;background:#f3f3f3;color:#999;">Brak zdjęcia</div>
                 @endif
