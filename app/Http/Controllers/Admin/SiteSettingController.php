@@ -51,6 +51,7 @@ class SiteSettingController extends Controller
             'contact_email' => ['nullable', 'email:rfc', 'max:255'],
             'hero_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'hero_image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'favicon' => ['nullable', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=48,min_height=48'],
             'background_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'site_under_construction' => ['sometimes', 'boolean'],
         ]);
@@ -87,6 +88,15 @@ class SiteSettingController extends Controller
                 ['key' => 'hero_image'],
                 ['value' => $path]
             );
+        }
+
+        if ($request->hasFile('favicon')) {
+            $oldIcon = SiteSetting::where('key', 'favicon')->value('value');
+            $path = $request->file('favicon')->store('favicons', 'public');
+            SiteSetting::updateOrCreate(['key' => 'favicon'], ['value' => $path]);
+            if ($oldIcon) {
+                Storage::disk('public')->delete($oldIcon);
+            }
         }
 
         return redirect()
