@@ -67,6 +67,17 @@
                             <p style="margin:8px 0 0;font-size:13px;color:#6b7280;">Po włączeniu niezalogowani odwiedzający zobaczą stronę „W budowie”, a wyszukiwarki otrzymają noindex. Po zalogowaniu nadal zobaczysz całą witrynę i CMS.</p>
                         </div>
 
+                        <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
+                            <label for="favicon" style="display:block;font-size:15px;font-weight:700;margin-bottom:10px;">Favicon — ikona strony w Google i przeglądarce</label>
+                            @php $currentFavicon = $settings['favicon'] ?? null; @endphp
+                            <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+                                <img src="{{ $currentFavicon ? asset('storage/'.$currentFavicon) : asset('favicon-mg.svg') }}" alt="Aktualna ikona strony" width="64" height="64" style="width:64px;height:64px;border-radius:12px;border:1px solid #ddd;">
+                                <span style="font-size:13px;color:#555;">{{ $currentFavicon ? 'Własna ikona' : 'Domyślna ikona MG' }}</span>
+                            </div>
+                            <input id="favicon" type="file" name="favicon" accept="image/png,.png" style="display:block;width:100%;padding:10px;border:1px solid #d1d5db;border-radius:6px;background:white;">
+                            <p style="margin-top:8px;font-size:13px;color:#6b7280;">PNG, najlepiej kwadratowy 512 × 512 px, minimum 48 × 48 px, maksymalnie 2 MB. Zmiana ikony w Google może potrwać kilka dni lub dłużej.</p>
+                        </div>
+
                         <p>
                             Logo i podtytuł edytujesz w sekcji
                             <a href="{{ route('header-settings.edit') }}" style="text-decoration:underline;">Wygląd → Nagłówek</a>.
