@@ -98,7 +98,9 @@
                 @php
                     $photoRecord = \App\Models\Photo::find($element['photo_id'] ?? null);
                     $photoUrl = $photoRecord?->imageUrl() ?: ($element['photo_url'] ?? null);
-                    $photoAlt = $photoRecord?->alt ?: ($element['photo_title'] ?? '');
+                    $photoAlt = $photoRecord?->alt ?: ($photoRecord?->title ?: ($element['photo_title'] ?? ''));
+                    $photoFile = $photoRecord ? public_path('storage/'.\App\Models\Photo::storagePath($photoRecord->webp ?: $photoRecord->filename)) : null;
+                    $photoSize = $photoFile && is_file($photoFile) ? @getimagesize($photoFile) : false;
                     $imageRadius = max(0, (int) ($element['image_radius'] ?? 0));
                     $imageHeight = max(0, (int) ($element['image_height'] ?? $element['element_height'] ?? 0));
                     $imageFit = ($element['image_fit'] ?? 'cover') === 'contain' ? 'contain' : 'cover';
@@ -127,6 +129,7 @@
                     <img
                         src="{{ $photoUrl }}"
                         alt="{{ $photoAlt }}"
+                        @if($photoSize) width="{{ $photoSize[0] }}" height="{{ $photoSize[1] }}" @endif
                         @if($isPriorityImage)
                             loading="eager"
                             fetchpriority="high"
