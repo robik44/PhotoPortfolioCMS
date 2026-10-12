@@ -1,6 +1,7 @@
 <x-app-layout>
     <x-slot name="header">SEO</x-slot>
     <h1>SEO — Ustawienia globalne</h1>
+    <p><a class="cms-button" href="{{ route('seo.redirects.index') }}">Zarządzaj przekierowaniami 301</a></p>
     @if(session('success'))<p role="status" class="cms-alert">{{ session('success') }}</p>@endif
     @if($errors->any())<div role="alert">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
     <form method="POST" action="{{ route('seo.update') }}" class="cms-card" style="padding:24px;margin:20px 0;">
