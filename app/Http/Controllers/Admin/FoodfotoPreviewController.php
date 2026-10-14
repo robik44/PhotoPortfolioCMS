@@ -228,7 +228,10 @@ class FoodfotoPreviewController extends Controller
             $clean[$id] = ['font_size' => round((float)$size, 1), 'line_height' => round((float)$height, 2), 'letter_spacing' => round((float)$spacing, 2)];
         }
         SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_typography'], ['value' => json_encode($clean)]);
-        return redirect()->route('foodfoto.canvas')->with('foodfoto_typography_saved', true);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'typography' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_typography_saved', true);
     }
 
     public function saveCanvasPhotos(Request $request)
