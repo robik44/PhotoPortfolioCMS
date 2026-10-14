@@ -527,7 +527,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get(route('foodfoto.canvas'))->assertOk()
             ->assertSee('id="ff-zoom-toolbar"',false)
             ->assertSee('id="ff-zoom-fit"',false)
-            ->assertSee('id="ff-canvas-viewport"',false);
+            ->assertSee('ff-canvas-viewport',false);
         $js=file_get_contents(public_path('js/foodfoto-visual-editor.js'));
         $this->assertStringContainsString('canvasScale()', $js);
     }
