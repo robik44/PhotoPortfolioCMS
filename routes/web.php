@@ -117,6 +117,7 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 Route::middleware(["auth"])->group(function () {
     Route::get('/admin/foodfoto-preview', \App\Http\Controllers\Admin\FoodfotoPreviewController::class)->name('foodfoto.home.preview');
     Route::post('/admin/foodfoto-preview/content', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateContent'])->name('foodfoto.home.preview.content');
+    Route::post('/admin/foodfoto-preview/layout', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateLayout'])->name('foodfoto.home.preview.layout');
 
     Route::get('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'index'])->name('seo.redirects.index');
     Route::post('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'store'])->name('seo.redirects.store');
