@@ -36,6 +36,9 @@
         color: inherit;
         text-decoration: none;
     }
+    .site-header .logo-brand-row { display:flex; align-items:center; gap:18px; }
+    .site-header .logo-brand-image { display:block; width:var(--brand-image-width, 76px); height:auto; max-height:120px; object-fit:contain; }
+    .site-header .logo-text-stack { display:flex; flex-direction:column; min-width:0; }
     .site-header .main-menu {
         display: flex;
         align-items: center;
@@ -133,6 +136,11 @@
     <div class="header-inner">
 
         <a href="{{ url('/') }}" class="logo">
+          <span class="logo-brand-row" style="--brand-image-width: {{ $headerSettings['header_brand_image_width'] }}px;">
+            @if(!empty($headerSettings['header_brand_image']))
+              <img class="logo-brand-image" src="{{ asset('storage/'.$headerSettings['header_brand_image']) }}" alt="FoodFoto" width="{{ $headerSettings['header_brand_image_width'] }}">
+            @endif
+            <span class="logo-text-stack">
             <span style="font-family:{{ $headerFamilies[$headerSettings['header_logo_font_family']] }}; font-size:{{ $headerSettings['header_logo_font_size'] }}px; font-weight:{{ $headerSettings['header_logo_font_weight'] }}; letter-spacing:{{ $headerSettings['header_logo_letter_spacing'] }}em; color:{{ $headerSettings['header_logo_color'] }};">
                 {{ $headerSettings['logo'] }}
             </span>
@@ -140,6 +148,8 @@
             <span style="font-family:{{ $headerFamilies[$headerSettings['header_subtitle_font_family']] }}; font-size:{{ $headerSettings['header_subtitle_font_size'] }}px; font-weight:{{ $headerSettings['header_subtitle_font_weight'] }}; letter-spacing:{{ $headerSettings['header_subtitle_letter_spacing'] }}em; color:{{ $headerSettings['header_subtitle_color'] }};">
                 {{ $headerSettings['logo_subtitle'] }}
             </span>
+            </span>
+          </span>
         </a>
 
         <nav class="main-menu">
