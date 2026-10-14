@@ -368,6 +368,27 @@ document.addEventListener('DOMContentLoaded',()=>{
    form.reset();
   }catch(error){status.textContent='Błąd dodawania czcionki: '+error.message}
  });
+ const eyedropperStatus=document.getElementById('ff-eye-status');
+ function sampleColor(target){
+  if(!('EyeDropper' in window)){
+   eyedropperStatus.textContent='Ta przeglądarka nie udostępnia próbnika całego ekranu. W Firefoxie możesz skorzystać z systemowego próbnika koloru albo wpisać HEX.';
+   return;
+  }
+  new EyeDropper().open().then(result=>{
+   target.value=result.sRGBHex;target.dispatchEvent(new Event('input',{bubbles:true}));
+   eyedropperStatus.textContent='Pobrano kolor.';
+  }).catch(()=>{eyedropperStatus.textContent='Nie wybrano koloru.'});
+ }
+ document.getElementById('ff-type-color-pick').addEventListener('click',()=>sampleColor(extraInputs.color));
+ document.getElementById('ff-type-bg-pick').addEventListener('click',()=>sampleColor(extraInputs.background_color));
+ document.getElementById('ff-type-bg-clear').addEventListener('click',()=>{
+  extraInputs.background_color.value='#ffffff';
+  if(!selected)return;
+  const v=values[selected.dataset.canvasText]||read(selected);
+  v.background_color='transparent';
+  values[selected.dataset.canvasText]=v;
+  selected.style.setProperty('background-color','transparent','important');
+ });
  const values={...@json($canvasTypography)};
  let selected=null;
  function read(el){
@@ -387,7 +408,9 @@ document.addEventListener('DOMContentLoaded',()=>{
   const cssProperties={'font-family':v.font_family,'font-weight':v.font_weight,'text-align':v.text_align,
    'text-transform':v.text_transform,'word-spacing':v.word_spacing+'px',
    'margin-top':v.margin_top+'px','margin-bottom':v.margin_bottom+'px',
-   'max-width':v.max_width?v.max_width+'px':'none'};
+   'max-width':v.max_width?v.max_width+'px':'none',
+   'color':v.color==='inherit'?'inherit':'color-mix(in srgb, '+v.color+' '+v.color_alpha+'%, transparent)',
+   'background-color':v.background_color==='transparent'?'transparent':'color-mix(in srgb, '+v.background_color+' '+v.background_alpha+'%, transparent)'};
   for(const [prop,val] of Object.entries(cssProperties))selected.style.setProperty(prop,String(val),'important');
   slider.value=v.font_size;
  }
