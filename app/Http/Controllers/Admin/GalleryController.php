@@ -63,7 +63,7 @@ class GalleryController extends Controller
             'title' => $data['title'],
             'slug' => $slug,
             'description' => $data['description'] ?? null,
-            'gallery_collection_id' => (int) $data['gallery_collection_id'],
+            'gallery_collection_id' => $data['gallery_collection_id'] ?? null,
             'sort_order' => $sortOrder + 1,
         ]);
 
