@@ -883,7 +883,7 @@ document.addEventListener("DOMContentLoaded", function () {
     function elementGeometry(item) {
         const node = content.querySelector('.fve-element[data-id="' + CSS.escape(item.id) + '"]');
         const x = (Number(item.position_x) || 0) / 100 * 1400;
-        const y = (Number(item.position_y) || 0) / 100 * 900;
+        const y = node ? node.offsetTop : (Number(item.position_y) || 0) / 100 * 900;
         const width = (Number(item.element_width) || 0) / 100 * 1400;
         const height = node ? node.getBoundingClientRect().height / zoom : Math.max(24, Number(item.element_height) || 24);
         return { x, y, width, height, right: x + width, bottom: y + height, cx: x + width / 2, cy: y + height / 2 };
@@ -1330,6 +1330,25 @@ document.addEventListener("DOMContentLoaded", function () {
         return box;
     }
 
+    // Return the vertical displacement caused by earlier growing blocks.
+    // On manual positioning we save this as an anchor, so the element remains
+    // exactly where it was dropped without disabling future automatic flow.
+    function inheritedFlowShift(yPx, movingId = null) {
+        let shift = 0;
+        data.sections.forEach(source => {
+            if (source.id === movingId || source.flow_mode !== 'auto') return;
+            const node = Array.from(content.querySelectorAll(".fve-element"))
+                .find(element => element.dataset.id === source.id);
+            if (!node) return;
+            const baseline = Number(source.flow_base_height) || node.offsetHeight;
+            const baseTop = (Number(source.position_y) || 0) * 9;
+            if (yPx >= baseTop + baseline - 0.5) {
+                shift += node.offsetHeight - baseline;
+            }
+        });
+        return shift;
+    }
+
     // Opt-in flowing layout: preserve old absolute positions and overlays.
     function reflowElements() {
         const entries = data.sections.map(item => ({
@@ -1340,7 +1359,7 @@ document.addEventListener("DOMContentLoaded", function () {
         for (const entry of entries) {
             const baseTop = (Number(entry.item.position_y) || 0) * 9;
             const shift = sources.reduce((sum, src) => sum + (baseTop >= src.bottom - 0.5 ? src.delta : 0), 0);
-            entry.node.style.top = (baseTop + shift) + "px";
+            entry.node.style.top = (baseTop + shift - (Number(entry.item.flow_anchor) || 0)) + "px";
             if (entry.item.flow_mode === 'auto') {
                 const height = entry.node.offsetHeight;
                 if (!Number.isFinite(Number(entry.item.flow_base_height)) || Number(entry.item.flow_base_height) <= 0) {
@@ -1656,6 +1675,16 @@ document.addEventListener("DOMContentLoaded", function () {
                 dragging = false;
                 hideSnapGuides();
 
+                if (dragMoved) {
+                    dragIds.forEach(id => {
+                        const movingItem = data.sections.find(section => section.id === id);
+                        if (!movingItem) return;
+                        // position_y already stores the visual drop position from mousemove.
+                        // Compensate the current upstream growth; future changes still flow.
+                        movingItem.flow_anchor = inheritedFlowShift((Number(movingItem.position_y) || 0) * 9, id);
+                    });
+                }
+
                 dragIds.forEach(id => {
                     const node = content.querySelector('.fve-element[data-id="' + CSS.escape(id) + '"]');
                     if (node) node.style.cursor = "move";
@@ -1668,6 +1697,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     window.ThumbnailGallery.fitCanvas(content);
                 }
 
+                if (dragMoved) render();
                 showProperties(itemForSelection());
                 renderRulers();
             });
@@ -2080,6 +2110,7 @@ document.addEventListener("DOMContentLoaded", function () {
             item.position_y,
             function (value) {
                 item.position_y = Math.max(0, Number(value) || 0);
+                item.flow_anchor = inheritedFlowShift(item.position_y * 9, item.id);
             },
             { min: 0, step: 0.1 }
         );
