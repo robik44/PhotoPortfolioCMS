@@ -607,6 +607,15 @@
             <button type="button" class="fve-tool" data-fve-preset="contact-banner">
                 + Baner kontaktowy
             </button>
+            @if($isHomeBuilder ?? false)
+                <button type="button" class="fve-tool" data-fve-preset="foodfoto-home">
+                    + Kompozycja FoodFoto
+                </button>
+                <small style="display:block;padding:8px 10px;color:#666;line-height:1.5">
+                    Dodaje nowe sekcje na końcu strony bez zmiany obecnych galerii i treści.
+                    Przed publikacją wybierz zdjęcia i sprawdź układ.
+                </small>
+            @endif
 
         </aside>
 
@@ -2382,7 +2391,119 @@ document.addEventListener("DOMContentLoaded", function () {
             return item;
         }
 
-        if (preset === 'image-text' || preset === 'text-image') {
+        if (preset === 'foodfoto-home') {
+            if (!isHomeBuilder) return;
+            if (data.sections.some(section => section.foodfoto_preset === 'editorial-home-v1')) {
+                alert('Kompozycja FoodFoto została już dodana. Możesz edytować jej elementy na stronie.');
+                return;
+            }
+            const mark = (item) => {
+                item.foodfoto_preset = 'editorial-home-v1';
+                return item;
+            };
+            // Keep all existing SEO sections and the portfolio galleries unchanged.
+            mark(insert('heading', {
+                content: 'Obrazy, które pobudzają apetyt',
+                position_x: 5, position_y: startY,
+                element_width: 90, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 54, line_height: 1.12, text_align: 'center', font_weight: 400 }
+            }));
+            mark(insert('image', {
+                position_x: 5, position_y: startY + 14, element_width: 43,
+                image_height: 435, element_height: 435, image_fit: 'cover'
+            }));
+            mark(insert('heading', {
+                content: 'Więcej niż zwykłe zdjęcia',
+                position_x: 54, position_y: startY + 18, element_width: 40,
+                heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 44, line_height: 1.12 }
+            }));
+            mark(insert('text', {
+                content: 'W fotografii żywności liczy się każdy detal — światło, kolor, faktura i kompozycja. Tworzę obrazy, które podkreślają charakter produktu oraz opowiadają historię marki.',
+                position_x: 54, position_y: startY + 32, element_width: 39,
+                semantic_tag: 'p', style: { font_size: 20, line_height: 1.65 }
+            }));
+            mark(insert('button', {
+                content: 'O MNIE', button_link: '/o-mnie',
+                position_x: 54, position_y: startY + 53, element_width: 20
+            }));
+
+            const processY = startY + 78;
+            mark(insert('heading', {
+                content: 'Od pomysłu do kadru', position_x: 5, position_y: processY,
+                element_width: 90, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 52, text_align: 'center', line_height: 1.15 }
+            }));
+            const titles = ['Koncepcja', 'Stylizacja', 'Fotografia'];
+            const descriptions = [
+                'Kompozycja dopasowana do produktu i przekazu marki.',
+                'Aranżacja potraw, rekwizytów i najdrobniejszych detali.',
+                'Światło i ujęcie, które nadają smak każdemu kadrowi.'
+            ];
+            for (let i = 0; i < 3; i++) {
+                const x = 5 + i * 31;
+                mark(insert('image', {
+                    position_x: x, position_y: processY + 14,
+                    element_width: 28, image_height: 310,
+                    element_height: 310, image_fit: 'cover'
+                }));
+                mark(insert('heading', {
+                    content: titles[i], position_x: x, position_y: processY + 53,
+                    element_width: 28, heading_level: 'h3', semantic_tag: 'h3',
+                    style: { font_size: 30, line_height: 1.2 }
+                }));
+                mark(insert('text', {
+                    content: descriptions[i], position_x: x, position_y: processY + 62,
+                    element_width: 28, semantic_tag: 'p',
+                    style: { font_size: 18, line_height: 1.5 }
+                }));
+            }
+
+            const aboutY = processY + 91;
+            mark(insert('heading', {
+                content: 'Doświadczenie, które widać w kadrze',
+                position_x: 5, position_y: aboutY + 8,
+                element_width: 43, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 44, line_height: 1.15 }
+            }));
+            mark(insert('text', {
+                content: 'Od prawie 30 lat zajmuję się fotografią produktów spożywczych i potraw. Łączę doświadczenie fotograficzne z dbałością o stylizację żywności i indywidualny charakter każdej realizacji.',
+                position_x: 5, position_y: aboutY + 23, element_width: 43,
+                semantic_tag: 'p', style: { font_size: 20, line_height: 1.65 }
+            }));
+            mark(insert('button', {
+                content: 'POZNAJ MNIE', button_link: '/o-mnie',
+                position_x: 5, position_y: aboutY + 43, element_width: 22
+            }));
+            mark(insert('image', {
+                position_x: 55, position_y: aboutY,
+                element_width: 40, image_height: 430,
+                element_height: 430, image_fit: 'cover'
+            }));
+
+            const contactY = aboutY + 72;
+            mark(insert('image', {
+                position_x: 5, position_y: contactY, element_width: 90,
+                image_height: 480, element_height: 480, image_fit: 'cover'
+            }));
+            mark(insert('heading', {
+                content: 'Porozmawiajmy o Twoim projekcie',
+                position_x: 10, position_y: contactY + 13,
+                element_width: 70, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 53, line_height: 1.15, color: '#ffffff' }
+            }));
+            mark(insert('text', {
+                content: 'Fotografia i stylizacja żywności dla marek, które chcą opowiadać obrazem.',
+                position_x: 10, position_y: contactY + 26,
+                element_width: 68, semantic_tag: 'p',
+                style: { font_size: 23, line_height: 1.5, color: '#ffffff' }
+            }));
+            mark(insert('button', {
+                content: 'KONTAKT', button_link: '/kontakt',
+                position_x: 10, position_y: contactY + 42,
+                element_width: 22, style: { color: '#ffffff' }
+            }));
+        } else if (preset === 'image-text' || preset === 'text-image') {
             const imageFirst = preset === 'image-text';
             const imageX = imageFirst ? 5 : 54;
             const copyX = imageFirst ? 55 : 5;
