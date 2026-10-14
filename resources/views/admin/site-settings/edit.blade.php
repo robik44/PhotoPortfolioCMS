@@ -78,6 +78,21 @@
                             <p style="margin-top:8px;font-size:13px;color:#6b7280;">PNG, najlepiej kwadratowy 512 × 512 px, minimum 48 × 48 px, maksymalnie 2 MB. Zmiana ikony w Google może potrwać kilka dni lub dłużej.</p>
                         </div>
 
+                        <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
+                            <h3 style="font-size:17px;font-weight:700;margin:0 0 10px;">FoodFoto — listki bazylii w nowym podglądzie</h3>
+                            <p style="font-size:13px;color:#555;margin-bottom:12px;">Możesz podmienić każdą dekorację osobno. PNG lub WebP z przezroczystym tłem, maksymalnie 5 MB. Zmiana dotyczy wyłącznie podglądu nowej strony głównej.</p>
+                            @foreach(['hero' => 'Przy głównym banerze', 'editorial' => 'Więcej niż zwykłe zdjęcia', 'process' => 'Od pomysłu do kadru'] as $place => $label)
+                                @php($key = 'preview_basil_'.$place)
+                                <div style="margin-top:15px;padding-top:12px;border-top:1px solid #ddd;">
+                                    <label for="{{ $key }}_file" style="display:block;font-weight:600;margin-bottom:8px;">{{ $label }}</label>
+                                    @if(!empty($settings[$key]))
+                                        <img src="{{ asset('storage/'.$settings[$key]) }}" alt="Aktualna dekoracja" style="display:block;max-width:100px;max-height:90px;object-fit:contain;margin:8px 0;">
+                                    @endif
+                                    <input id="{{ $key }}_file" type="file" name="{{ $key }}_file" accept=".png,.webp,image/png,image/webp" style="width:100%;">
+                                </div>
+                            @endforeach
+                        </div>
+
                         <p>
                             Logo i podtytuł edytujesz w sekcji
                             <a href="{{ route('header-settings.edit') }}" style="text-decoration:underline;">Wygląd → Nagłówek</a>.
