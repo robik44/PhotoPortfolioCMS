@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PageBuilder;
+use App\Models\Photo;
 use App\Models\SiteSetting;
 use App\Support\BuilderContent;
 use App\Services\SiteFontLibrary;
@@ -109,6 +110,20 @@ class FoodfotoUnifiedBuilderController extends Controller
                 if ($type === 'button') $section['url'] = $block['url'] ?? '#kontakt';
                 $sections[] = $section;
             }
+            // The older visual canvas uses photo_url for its inline preview.
+            // Resolve it from the same photo IDs used by the public website.
+            $photoIds = collect($sections)->where('type', 'image')
+                ->pluck('photo_id')->filter()->unique()->values();
+            $photoLookup = Photo::whereIn('id', $photoIds)->get()->keyBy('id');
+            foreach ($sections as &$section) {
+                if (($section['type'] ?? '') !== 'image') continue;
+                $photo = $photoLookup->get((int) ($section['photo_id'] ?? 0));
+                if ($photo) {
+                    $section['photo_url'] = $photo->imageUrl();
+                    $section['photo_title'] = $photo->alt ?: $photo->title ?: 'Fotografia żywności';
+                }
+            }
+            unset($section);
             $content['sections'] = $sections;
             $draft = new PageBuilder([
                 'page_id' => null,
