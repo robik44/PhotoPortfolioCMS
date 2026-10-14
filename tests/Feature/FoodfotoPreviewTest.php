@@ -120,6 +120,7 @@ class FoodfotoPreviewTest extends TestCase
 
     public function test_homepage_cms_menu_opens_published_editor_and_legacy_remains_available(): void
     {
+        $this->withoutVite();
         $this->actingAs(User::factory()->create());
         $this->get(route('home-builder.edit'))->assertOk();
         \App\Models\SiteSetting::updateOrCreate(
