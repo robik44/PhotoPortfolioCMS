@@ -101,6 +101,31 @@ class FoodfotoPreviewController extends Controller
     }
 
 
+    public function uploadCanvasFont(Request $request)
+    {
+        $request->validate(['font' => ['required', 'file', 'max:2048']]);
+        $file = $request->file('font');
+        $extension = strtolower($file->getClientOriginalExtension());
+        abort_unless(in_array($extension, ['woff', 'woff2'], true), 422);
+        $handle = fopen($file->getRealPath(), 'rb');
+        $magic = fread($handle, 4);
+        fclose($handle);
+        abort_unless(($extension === 'woff' && $magic === 'wOFF')
+            || ($extension === 'woff2' && $magic === 'wOF2'), 422);
+
+        $fonts = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true);
+        if (!is_array($fonts)) $fonts = [];
+        abort_unless(count($fonts) < 20, 422);
+        $id = 'fffont_' . bin2hex(random_bytes(6));
+        $path = $file->storeAs('foodfoto-canvas-fonts', $id . '.' . $extension, 'public');
+        $fonts[$id] = ['label' => mb_substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 70),
+            'url' => \\Illuminate\\Support\\Facades\\Storage::disk('public')->url($path)];
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_fonts'], [
+            'value' => json_encode($fonts, JSON_UNESCAPED_UNICODE),
+        ]);
+        return response()->json(['success' => true, 'fonts' => $fonts]);
+    }
+
     private function normalizeCanvasTypography(array $style): array
     {
         $size = $style['font_size'] ?? null;
@@ -116,6 +141,8 @@ class FoodfotoPreviewController extends Controller
             'letter_spacing' => round((float) $spacing, 2),
         ];
         $fonts = ['inherit', 'Georgia', 'Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Times New Roman', 'Courier New'];
+        $uploaded = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true);
+        if (is_array($uploaded)) $fonts = array_merge($fonts, array_keys($uploaded));
         $alignments = ['inherit', 'left', 'center', 'right', 'justify'];
         $transforms = ['none', 'uppercase', 'lowercase', 'capitalize'];
         $font = $style['font_family'] ?? 'inherit';
@@ -400,6 +427,8 @@ class FoodfotoPreviewController extends Controller
 
         $canvasPhotos = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photos')->value('value') ?: '{}', true) : [];
         if (!is_array($canvasPhotos)) $canvasPhotos = [];
+        $canvasFontOptions = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasFontOptions)) $canvasFontOptions = [];
         $canvasTypography = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value') ?: '{}', true) : [];
         if (!is_array($canvasTypography)) $canvasTypography = [];
         $canvasTexts = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_texts')->value('value') ?: '{}', true) : [];
@@ -417,7 +446,7 @@ class FoodfotoPreviewController extends Controller
         ])->values()->all() : [];
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture', 'canvasFontOptions'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
