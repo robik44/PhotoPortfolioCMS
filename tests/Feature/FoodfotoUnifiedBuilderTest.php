@@ -307,4 +307,24 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringNotContainsString('const values=@json($canvasTypography);', $template);
     }
 
+    public function test_photo_click_actions_persist_as_private_draft_and_validate_internal_links(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $actions = [
+            'hero-photo' => ['mode' => 'lightbox', 'url' => ''],
+            'editorial-photo' => ['mode' => 'link', 'url' => '/portfolio/zywnosc'],
+        ];
+        $this->postJson(route('foodfoto.canvas.photo-actions'), [
+            'actions' => json_encode($actions),
+        ])->assertOk()->assertJsonPath('actions.editorial-photo.url', '/portfolio/zywnosc');
+        $this->assertSame($actions, json_decode(
+            SiteSetting::where('key', 'foodfoto_canvas_draft_photo_actions')->value('value'), true
+        ));
+        $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('Powiększ zdjęcie');
+        $this->postJson(route('foodfoto.canvas.photo-actions'), [
+            'actions' => json_encode(['hero-photo'=>['mode'=>'link','url'=>'https://example.com']]),
+        ])->assertStatus(422);
+    }
+
 }
