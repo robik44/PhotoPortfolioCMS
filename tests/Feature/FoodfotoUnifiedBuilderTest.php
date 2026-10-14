@@ -262,4 +262,13 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString('child.dispatchEvent(collectOnly)', $template);
     }
 
+    public function test_save_all_uses_same_origin_fetch_without_browser_navigation(): void
+    {
+        $template = file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString("event.preventDefault();", $template);
+        $this->assertStringContainsString("fetch('/admin/foodfoto-canvas/save-all'", $template);
+        $this->assertStringContainsString("credentials:'same-origin'", $template);
+        $this->assertStringContainsString('ff-save-status', $template);
+    }
+
 }
