@@ -191,8 +191,23 @@
     function stopSize(e){if(!sizing||sizing.pointerId!==e.pointerId)return;sizing=null;requestAnimationFrame(placeHandle);}
     handle.addEventListener('pointerup',stopSize);handle.addEventListener('pointercancel',stopSize);
     window.addEventListener('resize',placeHandle);
-    saveForm.addEventListener('submit', () => {
+    saveForm.addEventListener('submit', event => {
         saveValue.value=JSON.stringify(positions);
+        if(!document.getElementById('ff-unified-panel'))return;
+        event.preventDefault();
+        const status=document.getElementById('ff-save-status');
+        status.hidden=false;
+        status.textContent='Zapisywanie układu…';
+        fetch('/admin/foodfoto-canvas/layout',{
+            method:'POST',credentials:'same-origin',
+            headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+            body:new FormData(saveForm),
+        }).then(async response=>{
+            if(!response.ok)throw new Error('HTTP '+response.status);
+            const result=await response.json();
+            if(!result.success)throw new Error('Niepotwierdzony zapis');
+            status.textContent='Zapisano położenie elementów.';
+        }).catch(error=>{status.textContent='Nie zapisano układu: '+error.message;});
     });
     apply();
 })();
