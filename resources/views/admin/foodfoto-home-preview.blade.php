@@ -300,6 +300,14 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
   </label><button type="submit">Dodaj czcionkę</button>
   <p id="ff-font-upload-status" role="status"></p>
  </form>
+ <label>Kolor tekstu <input id="ff-type-color" type="color" value="#222222" aria-label="Kolor tekstu" style="width:80px;height:32px;vertical-align:middle"></label>
+ <button type="button" id="ff-type-color-pick">Pobierz kolor z ekranu</button>
+ <label>Krycie koloru tekstu (%) <input id="ff-type-color-alpha" type="number" min="0" max="100" step="1" value="100"></label>
+ <label>Kolor tła elementu <input id="ff-type-bg" type="color" value="#ffffff" aria-label="Kolor tła elementu" style="width:80px;height:32px;vertical-align:middle"></label>
+ <button type="button" id="ff-type-bg-clear">Bez tła</button>
+ <button type="button" id="ff-type-bg-pick">Pobierz kolor tła z ekranu</button>
+ <label>Krycie tła (%) <input id="ff-type-bg-alpha" type="number" min="0" max="100" step="1" value="100"></label>
+ <p id="ff-eye-status" role="status" style="font-size:12px"></p>
  <label>Grubość <select id="ff-type-weight">@foreach(range(100,900,100) as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></label>
  <label>Wyrównanie <select id="ff-type-align"><option value="inherit">Dziedziczone</option><option value="left">Do lewej</option><option value="center">Wyśrodkuj</option><option value="right">Do prawej</option><option value="justify">Wyjustuj</option></select></label>
  <label>Wielkość liter <select id="ff-type-transform"><option value="none">Normalna</option><option value="uppercase">Wersaliki</option><option value="lowercase">Małe</option><option value="capitalize">Pierwsze Litery Wielkie</option></select></label>
@@ -325,9 +333,13 @@ document.addEventListener('DOMContentLoaded',()=>{
   word_spacing:document.getElementById('ff-type-word'),
   margin_top:document.getElementById('ff-type-margin-top'),
   margin_bottom:document.getElementById('ff-type-margin-bottom'),
+  color:document.getElementById('ff-type-color'),
+  background_color:document.getElementById('ff-type-bg'),
+  color_alpha:document.getElementById('ff-type-color-alpha'),
+  background_alpha:document.getElementById('ff-type-bg-alpha'),
   max_width:document.getElementById('ff-type-max-width')
  };
- const extraDefaults={font_family:'inherit',font_weight:400,text_align:'inherit',text_transform:'none',word_spacing:0,margin_top:0,margin_bottom:0,max_width:0};
+ const extraDefaults={font_family:'inherit',font_weight:400,text_align:'inherit',text_transform:'none',word_spacing:0,margin_top:0,margin_bottom:0,max_width:0,color:'#222222',background_color:'#ffffff',color_alpha:100,background_alpha:100};
  const canvasFontOptions={...@json($canvasFontOptions)};
  const fontFamilyInput=document.getElementById('ff-type-family');
  document.getElementById('ff-font-upload').addEventListener('submit',async event=>{
@@ -366,7 +378,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  function apply(){
   if(!selected)return;
   let v={font_size:Number(size.value),line_height:Number(line.value),letter_spacing:Number(space.value)};
-  for(const [key,input] of Object.entries(extraInputs))v[key]=['font_weight','word_spacing','margin_top','margin_bottom','max_width'].includes(key)?Number(input.value):input.value;
+  for(const [key,input] of Object.entries(extraInputs))v[key]=['font_weight','word_spacing','margin_top','margin_bottom','max_width','color_alpha','background_alpha'].includes(key)?Number(input.value):input.value;
   if(!(v.font_size>=8&&v.font_size<=160&&v.line_height>=.5&&v.line_height<=3&&v.letter_spacing>=-5&&v.letter_spacing<=20))return;
   values[selected.dataset.canvasText]=v;
   selected.style.setProperty('font-size',v.font_size+'px','important');
