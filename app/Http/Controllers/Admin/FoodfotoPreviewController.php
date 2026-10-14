@@ -54,7 +54,7 @@ class FoodfotoPreviewController extends Controller
         $thumbs = collect($sections[30]['photo_ids'] ?? [])
             ->map(fn ($id) => $photos->get((int) $id))->filter()->values();
 
-        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process'])->pluck('value', 'key')->all();
+        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process', 'preview_hero_image'])->pluck('value', 'key')->all();
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
             'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations'
