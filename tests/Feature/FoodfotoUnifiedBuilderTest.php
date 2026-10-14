@@ -375,4 +375,18 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString('ff-type-select-box',$template);
     }
 
+    public function test_legacy_typography_without_new_keys_does_not_crash_canvas(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        SiteSetting::updateOrCreate(['key'=>'foodfoto_canvas_draft_typography'],[
+            'value'=>json_encode(['preview_process_title'=>[
+                'font_size'=>60,'line_height'=>1.1,'letter_spacing'=>-1,
+            ]]),
+        ]);
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('text-align:inherit!important',false)
+            ->assertSee('text-transform:none!important',false);
+    }
+
 }
