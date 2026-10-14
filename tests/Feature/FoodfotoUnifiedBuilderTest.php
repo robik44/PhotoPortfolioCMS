@@ -439,4 +439,20 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString("document.getElementById('ff-height').value=only.h", $js);
     }
 
+    public function test_hero_title_description_and_button_can_be_moved_individually(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('data-move-id="hero-heading"', false)
+            ->assertSee('data-move-id="hero-description"', false)
+            ->assertSee('data-move-id="hero-button"', false);
+        $positions = ['hero-heading' => ['x'=>12,'y'=>3,'w'=>400,'h'=>100,'z'=>3],
+            'hero-description' => ['x'=>-3,'y'=>5,'w'=>380,'h'=>140,'z'=>2],
+            'hero-button' => ['x'=>8,'y'=>12,'w'=>200,'h'=>50,'z'=>4]];
+        $this->postJson(route('foodfoto.canvas.layout'), [
+            'layout' => json_encode($positions),
+        ])->assertOk()->assertJsonPath('positions.hero-heading.w',400);
+    }
+
 }
