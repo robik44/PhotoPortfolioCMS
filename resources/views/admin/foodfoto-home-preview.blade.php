@@ -105,6 +105,14 @@
 font-size:{{ max(8,min(160,(float)($style['font_size'] ?? 18))) }}px!important;
 line-height:{{ max(.5,min(3,(float)($style['line_height'] ?? 1.4))) }}!important;
 letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!important;
+font-family:{{ in_array(($style['font_family'] ?? 'inherit'), ['inherit','Georgia','Arial','Helvetica','Verdana','Tahoma','Trebuchet MS','Times New Roman','Courier New'], true) ? "'" . ($style['font_family'] ?? 'inherit') . "'" : 'inherit' }}!important;
+font-weight:{{ max(100,min(900,(int)($style['font_weight'] ?? 400))) }}!important;
+text-align:{{ in_array(($style['text_align'] ?? 'inherit'), ['inherit','left','center','right','justify'], true) ? $style['text_align'] : 'inherit' }}!important;
+text-transform:{{ in_array(($style['text_transform'] ?? 'none'), ['none','uppercase','lowercase','capitalize'], true) ? $style['text_transform'] : 'none' }}!important;
+word-spacing:{{ max(-20,min(50,(float)($style['word_spacing'] ?? 0))) }}px!important;
+margin-top:{{ max(-100,min(200,(float)($style['margin_top'] ?? 0))) }}px!important;
+margin-bottom:{{ max(-100,min(200,(float)($style['margin_bottom'] ?? 0))) }}px!important;
+max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$style['max_width'])).'px' : 'none' }}!important;
 }</style>
 @endif
 @endforeach
