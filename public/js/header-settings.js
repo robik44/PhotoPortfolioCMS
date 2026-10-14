@@ -10,6 +10,25 @@
     const fileInput = form.elements.namedItem('font_file');
     const targetInput = form.elements.namedItem('font_target');
     const clearButton = document.getElementById('header-clear-font');
+    const brandInput = form.elements.namedItem('brand_image_file');
+    const brandPreview = document.getElementById('header-preview-image');
+    const brandDivider = document.getElementById('header-preview-divider');
+    const initialBrandSrc = brandPreview.getAttribute('src') || '';
+    let brandBlobUrl = null;
+    function updateBrandPreview() {
+        if (brandBlobUrl) URL.revokeObjectURL(brandBlobUrl);
+        brandBlobUrl = null;
+        const file = brandInput.files[0];
+        if (file && /^image\/(png|webp)$/.test(file.type)) brandBlobUrl = URL.createObjectURL(file);
+        const removed = form.elements.namedItem('remove_brand_image')?.checked || false;
+        const src = brandBlobUrl || (removed ? '' : initialBrandSrc);
+        brandPreview.hidden = !src;
+        brandDivider.hidden = !src;
+        if (src) brandPreview.src = src;
+        brandPreview.style.width = number('header_brand_image_width', 76, 24, 240) + 'px';
+    }
+    brandInput.addEventListener('change', updateBrandPreview);
+    form.elements.namedItem('remove_brand_image')?.addEventListener('change', updateBrandPreview);
     let localFace = null;
     let loadVersion = 0;
 
@@ -20,6 +39,7 @@
     };
 
     function render() {
+        updateBrandPreview();
         for (const part of ['logo', 'subtitle']) {
             const prefix = `header_${part}_`;
             const node = document.getElementById(`header-preview-${part}`);
