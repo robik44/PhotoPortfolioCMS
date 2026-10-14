@@ -300,4 +300,11 @@ class FoodfotoUnifiedBuilderTest extends TestCase
             ->assertSee('font-size:60px!important', false);
     }
 
+    public function test_typography_editor_serializes_empty_initial_state_as_object(): void
+    {
+        $template = file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString('const values={...@json($canvasTypography)};', $template);
+        $this->assertStringNotContainsString('const values=@json($canvasTypography);', $template);
+    }
+
 }
