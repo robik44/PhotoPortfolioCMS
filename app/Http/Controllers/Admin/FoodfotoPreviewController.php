@@ -68,8 +68,9 @@ class FoodfotoPreviewController extends Controller
 
     public function updateBlocks(Request $request)
     {
+        if ($request->input('blocks') === '[]') $request->merge(['blocks' => []]);
         $data = $request->validate([
-            'blocks' => ['required', 'array', 'max:30'],
+            'blocks' => ['present', 'array', 'max:30'],
             'blocks.*.type' => ['required', 'in:heading,text,image,button'],
             'blocks.*.content' => ['nullable', 'string', 'max:2000'],
             'blocks.*.photo_id' => ['nullable', 'integer', 'exists:photos,id'],
