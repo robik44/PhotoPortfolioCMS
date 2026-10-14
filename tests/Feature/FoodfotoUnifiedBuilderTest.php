@@ -293,9 +293,12 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->postJson(route('foodfoto.canvas.typography'), [
             'typography' => json_encode($styling),
         ])->assertOk()->assertJsonPath('typography.preview_process_title.font_size', 60);
-        $this->assertSame($styling, json_decode(
-            SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value'), true
-        ));
+        $actual = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value'), true);
+        foreach ($styling as $id => $expected) {
+            foreach ($expected as $field => $value) {
+                $this->assertEquals($value, $actual[$id][$field]);
+            }
+        }
         $this->get(route('foodfoto.canvas'))->assertOk()
             ->assertSee('font-size:60px!important', false);
     }
@@ -346,6 +349,27 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString("details.className='ff-tool-section'", $template);
         $this->assertStringContainsString("panel.appendChild(holder)", $template);
         $this->assertStringContainsString("ff-sidebar-toggle", $template);
+    }
+
+    public function test_advanced_typography_persists_and_renders_all_new_options(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $style = [
+            'font_size'=>55.5,'line_height'=>1.25,'letter_spacing'=>-1.25,
+            'font_family'=>'Georgia','font_weight'=>700,'text_align'=>'center',
+            'text_transform'=>'uppercase','word_spacing'=>2.5,
+            'margin_top'=>14,'margin_bottom'=>18,'max_width'=>450,
+        ];
+        $this->postJson(route('foodfoto.canvas.typography'), [
+            'typography'=>json_encode(['preview_process_title'=>$style]),
+        ])->assertOk()->assertJsonPath('typography.preview_process_title.max_width',450);
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('max-width:450px!important',false)
+            ->assertSee('font-weight:700!important',false)
+            ->assertSee('word-spacing:2.5px!important',false);
+        $template=file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString('ff-type-select-box',$template);
     }
 
 }
