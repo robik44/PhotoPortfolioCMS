@@ -100,7 +100,7 @@ class ThumbnailGalleryTest extends TestCase
         $this->assertCount(0, $grid->getElementsByTagName('a'));
         $this->assertCount(0, $grid->getElementsByTagName('button'));
         $markup = $grid->ownerDocument->saveHTML($grid);
-        foreach (['onclick', 'tabindex', 'data-photo-url', 'gallery-item', 'slider', 'carousel', 'lightbox'] as $attribute) {
+        foreach (['onclick', 'tabindex', 'data-photo-url', 'data-gallery-item', 'slider', 'carousel', 'lightbox'] as $attribute) {
             $this->assertStringNotContainsString($attribute, $markup);
         }
         $this->assertStringContainsString('--tg-desktop:5;--tg-tablet:3;--tg-mobile:2;', $markup);
@@ -117,7 +117,7 @@ class ThumbnailGalleryTest extends TestCase
         $this->save($page, [$element])->assertOk();
         $html = $this->get(route('page.public', $page))->assertOk()->getContent();
         // Legacy sizing values stay saved, but no longer affect the public view.
-        $this->assertSame('--tg-desktop:7;--tg-tablet:4;--tg-mobile:1;--tg-gap:0px;', $this->grid($html)->getAttribute('style'));
+        $this->assertSame('--tg-desktop:7;--tg-tablet:4;--tg-mobile:1;--tg-gap:0px;--tg-justify:flex-start;', $this->grid($html)->getAttribute('style'));
         foreach (['columns_desktop' => 0, 'columns_tablet' => 13, 'columns_mobile' => 1.5, 'gap' => -1,
             'photo_ids' => [$photo->id, $photo->id]] as $key => $value) {
             $this->save($page, [array_replace($element, [$key => $value])])->assertUnprocessable();
