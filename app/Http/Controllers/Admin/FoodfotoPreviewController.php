@@ -187,9 +187,9 @@ class FoodfotoPreviewController extends Controller
             abort_unless(is_string($id) && preg_match('/^[a-z0-9_-]{1,80}$/', $id) && is_array($position), 422);
             abort_unless(isset($position['x'], $position['y']) && is_numeric($position['x']) && is_numeric($position['y']), 422);
             $x = (int) $position['x']; $y = (int) $position['y'];
-            $w = (int) ($position['w'] ?? 0); $z = (int) ($position['z'] ?? 0);
-            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $z >= -5 && $z <= 25, 422);
-            $positions[$id] = compact('x', 'y', 'w', 'z');
+            $w = (int) ($position['w'] ?? 0); $h = (int) ($position['h'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $h >= 0 && $h <= 1200 && $z >= -5 && $z <= 25, 422);
+            $positions[$id] = compact('x', 'y', 'w', 'h', 'z');
         }
 
         $texts = [];
@@ -241,9 +241,9 @@ class FoodfotoPreviewController extends Controller
             abort_unless(is_array($position), 422);
             foreach (['x', 'y'] as $axis) abort_unless(isset($position[$axis]) && is_numeric($position[$axis]), 422);
             $x = (int) $position['x']; $y = (int) $position['y'];
-            $w = (int) ($position['w'] ?? 0); $z = (int) ($position['z'] ?? 0);
-            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $z >= -5 && $z <= 25, 422);
-            $clean[$id] = compact('x', 'y', 'w', 'z');
+            $w = (int) ($position['w'] ?? 0); $h = (int) ($position['h'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $h >= 0 && $h <= 1200 && $z >= -5 && $z <= 25, 422);
+            $clean[$id] = compact('x', 'y', 'w', 'h', 'z');
         }
         SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_positions'], ['value' => json_encode($clean)]);
         if ($request->expectsJson()) {
