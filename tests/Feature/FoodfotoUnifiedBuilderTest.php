@@ -455,4 +455,16 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ])->assertOk()->assertJsonPath('positions.hero-heading.w',400);
     }
 
+    public function test_hero_link_label_has_editable_text_without_navigation_when_editing(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('data-canvas-text="preview_hero_button_label"', false);
+        $template=file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString("if(!active)return;", $template);
+        $this->assertStringContainsString("event.preventDefault();", $template);
+        $this->assertStringContainsString("if(span)span.focus();", $template);
+    }
+
 }
