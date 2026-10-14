@@ -127,11 +127,11 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
 </header>
 <section class="hero" style="--hero-copy-x:{{ (int)($previewDecorations['preview_hero_copy_x'] ?? 85) }}px;--hero-heading-size:{{ (int)($previewDecorations['preview_hero_heading_size'] ?? 80) }}px">
  @if(!empty($previewDecorations['preview_hero_image']))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
  @elseif(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" data-move-id="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" @if($canvas) data-canvas-text="preview_hero_title" @endif style="white-space:pre-line">{{ $canvas ? ($canvasTexts['preview_hero_title'] ?? ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry')) : ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry') }}</h1><p data-preview-field="preview_hero_description" @if($canvas) data-canvas-text="preview_hero_description" @endif>{{ $canvas ? ($canvasTexts['preview_hero_description'] ?? ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.')) : ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.') }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label" @if($canvas) data-canvas-text="preview_hero_button_label" @endif>{{ $canvas ? ($canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio')) : ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}</span> →</a></div>
@@ -148,7 +148,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
  @php($url=$seoLinks[mb_strtolower($name)] ?? null)
  <article class="service" @if($canvas) data-move-id="service-{{ $titleIndex }}" @endif>
  @if($url)<a href="{{ $url }}">@endif
- @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
+ @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" @if($canvas) data-canvas-photo="service-{{ $imageIndex }}" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
  <h3>{{ $name }} @if($url)↗@endif</h3>
  @if($url)</a>@endif
  <p>{{ $sections[$textIndex]['content'] ?? '' }}</p></article>
@@ -166,7 +166,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
  </div>
 </section>
 <section class="editorial">
- @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
+ @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" @if($canvas) data-canvas-photo="editorial-photo" @endif loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
  <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title" @if($canvas) data-canvas-text="preview_editorial_title" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_title'] ?? ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia')) : ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia') }}</h2><p data-preview-field="preview_editorial_description" @if($canvas) data-canvas-text="preview_editorial_description" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_description'] ?? ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.')) : ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.') }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
@@ -182,7 +182,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
   ] as $stage)
   <article class="process-step" @if($canvas) data-move-id="process-step-{{ $stage[0] }}" @endif>
    @if($processPhoto = $photos->get($stage[3]))
-    <img loading="lazy" src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
+    <img loading="lazy" @if($canvas) data-canvas-photo="process-photo-{{ $loop->index }}" @endif src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
    @else
     <div class="placeholder" style="height:195px">Fotografia</div>
    @endif
@@ -197,7 +197,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
 <section class="about-experience" aria-labelledby="experience-heading">
  <div class="visual" data-move-id="experience-photo">
   @if($aboutPhoto = $photos->get((int)(($previewDecorations['preview_experience_photo_id'] ?? null) ?: ($sections[6]['photo_id'] ?? 0))))
-   <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
+   <img loading="lazy" @if($canvas) data-canvas-photo="experience-photo" @endif src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
  <div class="experience-copy" data-move-id="experience-copy">
@@ -236,7 +236,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
     <p style="font:18px/1.7 Arial,sans-serif;white-space:pre-line">{{ $block['content'] ?? '' }}</p>
   @elseif(($block['type'] ?? '') === 'image')
     @if($customPhoto = $photos->get((int)($block['photo_id'] ?? 0)))
-      <img style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
+      <img @if($canvas) data-canvas-photo="custom-{{ $loop->index }}" @endif style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
     @endif
   @elseif(($block['type'] ?? '') === 'button')
     <a class="btn" href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
@@ -294,6 +294,47 @@ document.addEventListener('DOMContentLoaded',()=>{
  [size,line,space].forEach(input=>input.addEventListener('input',apply));
  slider.addEventListener('input',()=>{size.value=slider.value;apply()});
  form.addEventListener('submit',()=>document.getElementById('ff-type-json').value=JSON.stringify(values));
+});
+</script>
+<div id="ff-photo-panel" style="position:fixed;left:18px;top:55px;z-index:102;background:white;border:1px solid #aaa;padding:12px;font:13px Arial;max-width:330px">
+ <button type="button" id="ff-photo-open">Biblioteka zdjęć <span aria-hidden="true">▦</span></button>
+ <form id="ff-photo-form" action="{{ route('foodfoto.canvas.photos') }}" method="POST" style="display:inline">@csrf<input type="hidden" name="photos" id="ff-photo-json"><button type="submit">Zapisz zdjęcia</button></form>
+ <small style="display:block;margin-top:7px">Kliknij fotografię na stronie, a następnie wybierz miniaturę. Zmiany dotyczą tylko projektu roboczego.</small>
+</div>
+<div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
+ <button type="button" id="ff-photo-close">Zamknij ×</button>
+ <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
+ <div id="ff-photo-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:12px;margin-top:20px"></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const photos=@json($photoPickerOptions);
+ const saved=@json($canvasPhotos);
+ const choices={...saved};
+ const nodes=[...document.querySelectorAll('img[data-canvas-photo]')];
+ const byId=new Map(photos.map(p=>[String(p.id),p]));
+ let selected=null;
+ const modal=document.getElementById('ff-photo-library'),grid=document.getElementById('ff-photo-results');
+ function usePhoto(slot,id){const item=byId.get(String(id));if(!item)return;const el=nodes.find(img=>img.dataset.canvasPhoto===slot);if(el){el.src=item.url;el.alt=item.title;}choices[slot]=id;}
+ Object.entries(choices).forEach(([slot,id])=>usePhoto(slot,id));
+ function results(search=''){
+  const query=search.toLocaleLowerCase('pl').trim();grid.replaceChildren();
+  photos.filter(p=>!query||(String(p.id)+' '+p.title).toLocaleLowerCase('pl').includes(query)).slice(0,200).forEach(p=>{
+   const button=document.createElement('button');button.type='button';button.style.cssText='padding:6px;border:1px solid #ccc;background:#fff;text-align:left;cursor:pointer';
+   const img=document.createElement('img');img.src=p.url;img.alt=p.title;img.loading='lazy';img.style.cssText='width:100%;height:100px;object-fit:cover';
+   const label=document.createElement('span');label.textContent='#'+p.id+' — '+p.title;label.style.cssText='display:block;font-size:11px';
+   button.append(img,label);button.addEventListener('click',()=>{if(selected)usePhoto(selected.dataset.canvasPhoto,p.id);modal.hidden=true});
+   grid.append(button);
+  });
+ }
+ nodes.forEach(img=>{img.addEventListener('click',e=>{if(!document.getElementById('ff-photo-panel').dataset.choosing)return;e.preventDefault();selected=img;modal.hidden=false;results(document.getElementById('ff-photo-search').value)})});
+ document.getElementById('ff-photo-open').addEventListener('click',()=>{
+  const panel=document.getElementById('ff-photo-panel');panel.dataset.choosing=panel.dataset.choosing?'':'yes';
+  document.getElementById('ff-photo-open').textContent=panel.dataset.choosing?'Wybierz zdjęcie na stronie ↖':'Biblioteka zdjęć ▦';
+ });
+ document.getElementById('ff-photo-close').addEventListener('click',()=>modal.hidden=true);
+ document.getElementById('ff-photo-search').addEventListener('input',e=>results(e.target.value));
+ document.getElementById('ff-photo-form').addEventListener('submit',()=>document.getElementById('ff-photo-json').value=JSON.stringify(choices));
 });
 </script>
 <div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
