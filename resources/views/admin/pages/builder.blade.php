@@ -1155,7 +1155,8 @@ document.addEventListener("DOMContentLoaded", function () {
             button.style.minHeight = Number(item.element_height) > 0 ? Number(item.element_height) + "px" : "auto";
             button.style.padding = "12px 22px";
             button.style.background = "#171717";
-            button.style.color = item.style.color;
+            // Inherit the active responsive typography color from the parent box.
+            button.style.color = "inherit";
             button.style.whiteSpace = "normal";
             button.style.overflowWrap = "anywhere";
             window.BuilderButton.apply(button, item);
