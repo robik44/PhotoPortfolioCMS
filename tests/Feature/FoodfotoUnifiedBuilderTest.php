@@ -427,4 +427,16 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ])->assertStatus(422);
     }
 
+    public function test_gallery_resizing_is_isolated_and_photo_can_stretch(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('grid-template-columns:repeat(4,minmax(0,1fr))', false)
+            ->assertSee('object-fit:fill!important', false);
+        $js=file_get_contents(public_path('js/foodfoto-visual-editor.js'));
+        $this->assertStringContainsString("ff-free-resized", $js);
+        $this->assertStringContainsString("document.getElementById('ff-height').value=only.h", $js);
+    }
+
 }
