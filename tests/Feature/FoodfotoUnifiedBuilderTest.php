@@ -207,4 +207,38 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get('/')->assertOk()->assertDontSee('ff-unified-panel');
     }
 
+    public function test_unified_draft_save_is_atomic_and_does_not_publish(): void
+    {
+        $home = $this->homepage();
+        $before = $home->content;
+        $payload = [
+            'layout' => json_encode(['hero-text' => ['x' => 12, 'y' => 8, 'w' => 0, 'z' => 0]]),
+            'texts' => json_encode(['preview_hero_title' => 'Wspólny zapis']),
+            'typography' => json_encode(['preview_hero_title' => [
+                'font_size' => 47.1, 'line_height' => 1.15, 'letter_spacing' => -.12,
+            ]]),
+            'photos' => '{}',
+        ];
+        $this->post(route('foodfoto.canvas.save-all'), $payload)->assertRedirect('/login');
+        $this->actingAs(User::factory()->create());
+        $invalid = $payload;
+        $invalid['typography'] = json_encode(['preview_hero_title' => [
+            'font_size' => 999, 'line_height' => 1.15, 'letter_spacing' => 0,
+        ]]);
+        $this->post(route('foodfoto.canvas.save-all'), $invalid)->assertStatus(422);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'foodfoto_canvas_draft_positions']);
+        $this->post(route('foodfoto.canvas.save-all'), $payload)
+            ->assertRedirect(route('foodfoto.canvas'));
+        foreach ([
+            'foodfoto_canvas_draft_positions',
+            'foodfoto_canvas_draft_texts',
+            'foodfoto_canvas_draft_typography',
+            'foodfoto_canvas_draft_photos',
+        ] as $key) {
+            $this->assertDatabaseHas('site_settings', ['key' => $key]);
+        }
+        $this->assertSame($before, $home->fresh()->content);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_title']);
+    }
+
 }
