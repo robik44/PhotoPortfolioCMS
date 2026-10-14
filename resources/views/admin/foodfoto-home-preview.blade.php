@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=1400">
 @if($public)
-@include('components.seo-meta', ['seo' => \\App\\Support\\Seo::meta(null)])
+@include('components.seo-meta', ['seo' => \App\Support\Seo::meta(null)])
 @else
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Podgląd nowego FoodFoto — tylko administrator</title>
