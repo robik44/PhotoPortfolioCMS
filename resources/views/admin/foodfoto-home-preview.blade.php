@@ -73,7 +73,7 @@
  <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy"><h1>Apetyt<br>na dobre kadry</h1><p>Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.</p><a class="btn" href="#portfolio">Zobacz portfolio →</a></div>
+ <div class="hero-copy"><h1 style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p>{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }} →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
