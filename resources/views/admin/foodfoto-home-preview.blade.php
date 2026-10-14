@@ -104,7 +104,7 @@
 </head>
 <body>
 @unless($public)
-<div class="preview-top"><strong>{{ $canvas ? 'EDYTOR NA PRAWDZIWYM UKŁADZIE — tylko wersja robocza' : 'WERSJA ROBOCZA — dostęp administratora' }}</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
+<div class="preview-top"><strong>{{ $canvas ? 'EDYTOR NA PRAWDZIWYM UKŁADZIE — tylko wersja robocza' : 'WERSJA ROBOCZA — dostęp administratora' }}</strong><div>@if($canvas)<a href="{{ route('foodfoto.builder.edit') }}">Pełna typografia i elementy ↗</a>@else<a href="{{ route('foodfoto.canvas') }}">Edytuj rzeczywistą stronę ↗</a>@endif <a href="{{ route('home-builder.edit') }}">Stary builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
 @endunless
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
 @unless($public)
