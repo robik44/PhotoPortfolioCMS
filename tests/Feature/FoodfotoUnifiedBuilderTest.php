@@ -271,4 +271,16 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString('ff-save-status', $template);
     }
 
+    public function test_save_all_returns_json_confirmation_for_ajax_clients(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create());
+        $this->postJson(route('foodfoto.canvas.save-all'), [
+            'layout' => '{}',
+            'texts' => '{}',
+            'typography' => '{}',
+            'photos' => '{}',
+        ])->assertOk()->assertJsonPath('success', true);
+    }
+
 }
