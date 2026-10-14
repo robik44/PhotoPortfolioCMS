@@ -8,7 +8,7 @@
     let positions = {};
     for (const key of nodes.keys()) {
         const pos = initial[key] || {};
-        positions[key] = {x: Number(pos.x) || 0, y: Number(pos.y) || 0};
+        positions[key] = {x: Number(pos.x) || 0, y: Number(pos.y) || 0, w: Number(pos.w) || 0, z: Number(pos.z) || 0};
     }
     const saved = JSON.parse(JSON.stringify(positions));
     const selected = new Set();
@@ -29,6 +29,8 @@
         for (const [id, el] of nodes) {
             const p = positions[id] || {x:0,y:0};
             el.style.translate = p.x + 'px ' + p.y + 'px';
+            el.style.width = p.w > 0 ? p.w + 'px' : '';
+            el.style.zIndex = p.z ? String(p.z) : '';
             el.classList.toggle('ff-selected', editing && selected.has(id));
             el.classList.toggle('ff-movable', editing);
         }
@@ -80,7 +82,7 @@
         if (!drag || e.pointerId !== drag.pointerId) return;
         const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
         for (const id of selected) {
-            positions[id] = {x:clamp(drag.initialPositions[id].x+dx), y:clamp(drag.initialPositions[id].y+dy)};
+            positions[id] = {...drag.initialPositions[id], x:clamp(drag.initialPositions[id].x+dx), y:clamp(drag.initialPositions[id].y+dy)};
         }
         apply();
         let bestX = null, bestY = null;
@@ -120,7 +122,7 @@
     document.getElementById('ff-layout-reset').addEventListener('click', () => {
         if (!window.confirm('Przywrócić pozycje wyjściowe wszystkich elementów? Zmiany zapiszą się dopiero po kliknięciu Zapisz układ.')) return;
         snapshot();
-        positions = Object.fromEntries(Array.from(nodes.keys()).map(id=>[id,{x:0,y:0}]));
+        positions = Object.fromEntries(Array.from(nodes.keys()).map(id=>[id,{x:0,y:0,w:0,z:0}]));
         apply(); note('Przywrócono pozycje wyjściowe.');
     });
     document.getElementById('ff-layout-discard').addEventListener('click', () => {
@@ -141,6 +143,54 @@
         }
         apply();
     });
+    // Selected blocks share exact width/stacking controls. Shift-selection moves a group.
+    const widthInput=document.getElementById('ff-size');
+    document.getElementById('ff-size-apply').addEventListener('click', () => {
+        if(!selected.size) {note('Najpierw wybierz element.');return;}
+        const width=Number(widthInput.value);
+        if(!Number.isInteger(width)||width<0||width>1200){note('Szerokość: 0–1200 px.');return;}
+        snapshot();
+        for(const id of selected) positions[id].w=width;
+        apply();note('Zmieniono szerokość '+selected.size+' elementów. 0 oznacza rozmiar oryginalny.');
+    });
+    for(const [button,delta] of [['ff-layer-up',1],['ff-layer-down',-1]]) {
+        document.getElementById(button).addEventListener('click',()=>{
+            if(!selected.size){note('Najpierw wybierz element.');return;}
+            snapshot();
+            for(const id of selected)positions[id].z=Math.max(-5,Math.min(25,(positions[id].z||0)+delta));
+            apply();note('Zmieniono kolejność warstw.');
+        });
+    }
+    // Width handle at the selected block's lower-right corner. Dragging changes width.
+    const handle=document.createElement('button');
+    handle.type='button';handle.textContent='↘';handle.title='Przeciągnij, aby zmienić szerokość zaznaczonego elementu';
+    handle.style.cssText='position:absolute;z-index:120;display:none;background:#26392b;color:white;border:0;padding:4px 7px;cursor:ew-resize;touch-action:none';
+    root.appendChild(handle);
+    let sizing=null;
+    function placeHandle(){
+        if(!editing||selected.size!==1||drag||sizing){handle.style.display='none';return;}
+        const id=Array.from(selected)[0],el=nodes.get(id),a=el.getBoundingClientRect(),b=root.getBoundingClientRect();
+        handle.style.display='block';handle.style.left=(a.right-b.left-8)+'px';handle.style.top=(a.bottom-b.top-8)+'px';
+    }
+    root.addEventListener('pointerup',()=>requestAnimationFrame(placeHandle));
+    root.addEventListener('click',()=>requestAnimationFrame(placeHandle));
+    toggle.addEventListener('click',()=>requestAnimationFrame(placeHandle));
+    handle.addEventListener('pointerdown',e=>{
+        if(!editing||selected.size!==1)return;
+        e.preventDefault();e.stopPropagation();
+        snapshot();
+        const id=Array.from(selected)[0],el=nodes.get(id);
+        sizing={id,startX:e.clientX,width:el.getBoundingClientRect().width,pointerId:e.pointerId};
+        handle.setPointerCapture(e.pointerId);
+    });
+    handle.addEventListener('pointermove',e=>{
+        if(!sizing||sizing.pointerId!==e.pointerId)return;
+        positions[sizing.id].w=Math.max(40,Math.min(1200,Math.round(sizing.width+e.clientX-sizing.startX)));
+        widthInput.value=positions[sizing.id].w;apply();
+    });
+    function stopSize(e){if(!sizing||sizing.pointerId!==e.pointerId)return;sizing=null;requestAnimationFrame(placeHandle);}
+    handle.addEventListener('pointerup',stopSize);handle.addEventListener('pointercancel',stopSize);
+    window.addEventListener('resize',placeHandle);
     saveForm.addEventListener('submit', () => {
         saveValue.value=JSON.stringify(positions);
     });
