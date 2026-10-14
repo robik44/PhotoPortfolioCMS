@@ -21,7 +21,7 @@
 .services{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:48px 28px;margin-top:46px}.service img{width:100%;height:265px;object-fit:cover;background:#edf0e7}
 .service h3{font-size:27px;font-weight:400;margin:18px 0 8px}.service p{font:15px/1.65 Arial,sans-serif;color:#65685e;margin:0}
 .cards-gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}.cards-gallery img{width:100%;aspect-ratio:4/3;object-fit:cover}.cards-gallery h3{font:14px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase}
-.editorial{display:grid;grid-template-columns:1.08fr .92fr;align-items:center;background:#faf8f4}.editorial .photo{height:540px;object-fit:cover;width:100%}.editorial .copy{padding:65px 75px}.editorial p{font:18px/1.75 Arial,sans-serif;white-space:pre-line}.editorial h2{font-size:58px;font-weight:400;line-height:1.08;margin:0 0 25px}
+.editorial{display:grid;grid-template-columns:1.08fr .92fr;align-items:center;background:#faf8f4}.editorial .photo{height:540px;object-fit:cover;width:100%}.editorial .copy{padding:65px 75px}.editorial p{font:18px/1.75 Arial,sans-serif;white-space:pre-line}.editorial h2{white-space:pre-line;font-size:58px;font-weight:400;line-height:1.08;margin:0 0 25px}
 .three{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:35px}.three img{width:100%;height:275px;object-fit:cover}.three h3{font-size:27px;font-weight:400}
 .thumbs{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}.thumbs img{width:calc(20% - 10px);height:180px;object-fit:cover}
 .contact{position:relative;min-height:410px;background:#e8e4db}.contact img{width:100%;display:block;height:auto}
@@ -45,7 +45,7 @@
 .about-experience .visual img{width:100%;height:100%;object-fit:cover;display:block}
 .about-experience .experience-copy{padding:54px 72px;position:relative}
 .about-experience .eyebrow{font:11px/1.7 Arial,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#8a887e}
-.about-experience h2{font:400 59px/1.08 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:18px 0}
+.about-experience h2{white-space:pre-line;font:400 59px/1.08 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:18px 0}
 .about-experience p{font:18px/1.7 Arial,sans-serif;color:#53554d;max-width:440px}
 .about-experience .about-basil{position:absolute;right:12px;bottom:12px;width:65px;height:65px;pointer-events:none}
 /* FOODFOTO-BASIL-START */
@@ -105,8 +105,8 @@
  </div>
 </section>
 <section class="editorial">
- @if($photo=$photos->get((int)($sections[25]['photo_id']??0)))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ @if($photo=$photos->get((int)($previewDecorations['preview_editorial_photo_id'] ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
+ <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p>{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro">
@@ -135,14 +135,14 @@
 </section>
 <section class="about-experience" aria-labelledby="experience-heading">
  <div class="visual">
-  @if($aboutPhoto = $photos->get((int)($sections[6]['photo_id'] ?? 0)))
+  @if($aboutPhoto = $photos->get((int)($previewDecorations['preview_experience_photo_id'] ?: ($sections[6]['photo_id'] ?? 0))))
    <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
  <div class="experience-copy">
   <div class="eyebrow">Doświadczenie, które widać</div>
-  <h2 id="experience-heading">Od niemal 30 lat<br>z aparatem przy stole</h2>
-  <p>Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.</p>
+  <h2 id="experience-heading">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
+  <p>{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
   <a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a>
   <img class="about-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  </div>
