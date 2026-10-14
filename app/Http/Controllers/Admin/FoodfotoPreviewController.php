@@ -100,6 +100,78 @@ class FoodfotoPreviewController extends Controller
         return $this->renderPage(false, true);
     }
 
+    public function saveCanvasAll(Request $request)
+    {
+        $data = $request->validate([
+            'layout' => ['required', 'string', 'max:60000'],
+            'texts' => ['required', 'string', 'max:40000'],
+            'typography' => ['required', 'string', 'max:25000'],
+            'photos' => ['required', 'string', 'max:20000'],
+        ]);
+        $sets = [];
+        foreach ($data as $key => $json) {
+            $decoded = json_decode($json, true);
+            abort_unless(json_last_error() === JSON_ERROR_NONE && is_array($decoded), 422);
+            $sets[$key] = $decoded;
+        }
+        abort_unless(count($sets['layout']) <= 120 && count($sets['texts']) <= 100
+            && count($sets['typography']) <= 60 && count($sets['photos']) <= 80, 422);
+
+        $positions = [];
+        foreach ($sets['layout'] as $id => $position) {
+            abort_unless(is_string($id) && preg_match('/^[a-z0-9_-]{1,80}$/', $id) && is_array($position), 422);
+            abort_unless(isset($position['x'], $position['y']) && is_numeric($position['x']) && is_numeric($position['y']), 422);
+            $x = (int) $position['x']; $y = (int) $position['y'];
+            $w = (int) ($position['w'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $z >= -5 && $z <= 25, 422);
+            $positions[$id] = compact('x', 'y', 'w', 'z');
+        }
+
+        $texts = [];
+        foreach ($sets['texts'] as $id => $value) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id)
+                && is_string($value) && mb_strlen($value) <= 2000, 422);
+            $texts[$id] = trim(strip_tags($value));
+        }
+
+        $typography = [];
+        foreach ($sets['typography'] as $id => $style) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id) && is_array($style), 422);
+            $size = $style['font_size'] ?? null;
+            $height = $style['line_height'] ?? null;
+            $spacing = $style['letter_spacing'] ?? null;
+            abort_unless(is_numeric($size) && $size >= 8 && $size <= 160
+                && is_numeric($height) && $height >= .5 && $height <= 3
+                && is_numeric($spacing) && $spacing >= -5 && $spacing <= 20, 422);
+            $typography[$id] = [
+                'font_size' => round((float)$size, 1),
+                'line_height' => round((float)$height, 2),
+                'letter_spacing' => round((float)$spacing, 2),
+            ];
+        }
+
+        $photos = [];
+        foreach ($sets['photos'] as $slot => $photoId) {
+            abort_unless(is_string($slot) && preg_match('/^(hero-photo|editorial-photo|experience-photo|service-[0-9]{1,2}|process-photo-[0-9]|custom-[0-9]{1,2})$/', $slot)
+                && is_numeric($photoId) && (int)$photoId > 0, 422);
+            $photos[$slot] = (int)$photoId;
+        }
+        abort_unless(Photo::whereIn('id', array_unique(array_values($photos)))->count()
+            === count(array_unique(array_values($photos))), 422);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($positions, $texts, $typography, $photos) {
+            foreach ([
+                'foodfoto_canvas_draft_positions' => $positions,
+                'foodfoto_canvas_draft_texts' => $texts,
+                'foodfoto_canvas_draft_typography' => $typography,
+                'foodfoto_canvas_draft_photos' => $photos,
+            ] as $key => $value) {
+                SiteSetting::updateOrCreate(['key' => $key], ['value' => json_encode($value, JSON_UNESCAPED_UNICODE)]);
+            }
+        });
+        return redirect()->route('foodfoto.canvas')->with('foodfoto_all_saved', true);
+    }
+
     public function saveCanvasLayout(Request $request)
     {
         $data = $request->validate(['layout' => ['required', 'string', 'max:60000']]);
