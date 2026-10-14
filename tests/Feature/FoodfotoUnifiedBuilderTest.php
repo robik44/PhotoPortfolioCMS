@@ -502,7 +502,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
     public function test_new_elements_palette_is_private_and_persists_elements(): void
     {
         $this->homepage();
-        $this->postJson(route('foodfoto.canvas.elements'),['elements'=>'[]'])->assertUnauthorized();
+        $this->postJson(route('foodfoto.canvas.elements'),['elements'=>'[]'])->assertRedirect('/login');
         $this->actingAs(User::factory()->create())->withoutVite();
         $payload=[
             ['id'=>'ffel_abc12345','type'=>'heading','content'=>'Nowy tytuł','photo_id'=>0,'gallery_id'=>0,'url'=>''],
