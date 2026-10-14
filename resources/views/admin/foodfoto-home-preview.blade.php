@@ -115,6 +115,9 @@ font-family:{{ array_key_exists(($style['font_family'] ?? ''), $canvasFontOption
 font-weight:{{ max(100,min(900,(int)($style['font_weight'] ?? 400))) }}!important;
 text-align:{{ in_array(($style['text_align'] ?? 'inherit'), ['inherit','left','center','right','justify'], true) ? ($style['text_align'] ?? 'inherit') : 'inherit' }}!important;
 text-transform:{{ in_array(($style['text_transform'] ?? 'none'), ['none','uppercase','lowercase','capitalize'], true) ? ($style['text_transform'] ?? 'none') : 'none' }}!important;
+color:{{ (($style['color'] ?? 'inherit') === 'inherit') ? 'inherit' : ('color-mix(in srgb, ' . ($style['color'] ?? '#222222') . ' ' . (int)($style['color_alpha'] ?? 100) . '%, transparent)') }}!important;
+background-color:{{ (($style['background_color'] ?? 'transparent') === 'transparent') ? 'transparent' : ('color-mix(in srgb, ' . ($style['background_color'] ?? '#ffffff') . ' ' . (int)($style['background_alpha'] ?? 100) . '%, transparent)') }}!important;
+
 word-spacing:{{ max(-20,min(50,(float)($style['word_spacing'] ?? 0))) }}px!important;
 margin-top:{{ max(-100,min(200,(float)($style['margin_top'] ?? 0))) }}px!important;
 margin-bottom:{{ max(-100,min(200,(float)($style['margin_bottom'] ?? 0))) }}px!important;
@@ -420,7 +423,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('ff-type-selected').textContent=el.innerText.slice(0,65);
   const v=read(el);
   size.value=v.font_size;slider.value=v.font_size;line.value=v.line_height;space.value=v.letter_spacing;
-  for(const [key,input] of Object.entries(extraInputs))input.value=v[key]??extraDefaults[key];
+  for(const [key,input] of Object.entries(extraInputs))input.value=(key==='color'&&v[key]==='inherit')?'#222222':(key==='background_color'&&v[key]==='transparent')?'#ffffff':(v[key]??extraDefaults[key]);
  }));
  [size,line,space,...Object.values(extraInputs)].forEach(input=>input.addEventListener('input',apply));
  slider.addEventListener('input',()=>{size.value=slider.value;apply()});
