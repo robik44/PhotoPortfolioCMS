@@ -132,4 +132,35 @@ class FoodfotoPreviewTest extends TestCase
         \App\Models\SiteSetting::where('key', 'foodfoto_new_home_published')->update(['value' => '0']);
         $this->get(route('home-builder.edit'))->assertOk();
     }
+
+    public function test_custom_blocks_render_on_published_homepage_and_can_be_removed(): void
+    {
+        $sections = array_fill(0, 32, ['type' => 'text', 'content' => 'Original']);
+        $sections[3]['content'] = 'Co tworzę';
+        $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'selected', 'gallery_ids' => []];
+        $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        $sections[31] = ['type' => 'image', 'photo_id' => 96];
+        PageBuilder::create(['page_id' => null, 'type' => 'home', 'published' => true, 'content' => ['sections' => $sections]]);
+        $this->actingAs(User::factory()->create());
+        $this->post(route('foodfoto.home.preview.blocks'), [
+            'blocks' => [['type' => 'heading', 'content' => 'Dodatkowy test', 'photo_id' => null, 'url' => null]],
+        ])->assertRedirect(route('foodfoto.home.preview'));
+        $this->artisan('foodfoto:publish-home', ['--publish' => true, '--confirm-production' => true])->assertSuccessful();
+        $this->get('/')->assertOk()->assertSee('Dodatkowy test')->assertDontSee('ff-blocks-form');
+        $this->post(route('foodfoto.home.preview.blocks'), ['blocks' => '[]'])
+            ->assertRedirect(route('foodfoto.home.preview'));
+        $this->get('/')->assertOk()->assertDontSee('Dodatkowy test');
+    }
+
+    public function test_custom_blocks_reject_unsafe_types_and_require_valid_photos(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $this->post(route('foodfoto.home.preview.blocks'), [
+            'blocks' => [['type' => 'script', 'content' => 'x']],
+        ])->assertSessionHasErrors();
+        $this->post(route('foodfoto.home.preview.blocks'), [
+            'blocks' => [['type' => 'image', 'photo_id' => 999999]],
+        ])->assertSessionHasErrors();
+        $this->assertDatabaseMissing('site_settings', ['key' => 'foodfoto_custom_blocks']);
+    }
 }
