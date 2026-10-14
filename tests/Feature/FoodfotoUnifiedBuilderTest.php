@@ -499,4 +499,25 @@ class FoodfotoUnifiedBuilderTest extends TestCase
             ->assertSee('id="ff-selected-text-content"',false);
     }
 
+    public function test_new_elements_palette_is_private_and_persists_elements(): void
+    {
+        $this->homepage();
+        $this->postJson(route('foodfoto.canvas.elements'),['elements'=>'[]'])->assertUnauthorized();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $payload=[
+            ['id'=>'ffel_abc12345','type'=>'heading','content'=>'Nowy tytuł','photo_id'=>0,'gallery_id'=>0,'url'=>''],
+            ['id'=>'ffel_abc12346','type'=>'button','content'=>'Zobacz więcej','photo_id'=>0,'gallery_id'=>0,'url'=>'/portfolio'],
+        ];
+        $this->postJson(route('foodfoto.canvas.elements'),['elements'=>json_encode($payload)])
+            ->assertOk()->assertJsonPath('elements.0.content','Nowy tytuł');
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('id="ff-element-palette"',false)
+            ->assertSee('Nowy tytuł')
+            ->assertSee('data-move-id="ffel_abc12345"',false);
+        $this->get('/')->assertDontSee('Nowy tytuł');
+        $this->postJson(route('foodfoto.canvas.elements'),['elements'=>json_encode([[
+            'id'=>'ffel_abcd1234','type'=>'button','content'=>'Niebezpieczny','url'=>'javascript:alert(1)',
+        ]])])->assertStatus(422);
+    }
+
 }
