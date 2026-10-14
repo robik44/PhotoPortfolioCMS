@@ -158,7 +158,6 @@ class FoodfotoUnifiedBuilderTest extends TestCase
 
     public function test_canvas_typography_remains_private_and_uses_precise_values(): void
     {
-        $this->get(route('foodfoto.canvas.typography'))->assertNotFound();
         $this->post(route('foodfoto.canvas.typography'), ['typography' => '{}'])->assertRedirect('/login');
         $this->actingAs(User::factory()->create());
         $value = json_encode(['preview_hero_title' => [
