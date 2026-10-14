@@ -753,6 +753,50 @@ document.addEventListener('DOMContentLoaded',()=>{
  if(right)right.appendChild(props);
 });
 </script>
+@if($canvas)
+<style>
+ #ff-canvas-viewport{position:fixed;left:205px;right:345px;top:50px;bottom:0;overflow:auto;background:repeating-conic-gradient(#f3f3f3 0 25%,#fff 0 50%) 50%/20px 20px;z-index:1}
+ #ff-canvas-stage{position:relative;margin:0 auto;min-height:1px}
+ #ff-canvas-viewport>.wrap{margin:0!important;max-width:none!important;width:1400px!important;transform-origin:top left;background:#fff;box-shadow:0 0 12px #0002}
+ #ff-zoom-toolbar{position:fixed;top:0;left:205px;right:345px;z-index:120;background:#fff;border-bottom:1px solid #ccc;height:50px;display:flex;align-items:center;justify-content:center;gap:8px;font:13px Arial,sans-serif}
+ #ff-zoom-toolbar button{padding:7px 12px;cursor:pointer;border:1px solid #ccd3cc;background:white;border-radius:4px}
+ #ff-zoom-toolbar output{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}
+</style>
+<div id="ff-zoom-toolbar" aria-label="Skala podglądu strony">
+ <button id="ff-zoom-out" type="button" aria-label="Zmniejsz podgląd">−</button>
+ <output id="ff-zoom-percent">100%</output>
+ <button id="ff-zoom-in" type="button" aria-label="Powiększ podgląd">+</button>
+ <button id="ff-zoom-fit" type="button">Dopasuj</button>
+ <button id="ff-zoom-full" type="button">100%</button>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const root=document.querySelector('.wrap[data-foodfoto-layout]');
+ if(!root)return;
+ const viewport=document.createElement('div');viewport.id='ff-canvas-viewport';
+ const stage=document.createElement('div');stage.id='ff-canvas-stage';
+ root.parentNode.insertBefore(viewport,root);viewport.appendChild(stage);stage.appendChild(root);
+ const percent=document.getElementById('ff-zoom-percent');
+ const clamp=n=>Math.max(.25,Math.min(1.5,Math.round(n*20)/20));
+ let zoom=.5,autoFit=true;
+ function fit(){return clamp((viewport.clientWidth-24)/1400);}
+ function apply(){
+  root.style.transform='scale('+zoom+')';
+  stage.style.width=(1400*zoom)+'px';
+  stage.style.height=(root.offsetHeight*zoom)+'px';
+  percent.textContent=Math.round(zoom*100)+'%';
+ }
+ function set(n){autoFit=false;zoom=clamp(n);apply();}
+ document.getElementById('ff-zoom-out').addEventListener('click',()=>set(zoom-.1));
+ document.getElementById('ff-zoom-in').addEventListener('click',()=>set(zoom+.1));
+ document.getElementById('ff-zoom-full').addEventListener('click',()=>set(1));
+ document.getElementById('ff-zoom-fit').addEventListener('click',()=>{autoFit=true;zoom=fit();apply();});
+ window.addEventListener('resize',()=>{if(autoFit)zoom=fit();apply()});
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>apply()).observe(root);
+ zoom=fit();apply();
+});
+</script>
+@endif
 <div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
  <button type="button" id="ff-photo-close">Zamknij ×</button>
  <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
