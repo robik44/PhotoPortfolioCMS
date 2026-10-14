@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  <button type="submit" style="padding:12px;width:100%;background:#244e36;color:white;border:0;font-size:15px;cursor:pointer">Zapisz wszystkie zmiany</button>
 </form>
 @if(session('foodfoto_all_saved'))<p role="status" style="color:#216235">Zapisano wszystkie zmiany w wersji roboczej.</p>@endif
+<p id="ff-save-status" role="status" style="font-size:12px;color:#215638"></p>
 <div id="ff-unified-tools"></div>
  <p style="color:#666;font-size:11px">Wersja robocza — każdą część zapisuj odpowiednim przyciskiem. Strona publiczna nie zmienia się.</p>
 </aside>
@@ -417,7 +418,10 @@ document.addEventListener('DOMContentLoaded',()=>{
 document.addEventListener('DOMContentLoaded', () => {
  const form=document.getElementById('ff-save-all-form');
  if(!form)return;
- form.addEventListener('submit',event=>{
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const status=document.getElementById('ff-save-status');
+  status.textContent='Trwa zapisywanie…';
   for(const [source,target] of [
    ['ff-layout-form','ff-all-layout'],
    ['ff-text-form','ff-all-texts'],
@@ -433,6 +437,28 @@ document.addEventListener('DOMContentLoaded', () => {
    if(!value || !value.value){event.preventDefault();alert('Nie udało się zebrać danych: '+source);return}
    document.getElementById(target).value=value.value;
   }
+  const button=form.querySelector('button[type="submit"]');
+  button.disabled=true;
+  try {
+   const response=await fetch('/admin/foodfoto-canvas/save-all',{
+    method:'POST',
+    credentials:'same-origin',
+    redirect:'manual',
+    headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body:new FormData(form)
+   });
+   if(response.status===0 || (response.status>=300&&response.status<400)){
+    status.textContent='Serwer żąda przekierowania — sprawdź logowanie lub adres aplikacji. Zmiany nie zostały potwierdzone.';
+   }else if(response.ok){
+    status.textContent='Zapisano projekt roboczy. Możesz odświeżyć stronę i sprawdzić pozycje.';
+   }else{
+    let message='';
+    try { const data=await response.json(); message=data.message||''; } catch(_){}
+    status.textContent='Błąd zapisu HTTP '+response.status+(message?' — '+message:'');
+   }
+  }catch(error){
+   status.textContent='Błąd połączenia podczas zapisu: '+error.message;
+  }finally{button.disabled=false}
  });
 });
 </script>
