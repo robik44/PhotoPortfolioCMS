@@ -341,11 +341,11 @@ class PhotoLibraryTest extends TestCase
 
         foreach ([$first, $second] as $gallery) {
             $this->get(route('galleries.library', $gallery))->assertOk()
-                ->assertSee($one->imageUrl())->assertSee($two->imageUrl());
+                ->assertSee($one->originalUrl())->assertSee($two->originalUrl());
             $this->post(route('galleries.photos.attach', $gallery), ['photos' => [$one->id, $two->id]])
                 ->assertRedirect(route('galleries.show', $gallery))->assertSessionHasNoErrors();
             $this->get(route('galleries.show', $gallery))->assertOk()
-                ->assertSee($one->imageUrl())->assertSee($two->imageUrl());
+                ->assertSee($one->originalUrl())->assertSee($two->originalUrl());
             $this->get(route('galleries.library', $gallery))->assertOk()->assertSee('Już w galerii');
         }
 
