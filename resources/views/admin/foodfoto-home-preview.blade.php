@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded',function(){
    event.preventDefault();
    event.stopPropagation();
    const span=link.querySelector('[data-canvas-text]');
-   if(span){span.focus();span.click();}
+   if(span)span.focus();
   },true);
  });
  btn.addEventListener('click',function(){
