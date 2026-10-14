@@ -117,4 +117,18 @@ class FoodfotoPreviewTest extends TestCase
         ])->assertFailed();
         $this->assertDatabaseMissing('site_settings', ['key' => 'foodfoto_new_home_published', 'value' => '1']);
     }
+
+    public function test_homepage_cms_menu_opens_published_editor_and_legacy_remains_available(): void
+    {
+        $this->actingAs(User::factory()->create());
+        $this->get(route('home-builder.edit'))->assertOk();
+        \App\Models\SiteSetting::updateOrCreate(
+            ['key' => 'foodfoto_new_home_published'], ['value' => '1']
+        );
+        $this->get(route('home-builder.edit'))
+            ->assertRedirect(route('foodfoto.home.preview'));
+        $this->get(route('home-builder.legacy'))->assertOk();
+        \App\Models\SiteSetting::where('key', 'foodfoto_new_home_published')->update(['value' => '0']);
+        $this->get(route('home-builder.edit'))->assertOk();
+    }
 }
