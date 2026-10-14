@@ -100,6 +100,44 @@ class FoodfotoPreviewController extends Controller
         return $this->renderPage(false, true);
     }
 
+
+    private function normalizeCanvasTypography(array $style): array
+    {
+        $size = $style['font_size'] ?? null;
+        $height = $style['line_height'] ?? null;
+        $spacing = $style['letter_spacing'] ?? null;
+        abort_unless(is_numeric($size) && $size >= 8 && $size <= 160
+            && is_numeric($height) && $height >= .5 && $height <= 3
+            && is_numeric($spacing) && $spacing >= -5 && $spacing <= 20, 422);
+
+        $clean = [
+            'font_size' => round((float) $size, 1),
+            'line_height' => round((float) $height, 2),
+            'letter_spacing' => round((float) $spacing, 2),
+        ];
+        $fonts = ['inherit', 'Georgia', 'Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Times New Roman', 'Courier New'];
+        $alignments = ['inherit', 'left', 'center', 'right', 'justify'];
+        $transforms = ['none', 'uppercase', 'lowercase', 'capitalize'];
+        $font = $style['font_family'] ?? 'inherit';
+        $align = $style['text_align'] ?? 'inherit';
+        $transform = $style['text_transform'] ?? 'none';
+        $weight = $style['font_weight'] ?? 400;
+        abort_unless(in_array($font, $fonts, true) && in_array($align, $alignments, true)
+            && in_array($transform, $transforms, true)
+            && is_numeric($weight) && (int)$weight >= 100 && (int)$weight <= 900 && (int)$weight % 100 === 0, 422);
+        $clean['font_family'] = $font;
+        $clean['font_weight'] = (int) $weight;
+        $clean['text_align'] = $align;
+        $clean['text_transform'] = $transform;
+        foreach (['word_spacing' => [-20, 50, 1], 'margin_top' => [-100, 200, 1],
+            'margin_bottom' => [-100, 200, 1], 'max_width' => [0, 1200, 1]] as $key => [$min, $max, $precision]) {
+            $value = $style[$key] ?? 0;
+            abort_unless(is_numeric($value) && $value >= $min && $value <= $max, 422);
+            $clean[$key] = round((float)$value, $precision);
+        }
+        return $clean;
+    }
+
     public function saveCanvasAll(Request $request)
     {
         $data = $request->validate([
@@ -137,17 +175,7 @@ class FoodfotoPreviewController extends Controller
         $typography = [];
         foreach ($sets['typography'] as $id => $style) {
             abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id) && is_array($style), 422);
-            $size = $style['font_size'] ?? null;
-            $height = $style['line_height'] ?? null;
-            $spacing = $style['letter_spacing'] ?? null;
-            abort_unless(is_numeric($size) && $size >= 8 && $size <= 160
-                && is_numeric($height) && $height >= .5 && $height <= 3
-                && is_numeric($spacing) && $spacing >= -5 && $spacing <= 20, 422);
-            $typography[$id] = [
-                'font_size' => round((float)$size, 1),
-                'line_height' => round((float)$height, 2),
-                'letter_spacing' => round((float)$spacing, 2),
-            ];
+            $typography[$id] = $this->normalizeCanvasTypography($style);
         }
 
         $photos = [];
@@ -222,13 +250,7 @@ class FoodfotoPreviewController extends Controller
         $clean = [];
         foreach ($items as $id => $style) {
             abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id) && is_array($style), 422);
-            $size = $style['font_size'] ?? null;
-            $height = $style['line_height'] ?? null;
-            $spacing = $style['letter_spacing'] ?? null;
-            abort_unless(is_numeric($size) && $size >= 8 && $size <= 160, 422);
-            abort_unless(is_numeric($height) && $height >= 0.5 && $height <= 3, 422);
-            abort_unless(is_numeric($spacing) && $spacing >= -5 && $spacing <= 20, 422);
-            $clean[$id] = ['font_size' => round((float)$size, 1), 'line_height' => round((float)$height, 2), 'letter_spacing' => round((float)$spacing, 2)];
+            $clean[$id] = $this->normalizeCanvasTypography($style);
         }
         SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_typography'], ['value' => json_encode($clean)]);
         if ($request->expectsJson()) {
