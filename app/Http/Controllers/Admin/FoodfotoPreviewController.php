@@ -259,11 +259,34 @@ class FoodfotoPreviewController extends Controller
     {
         $builder = PageBuilder::query()->whereNull('page_id')->where('type', 'home')->firstOrFail();
         $sections = array_values($builder->content['sections'] ?? []);
-        abort_unless(count($sections) === 32
+        $approvedLayout = count($sections) === 32
             && ($sections[3]['content'] ?? null) === 'Co tworzę'
             && ($sections[24]['type'] ?? null) === 'gallery'
             && ($sections[30]['type'] ?? null) === 'thumbnail_gallery'
-            && (int) ($sections[31]['photo_id'] ?? 0) === 96, 409, 'The current layout differs from the inspected 32-element homepage.');
+            && (int) ($sections[31]['photo_id'] ?? 0) === 96;
+
+        // The published homepage must match the approved production structure.
+        // Codespaces can have an older database. Build a read-only visual fixture
+        // for the private canvas only, without modifying the real PageBuilder.
+        abort_unless($approvedLayout || $canvas, 409, 'The current layout differs from the inspected 32-element homepage.');
+        $canvasUsingFixture = $canvas && !$approvedLayout;
+        if ($canvasUsingFixture) {
+            $source = $sections;
+            $images = collect($source)->filter(fn ($section) => ($section['type'] ?? '') === 'image'
+                && (int) ($section['photo_id'] ?? 0) > 0)->values();
+            $sections = array_fill(0, 32, ['type' => 'text', 'content' => '']);
+            $sections[3] = ['type' => 'heading', 'content' => 'Co tworzę'];
+            $sections[4] = ['type' => 'text', 'content' => 'Fotografia i stylizacja żywności — podgląd roboczy'];
+            foreach ([5, 6, 7, 14, 15, 16, 25, 27, 28, 29, 31] as $index) {
+                $candidate = $images->shift();
+                $sections[$index] = ['type' => 'image', 'photo_id' => $candidate['photo_id'] ?? 0];
+            }
+            foreach ([8, 9, 10, 17, 18, 19] as $index) {
+                $sections[$index]['content'] = 'Fotografia żywności';
+            }
+            $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'all'];
+            $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        }
 
         $photoIds = collect($sections)->pluck('photo_id')
             ->merge($sections[30]['photo_ids'] ?? [])
@@ -328,7 +351,7 @@ class FoodfotoPreviewController extends Controller
         ])->values()->all() : [];
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'photoPickerOptions'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'photoPickerOptions', 'canvasUsingFixture'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
