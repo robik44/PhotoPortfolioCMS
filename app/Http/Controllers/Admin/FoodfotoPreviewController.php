@@ -29,7 +29,10 @@ class FoodfotoPreviewController extends Controller
             $x = (int) $position['x'];
             $y = (int) $position['y'];
             abort_unless(abs($x) <= 350 && abs($y) <= 350, 422);
-            $clean[$key] = ['x' => $x, 'y' => $y];
+            $width = isset($position['w']) && is_numeric($position['w']) ? (int) $position['w'] : 0;
+            $layer = isset($position['z']) && is_numeric($position['z']) ? (int) $position['z'] : 0;
+            abort_unless($width >= 0 && $width <= 1200 && $layer >= -5 && $layer <= 25, 422);
+            $clean[$key] = ['x' => $x, 'y' => $y, 'w' => $width, 'z' => $layer];
         }
         SiteSetting::updateOrCreate(['key' => 'preview_editor_positions'], ['value' => json_encode($clean)]);
         return redirect()->route('foodfoto.home.preview')->with('foodfoto_layout_saved', true);
