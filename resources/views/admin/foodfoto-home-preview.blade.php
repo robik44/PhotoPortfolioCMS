@@ -263,7 +263,7 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
  <input id="ff-type-slider" type="range" min="8" max="160" step=".1" value="18" style="width:100%">
  <label>Interlinia <input id="ff-type-line" type="number" min=".5" max="3" step=".05" value="1.4" style="width:100%"></label>
  <label>Odstępy liter (px) <input id="ff-type-space" type="number" min="-5" max="20" step=".01" value="0" style="width:100%"></label>
- <form id="ff-type-form" method="POST" action="{{ route('foodfoto.canvas.typography') }}">@csrf<input type="hidden" name="typography" id="ff-type-json"><button type="submit">Zapisz typografię</button></form>
+ <form id="ff-type-form" method="POST" action="{{ route('foodfoto.canvas.typography', [], false) }}">@csrf<input type="hidden" name="typography" id="ff-type-json"><button type="submit">Zapisz typografię</button></form>
  <small>Ustawienia dotyczą tylko wersji roboczej.</small>
 </aside>
 <script>
@@ -298,7 +298,32 @@ document.addEventListener('DOMContentLoaded',()=>{
  }));
  [size,line,space].forEach(input=>input.addEventListener('input',apply));
  slider.addEventListener('input',()=>{size.value=slider.value;apply()});
- form.addEventListener('submit',()=>document.getElementById('ff-type-json').value=JSON.stringify(values));
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  apply();
+  document.getElementById('ff-type-json').value=JSON.stringify(values);
+  const status=document.getElementById('ff-save-status');
+  status.hidden=false;
+  status.textContent='Trwa zapisywanie typografii…';
+  try {
+   const response=await fetch('/admin/foodfoto-canvas/typography',{
+    method:'POST',credentials:'same-origin',redirect:'manual',
+    headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body:new FormData(form)
+   });
+   if(!response.ok){
+    status.textContent='Nie zapisano typografii: HTTP '+response.status;
+    return;
+   }
+   const result=await response.json();
+   const saved=result.typography||{};
+   if(JSON.stringify(saved)!==JSON.stringify(values)){
+    status.textContent='Błąd: zapisane dane różnią się od ustawień edytora.';
+   }else{
+    status.textContent='Zapisano typografię. Wartości pozostaną po odświeżeniu.';
+   }
+  }catch(error){status.textContent='Błąd zapisu typografii: '+error.message}
+ });
 });
 </script>
 <aside id="ff-unified-panel" aria-label="Narzędzia buildera FoodFoto" style="position:fixed;right:18px;top:55px;bottom:18px;width:340px;max-width:calc(100vw - 36px);z-index:110;background:#fff;box-shadow:0 6px 30px #0003;border:1px solid #b7b7b7;padding:14px;overflow:auto;font:13px Arial,sans-serif">
