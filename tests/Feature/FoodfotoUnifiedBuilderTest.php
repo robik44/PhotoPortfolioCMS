@@ -481,4 +481,22 @@ class FoodfotoUnifiedBuilderTest extends TestCase
             ->assertSee('Zobacz realizacje');
     }
 
+    public function test_canvas_color_and_background_properties_survive_refresh(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $style=[
+            'font_size'=>48,'line_height'=>1.2,'letter_spacing'=>0,
+            'color'=>'#123456','color_alpha'=>75,
+            'background_color'=>'#abcdef','background_alpha'=>40,
+        ];
+        $this->postJson(route('foodfoto.canvas.typography'),[
+            'typography'=>json_encode(['preview_hero_title'=>$style]),
+        ])->assertOk()->assertJsonPath('typography.preview_hero_title.color','#123456');
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('color-mix(in srgb, #123456 75%, transparent)',false)
+            ->assertSee('color-mix(in srgb, #abcdef 40%, transparent)',false)
+            ->assertSee('id="ff-selected-text-content"',false);
+    }
+
 }
