@@ -283,6 +283,36 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
 @endforeach
 </section>
 @endif
+@if($canvas)
+<section id="ff-added-elements" class="section" aria-label="Nowe elementy wersji roboczej" style="padding:30px 80px">
+@foreach($canvasElements as $element)
+ <div class="ff-added-element" data-move-id="{{ $element['id'] }}" data-added-element="{{ $element['id'] }}" style="position:relative;margin:12px 0;min-height:20px">
+ @if(($element['type']??'')==='heading')
+  <h2>{{ $element['content'] ?: 'Nowy nagłówek' }}</h2>
+ @elseif(($element['type']??'')==='text')
+  <p style="white-space:pre-line">{{ $element['content'] ?: 'Nowy tekst' }}</p>
+ @elseif(($element['type']??'')==='button')
+  <a class="btn" href="{{ $element['url'] ?: '#portfolio' }}">{{ $element['content'] ?: 'Przycisk' }}</a>
+ @elseif(($element['type']??'')==='image')
+  @if($addedPhoto=$photos->get((int)($element['photo_id']??0)))
+   <img src="{{ $addedPhoto->imageUrl() }}" alt="{{ $addedPhoto->alt ?: 'Zdjęcie wstawione w builderze' }}" style="max-width:100%;display:block;height:auto">
+  @else <div style="padding:40px;background:#edf1eb">Wybierz fotografię w panelu po prawej</div> @endif
+ @elseif(in_array(($element['type']??''),['gallery','thumbnail_gallery'],true))
+  @php($targetGallery=$galleries->firstWhere('id',(int)($element['gallery_id']??0)))
+  @if($targetGallery)
+   <div style="display:flex;gap:12px;flex-wrap:wrap">
+    @foreach($targetGallery->photos->take(6) as $galleryPhoto)
+     <img src="{{ $galleryPhoto->imageUrl() }}" alt="{{ $galleryPhoto->alt ?: $targetGallery->title }}" style="width:150px;height:110px;object-fit:cover">
+    @endforeach
+   </div>
+  @else <div style="padding:40px;background:#edf1eb">Wybierz galerię w panelu po prawej</div> @endif
+ @elseif(($element['type']??'')==='separator')
+  <hr style="border:0;border-top:1px solid #bbb">
+ @endif
+ </div>
+@endforeach
+</section>
+@endif
 <footer class="foot"><span>FoodFoto — Magda Gugała</span><span><a href="{{ url('/kontakt') }}">Kontakt</a> · <a href="{{ url('/o-mnie') }}">O mnie</a></span></footer>
 </div>
 
