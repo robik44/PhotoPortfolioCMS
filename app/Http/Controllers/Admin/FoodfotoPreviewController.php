@@ -169,6 +169,9 @@ class FoodfotoPreviewController extends Controller
                 SiteSetting::updateOrCreate(['key' => $key], ['value' => json_encode($value, JSON_UNESCAPED_UNICODE)]);
             }
         });
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Zapisano wszystkie zmiany w wersji roboczej.']);
+        }
         return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_all_saved', true);
     }
 
