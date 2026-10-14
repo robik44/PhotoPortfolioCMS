@@ -272,7 +272,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  const form=document.getElementById('ff-type-form');
  const size=document.getElementById('ff-type-size'),slider=document.getElementById('ff-type-slider');
  const line=document.getElementById('ff-type-line'),space=document.getElementById('ff-type-space');
- const values=@json($canvasTypography);
+ const values={...@json($canvasTypography)};
  let selected=null;
  function read(el){
   const css=getComputedStyle(el);
