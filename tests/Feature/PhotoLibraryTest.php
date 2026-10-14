@@ -380,7 +380,7 @@ class PhotoLibraryTest extends TestCase
         $this->delete(route('photos.destroy', $one))->assertRedirect(route('photos.index'))->assertSessionHas('success');
         $this->assertDatabaseMissing('gallery_photo', ['photo_id' => $one->id]);
         $this->get(route('photos.index'))->assertOk()->assertDontSee('Zdjęcie testowe');
-        $this->get(route('galleries.show', $second))->assertOk()->assertDontSee('Zdjęcie testowe')->assertSee($two->imageUrl());
+        $this->get(route('galleries.show', $second))->assertOk()->assertDontSee('Zdjęcie testowe')->assertSee($two->originalUrl());
         Storage::disk('public')->assertMissing($one->filename);
         Storage::disk('public')->assertExists($two->filename);
     }
