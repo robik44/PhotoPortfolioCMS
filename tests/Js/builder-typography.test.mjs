@@ -44,7 +44,7 @@ function setup(item, galleryList = [], photoList = []) {
     if (item.element_width === undefined) item.element_width = item.type === 'image' ? 55 : (item.type === 'heading' ? 50 : 38);
     if (item.z_index === undefined) item.z_index = 1;
     const document = { createElement: node, createTextNode: text => ({ tag: '#text', textContent: String(text), children: [] }), addEventListener() {} };
-    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, galleryCollections: [], photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
+    const context = vm.createContext({ window: {}, document, catalog, item, properties: node(), page: node(), galleries: galleryList, galleryCollections: [{ id: 1, name: 'Portfolio' }], photos: photoList, selectedElement: null, data: { sections: [item] }, selected: item.id,
         builderData: { version: 1, settings: {}, sections: [item] }, label: type => type, elementLabel: type => type });
     vm.runInContext(moduleSource + '\nwindow.builderTypography = window.SiteTypography.create(catalog);', context);
     vm.runInContext(thumbnailSource, context);
@@ -113,7 +113,7 @@ test('full builder existing text controls update content and precise typography 
     const contentWrapper = context.properties.children.find(element => element.children[0]?.textContent === 'Treść');
     contentWrapper.children[1].value = 'Nowa treść';
     contentWrapper.children[1].emit('input');
-    assert.equal(preview().textContent, 'Nowa treść');
+    assert.equal(preview().children.map(child => child.textContent).join(''), 'Nowa treść');
 
     for (const [label, value, event, styleKey, expected] of [
         ['Rozmiar czcionki', '36.4', 'input', 'fontSize', '36.4px'],
@@ -156,8 +156,8 @@ test('full: thumbnail block renders ordered live Photo references and its own se
         const photos = [{ id: 1, url: '/one.png', alt: 'Logo one' }, { id: 2, thumbnail_url: '/two-small.png', title: 'Firma two' }];
         const { context, preview } = setup(item, [], photos);
         const grid = find(preview(), element => element.className === 'thumbnail-gallery-grid');
-        assert.deepEqual(grid.children.map(image => image.src), ['/two-small.png', '/one.png']);
-        assert.deepEqual(grid.children.map(image => image.alt), ['Firma two', 'Logo one']);
+        assert.deepEqual(grid.children.map(card => find(card, element => element.tag === 'img')?.src), ['/two-small.png', '/one.png']);
+        assert.deepEqual(grid.children.map(card => find(card, element => element.tag === 'img')?.alt), ['Firma two', 'Logo one']);
         assert.equal(grid.style['--tg-desktop'], '5');
         assert.equal(grid.style['--tg-fit'], undefined);
         assert.equal(grid.style['--tg-height'], undefined);
@@ -196,15 +196,15 @@ test('new blocks use global defaults, old blocks remain untouched and unknown CS
 test('gallery properties switch between all cards and one live gallery photo preview', () => {
     const item = textItem('gallery');
     const galleries = [
-        { id: 1, title: 'Food', cover_url: 'cover.jpg', photos: [{ title: 'Pierwsze', cover_url: 'first.jpg' }, { title: 'Drugie', cover_url: 'second.jpg' }] },
-        { id: 2, title: 'Other', cover_url: 'other.jpg', photos: [] },
+        { id: 1, gallery_collection_id: 1, title: 'Food', cover_url: 'cover.jpg', photos: [{ title: 'Pierwsze', cover_url: 'first.jpg' }, { title: 'Drugie', cover_url: 'second.jpg' }] },
+        { id: 2, gallery_collection_id: 1, title: 'Other', cover_url: 'other.jpg', photos: [] },
     ];
     const { context, preview } = setup(item, galleries);
     assert.equal(preview().children[0].children.length, 2);
     const mode = find(context.properties, element => element.textContent === 'Tryb galerii').children[0];
     mode.value = 'single'; mode.emit('change');
     assert.equal(item.gallery_mode, 'single');
-    const choice = find(context.properties, element => element.textContent === 'Wybierz galerię').children[0];
+    const choice = find(context.properties, element => element.textContent === 'Wybierz podgalerię').children[0];
     choice.value = '1'; choice.emit('change');
     assert.equal(item.gallery_id, 1);
     assert.deepEqual(Array.from(preview().children[0].children, card => card.children[0].src), ['first.jpg', 'second.jpg']);
