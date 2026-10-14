@@ -14,6 +14,27 @@ use Illuminate\Http\Request;
 
 class FoodfotoPreviewController extends Controller
 {
+    public function updateLayout(Request $request)
+    {
+        $data = $request->validate([
+            'layout' => ['required', 'string', 'max:16000'],
+        ]);
+        $layout = json_decode($data['layout'], true);
+        abort_unless(is_array($layout) && count($layout) <= 24, 422);
+        $valid = ['hero-text', 'hero-photo', 'hero-basil', 'editorial-photo', 'editorial-copy', 'editorial-basil', 'process-intro', 'process-steps', 'process-basil', 'experience-photo', 'experience-copy'];
+        $clean = [];
+        foreach ($layout as $key => $position) {
+            abort_unless(in_array($key, $valid, true) && is_array($position), 422);
+            abort_unless(isset($position['x'], $position['y']) && is_numeric($position['x']) && is_numeric($position['y']), 422);
+            $x = (int) $position['x'];
+            $y = (int) $position['y'];
+            abort_unless(abs($x) <= 350 && abs($y) <= 350, 422);
+            $clean[$key] = ['x' => $x, 'y' => $y];
+        }
+        SiteSetting::updateOrCreate(['key' => 'preview_editor_positions'], ['value' => json_encode($clean)]);
+        return redirect()->route('foodfoto.home.preview')->with('foodfoto_layout_saved', true);
+    }
+
     public function updateContent(Request $request)
     {
         $validated = $request->validate([
@@ -90,10 +111,13 @@ class FoodfotoPreviewController extends Controller
             ->filter(fn ($id) => is_numeric($id))->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->merge(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
 
+        $editorPositions = json_decode(SiteSetting::where('key', 'preview_editor_positions')->value('value') ?: '{}', true);
+        if (!is_array($editorPositions)) $editorPositions = [];
+
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions'
         ));
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
         $response->headers->set('Cache-Control', 'private, no-store');
