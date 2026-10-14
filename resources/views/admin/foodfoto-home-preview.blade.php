@@ -13,7 +13,7 @@
 .brand{display:flex;align-items:center;gap:15px}.brand-mark{font:900 35px/.79 Arial,Helvetica,sans-serif;letter-spacing:-.095em;display:flex;flex-direction:column;min-width:69px}.brand-mark span{display:block}.brand-name{padding-left:18px;border-left:1px solid #b0ada7;font-size:24px;white-space:nowrap}
 .nav{display:flex;gap:26px;font:12px Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .hero{position:relative;min-height:550px;display:flex;align-items:center;background:#f4f1eb;overflow:hidden}
-.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,249,246,.92),rgba(250,249,246,.75) 38%,transparent 80%);z-index:1}
+.hero .hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,249,246,.92),rgba(250,249,246,.75) 38%,transparent 80%);z-index:1}
 .hero-copy{position:relative;z-index:2;padding:60px 85px;width:60%}.hero h1{font-size:80px;font-weight:400;line-height:.98;letter-spacing:-.045em;margin:0 0 25px}
 .hero p{font:15px/1.7 Arial,sans-serif;max-width:480px;letter-spacing:.08em;text-transform:uppercase}
 .btn{display:inline-block;margin-top:25px;padding:13px 22px;border:1px solid #202019;font:12px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
@@ -26,7 +26,7 @@
 .thumbs{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}.thumbs img{width:calc(20% - 10px);height:180px;object-fit:cover}
 .contact{position:relative;min-height:410px;background:#e8e4db}.contact img{width:100%;display:block;height:auto}
 .foot{padding:45px 80px;display:flex;justify-content:space-between;font:13px Arial,sans-serif;border-top:1px solid #ddd}
-.hero-basil{position:absolute;z-index:3;width:65px;height:65px;pointer-events:none;opacity:.9;left:10px;top:62%;transform:rotate(-23deg)}.editorial{position:relative}.editorial-basil{position:absolute;z-index:2;right:16px;bottom:12px;width:66px;height:66px;pointer-events:none;opacity:.9;transform:rotate(22deg)}.placeholder{background:#eceee8;display:grid;place-items:center;color:#777;font:13px Arial,sans-serif}
+.hero-basil{position:absolute;z-index:3;width:58px;height:58px;pointer-events:none;opacity:.85;left:18px;top:58%;transform:rotate(-18deg)}.editorial{position:relative}.editorial-basil{position:absolute;z-index:2;right:16px;bottom:12px;width:66px;height:66px;pointer-events:none;opacity:.9;transform:rotate(22deg)}.placeholder{background:#eceee8;display:grid;place-items:center;color:#777;font:13px Arial,sans-serif}
 /* Preserve the SEO/service heading for assistive technologies, without displaying it. */
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .services-section{padding-top:58px}
@@ -51,9 +51,9 @@
 </header>
 <section class="hero">
  @if(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
- <img src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
+ <img class="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
- <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
+ <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  <div class="hero-copy"><h1>Apetyt<br>na dobre kadry</h1><p>Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.</p><a class="btn" href="#portfolio">Zobacz portfolio →</a></div>
