@@ -604,6 +604,9 @@
             <button type="button" class="fve-tool" data-fve-preset="three-steps">
                 + Trzy etapy
             </button>
+            <button type="button" class="fve-tool" data-fve-preset="contact-banner">
+                + Baner kontaktowy
+            </button>
 
         </aside>
 
@@ -2438,6 +2441,30 @@ document.addEventListener("DOMContentLoaded", function () {
                     style: { font_size: 17, line_height: 1.5 }
                 });
             }
+        } else if (preset === 'contact-banner') {
+            insert('image', {
+                position_x: 5, position_y: startY, element_width: 90,
+                image_height: 490, element_height: 490, image_fit: 'cover',
+                image_ratio: 'auto'
+            });
+            insert('heading', {
+                content: 'Porozmawiajmy o Twoim projekcie',
+                position_x: 11, position_y: startY + 12,
+                element_width: 66, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 52, font_weight: 500, line_height: 1.14, color: '#ffffff' }
+            });
+            insert('text', {
+                content: 'Fotografia i stylizacja żywności dla marek, które chcą opowiadać obrazem.',
+                position_x: 11, position_y: startY + 24, element_width: 58,
+                semantic_tag: 'p', style: { font_size: 22, line_height: 1.45, color: '#ffffff' }
+            });
+            insert('button', {
+                content: 'KONTAKT',
+                button_link: '/kontakt',
+                position_x: 11, position_y: startY + 39,
+                element_width: 21,
+                style: { color: '#ffffff' }
+            });
         } else {
             return;
         }
