@@ -165,7 +165,10 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ]]);
         $this->post(route('foodfoto.canvas.typography'), ['typography' => $value])
             ->assertRedirect(route('foodfoto.canvas'));
-        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_typography', 'value' => $value]);
+        $stored = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value'), true);
+        $this->assertSame(30.5, $stored['preview_hero_title']['font_size']);
+        $this->assertSame(1.25, $stored['preview_hero_title']['line_height']);
+        $this->assertSame(-0.75, $stored['preview_hero_title']['letter_spacing']);
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_heading_size']);
         $this->post(route('foodfoto.canvas.typography'), ['typography' => json_encode([
             'preview_hero_title' => ['font_size' => 999, 'line_height' => 1, 'letter_spacing' => 0],
