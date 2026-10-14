@@ -54,7 +54,12 @@ class FoodfotoPreviewController extends Controller
         $thumbs = collect($sections[30]['photo_ids'] ?? [])
             ->map(fn ($id) => $photos->get((int) $id))->filter()->values();
 
-        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process', 'preview_hero_image', 'preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url'])->pluck('value', 'key')->all();
+        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process', 'preview_hero_image', 'preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url', 'preview_editorial_title', 'preview_editorial_description', 'preview_editorial_photo_id', 'preview_experience_title', 'preview_experience_description', 'preview_experience_photo_id'])->pluck('value', 'key')->all();
+
+        $extraPhotoIds = collect(['preview_editorial_photo_id', 'preview_experience_photo_id'])
+            ->map(fn ($key) => $previewDecorations[$key] ?? null)
+            ->filter(fn ($id) => is_numeric($id))->map(fn ($id) => (int) $id)->unique();
+        $photos = $photos->merge(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
             'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations'
