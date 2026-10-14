@@ -88,7 +88,7 @@
 #ff-size{padding:5px;border:1px solid #bbb}
 </style>
 @foreach($editorPositions as $id => $pos)
-@if(in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true) && is_array($pos))
+@if(($canvas || in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true)) && preg_match('/^[a-z0-9_-]{1,80}$/', $id) && is_array($pos))
 <style>
 [data-move-id="{{ $id }}"] {
  translate: {{ max(-350,min(350,(int)($pos['x'] ?? 0))) }}px {{ max(-350,min(350,(int)($pos['y'] ?? 0))) }}px;
@@ -98,10 +98,13 @@
 </style>
 @endif
 @endforeach
+@if($canvas)
+<style>.ff-layout-editing [data-move-id]{position:relative;cursor:grab}.ff-layout-editing [data-move-id] a{pointer-events:none}.ff-layout-editing [data-move-id]:hover{outline:2px dashed #1e774a;outline-offset:2px}</style>
+@endif
 </head>
 <body>
 @unless($public)
-<div class="preview-top"><strong>WERSJA ROBOCZA — dostęp administratora</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
+<div class="preview-top"><strong>{{ $canvas ? 'EDYTOR NA PRAWDZIWYM UKŁADZIE — tylko wersja robocza' : 'WERSJA ROBOCZA — dostęp administratora' }}</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
 @endunless
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
 @unless($public)
@@ -124,7 +127,7 @@
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
- <div class="lead">{{ $sections[4]['content'] ?? '' }}</div>
+ <div class="lead" @if($canvas) data-move-id="services-intro" @endif>{{ $sections[4]['content'] ?? '' }}</div>
  <div class="services">
  @foreach([ [5,8,11], [6,9,12], [7,10,13], [14,17,20], [15,18,21], [16,19,22] ] as $indices)
  @php($imageIndex = $indices[0])
@@ -132,7 +135,7 @@
  @php($textIndex = $indices[2])
  @php($name=trim($sections[$titleIndex]['content'] ?? ''))
  @php($url=$seoLinks[mb_strtolower($name)] ?? null)
- <article class="service">
+ <article class="service" @if($canvas) data-move-id="service-{{ $titleIndex }}" @endif>
  @if($url)<a href="{{ $url }}">@endif
  @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
  <h3>{{ $name }} @if($url)↗@endif</h3>
@@ -145,7 +148,7 @@
  <div class="cards-gallery">
  @foreach($galleries as $gallery)
  @php($cover=$gallery->photos->first(fn($p)=>(bool)$p->pivot->is_cover)??$gallery->photos->first())
- <a href="{{ route('portfolio.gallery',$gallery) }}">
+ <a href="{{ route('portfolio.gallery',$gallery) }}" @if($canvas) data-move-id="gallery-{{ $gallery->id }}" @endif>
  @if($cover)<img loading="lazy" src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}">@endif
  <h3>{{ $gallery->title }} →</h3></a>
  @endforeach
@@ -166,7 +169,7 @@
    ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) (($previewDecorations['preview_process_2_photo_id'] ?? null) ?: ($sections[14]['photo_id'] ?? 0))],
    ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', (int) (($previewDecorations['preview_process_3_photo_id'] ?? null) ?: ($sections[16]['photo_id'] ?? 0))]
   ] as $stage)
-  <article class="process-step">
+  <article class="process-step" @if($canvas) data-move-id="process-step-{{ $stage[0] }}" @endif>
    @if($processPhoto = $photos->get($stage[3]))
     <img loading="lazy" src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
    @else
@@ -215,6 +218,7 @@
 @if(count($customBlocks))
 <section class="section" id="foodfoto-custom-elements" aria-label="Dodatkowe elementy strony">
 @foreach($customBlocks as $block)
+  <div @if($canvas) data-move-id="custom-{{ $loop->index }}" @endif>
   @if(($block['type'] ?? '') === 'heading')
     <h2>{{ $block['content'] ?? '' }}</h2>
   @elseif(($block['type'] ?? '') === 'text')
@@ -226,6 +230,7 @@
   @elseif(($block['type'] ?? '') === 'button')
     <a class="btn" href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
   @endif
+  </div>
 @endforeach
 </section>
 @endif
@@ -244,7 +249,7 @@
 
   <button type="button" id="ff-layout-reset">Reset pozycji</button>
   <label><input id="ff-layout-snap" type="checkbox" checked> Przyciąganie i prowadnice</label>
-  <form id="ff-layout-form" method="POST" action="{{ route('foodfoto.home.preview.layout') }}">
+  <form id="ff-layout-form" method="POST" action="{{ $canvas ? route('foodfoto.canvas.layout') : route('foodfoto.home.preview.layout') }}">
    @csrf
    <input id="ff-layout-json" type="hidden" name="layout">
    <button class="primary" type="submit">Zapisz układ</button>
@@ -253,8 +258,8 @@
  <span id="ff-layout-status" role="status"></span>
 </div>
 @if(session('foodfoto_layout_saved'))<p style="position:fixed;top:40px;left:20px;background:#e5f5e9;padding:8px;z-index:90;font:14px Arial,sans-serif">Pozycje zapisane.</p>@endif
-<button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
-<aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony">
+<button id="foodfoto-edit-open" type="button" @if($canvas) hidden @endif aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
+<aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony" @if($canvas) hidden @endif>
  <button class="close" type="button" id="foodfoto-edit-close">Zamknij ×</button>
  <h2 style="margin:0 0 12px;font:26px Georgia,serif;">Edytor nowej strony</h2>
  <p>Teksty i proporcje aktualizują się na żywo. Zdjęcia z biblioteki zmienią się po zapisaniu. Wszystko dotyczy wyłącznie niepublicznego podglądu.</p>
