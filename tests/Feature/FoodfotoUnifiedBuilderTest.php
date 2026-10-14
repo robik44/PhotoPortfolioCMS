@@ -283,4 +283,21 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ])->assertOk()->assertJsonPath('success', true);
     }
 
+    public function test_typography_ajax_save_persists_and_is_visible_after_refresh(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $styling = ['preview_process_title' => [
+            'font_size' => 60, 'line_height' => 1.1, 'letter_spacing' => -1,
+        ]];
+        $this->postJson(route('foodfoto.canvas.typography'), [
+            'typography' => json_encode($styling),
+        ])->assertOk()->assertJsonPath('typography.preview_process_title.font_size', 60);
+        $this->assertSame($styling, json_decode(
+            SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value'), true
+        ));
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('font-size:60px!important', false);
+    }
+
 }
