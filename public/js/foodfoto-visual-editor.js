@@ -63,6 +63,19 @@
         note(active ? 'Kliknij element. Shift + klik zaznacza kilka. Przeciągnij, aby przesunąć.' : '');
     }
     toggle.addEventListener('click', () => setEditing(!editing));
+    document.addEventListener('ff-select-text-box', event=>{
+        const id=event.detail && event.detail.id;
+        const el=nodes.get(id);
+        if(!el){note('Nie znaleziono boksu.');return;}
+        if(!editing)setEditing(true);
+        selected.clear();
+        pick(el,false);
+        document.getElementById('ff-size').value=positions[id].w||Math.round(el.getBoundingClientRect().width);
+        note('Boks tekstowy zaznaczony. Przeciągnij uchwyt ↘ lub wpisz szerokość. Zapisz układ po zmianach.');
+        root.scrollIntoView({block:'nearest'});
+        requestAnimationFrame(()=>root.dispatchEvent(new Event('click')));
+    });
+
     root.addEventListener('pointerdown', e => {
         if (!editing || e.button !== 0) return;
         const el = e.target.closest('[data-move-id]');
