@@ -663,6 +663,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
+ <label for="ff-selected-text-content" style="display:block;margin-bottom:12px">Treść zaznaczonego tekstu
+  <textarea id="ff-selected-text-content" rows="5" placeholder="Kliknij tekst na stronie…" style="display:block;box-sizing:border-box;width:100%;padding:8px" disabled></textarea>
+ </label>
  <label for="ff-hero-button-label" style="display:block;margin-bottom:12px">Tekst przycisku głównego
   <input id="ff-hero-button-label" type="text" maxlength="80" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:8px" value="{{ $canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}">
  </label>
@@ -676,6 +679,19 @@ document.addEventListener('DOMContentLoaded',function(){
  const btn=document.getElementById('ff-text-enable');
  const form=document.getElementById('ff-text-form');
  const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ const contentField=document.getElementById('ff-selected-text-content');
+ let activeText=null;
+ nodes.forEach(node=>node.addEventListener('click',()=>{
+   activeText=node;
+   contentField.disabled=false;
+   contentField.value=node.innerText;
+ },false));
+ contentField.addEventListener('input',()=>{
+  if(!activeText)return;
+  activeText.textContent=contentField.value;
+  const buttonLabel=document.getElementById('ff-hero-button-label');
+  if(activeText.dataset.canvasText==='preview_hero_button_label'&&buttonLabel)buttonLabel.value=contentField.value;
+ });
  const heroButtonLabel=document.getElementById('ff-hero-button-label');
  const heroButtonText=document.querySelector('[data-canvas-text="preview_hero_button_label"]');
  if(heroButtonLabel&&heroButtonText){
