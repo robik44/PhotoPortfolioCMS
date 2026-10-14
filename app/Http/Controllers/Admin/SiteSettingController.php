@@ -27,6 +27,10 @@ class SiteSettingController extends Controller
             'preview_basil_editorial' => null,
             'preview_basil_process' => null,
             'preview_hero_image' => null,
+            'preview_hero_title' => 'Apetyt na dobre kadry',
+            'preview_hero_description' => 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.',
+            'preview_hero_button_label' => 'Zobacz portfolio',
+            'preview_hero_button_url' => '#portfolio',
         ];
 
         $settings = array_merge(
@@ -62,6 +66,10 @@ class SiteSettingController extends Controller
             'preview_basil_editorial_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_basil_process_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_hero_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+            'preview_hero_title' => ['required', 'string', 'max:160'],
+            'preview_hero_description' => ['required', 'string', 'max:500'],
+            'preview_hero_button_label' => ['required', 'string', 'max:80'],
+            'preview_hero_button_url' => ['required', 'string', 'max:255', 'regex:/^(\/[^\s]*|\#[a-zA-Z][a-zA-Z0-9_-]*)$/'],
         ]);
 
         foreach ([
@@ -113,6 +121,10 @@ class SiteSettingController extends Controller
                 $path = $request->file($input)->store('foodfoto-decorations', 'public');
                 SiteSetting::updateOrCreate(['key' => 'preview_basil_'.$placement], ['value' => $path]);
             }
+        }
+
+        foreach (['preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url'] as $key) {
+            SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key]]);
         }
 
         if ($request->hasFile('preview_hero_image_file')) {
