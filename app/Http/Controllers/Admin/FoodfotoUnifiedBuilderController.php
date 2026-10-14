@@ -51,6 +51,48 @@ class FoodfotoUnifiedBuilderController extends Controller
                     ];
                 }
             }
+            // Import the editorial photo choices and process cards into selectable
+            // elements of the existing builder without changing the live homepage.
+            $photoMap = [
+                'preview_editorial_photo_id' => 25,
+                'preview_experience_photo_id' => 6,
+                'preview_process_1_photo_id' => 5,
+                'preview_process_2_photo_id' => 14,
+                'preview_process_3_photo_id' => 16,
+            ];
+            foreach ($photoMap as $settingKey => $fallbackIndex) {
+                $id = (int) ($settings[$settingKey] ?? ($sections[$fallbackIndex]['photo_id'] ?? 0));
+                if ($id <= 0) continue;
+                $sections[] = [
+                    'id' => 'foodfoto-' . str_replace('preview_', '', $settingKey),
+                    'type' => 'image',
+                    'photo_id' => $id,
+                    'position_x' => 10,
+                    'position_y' => 20 + count($sections) * 5,
+                    'element_width' => 42,
+                    'style' => [],
+                ];
+            }
+            foreach ([
+                ['process-1-title', 'Koncepcja'],
+                ['process-1-description', 'Pomysł, kompozycja i kierunek wizualny.'],
+                ['process-2-title', 'Realizacja'],
+                ['process-2-description', 'Stylizacja produktu i praca ze światłem.'],
+                ['process-3-title', 'Rezultaty'],
+                ['process-3-description', 'Zdjęcia przygotowane do publikacji i kampanii.'],
+            ] as [$id, $label]) {
+                $heading = str_ends_with($id, '-title');
+                $sections[] = [
+                    'id' => 'foodfoto-' . $id,
+                    'type' => $heading ? 'heading' : 'text',
+                    'content' => $label,
+                    'position_x' => 10,
+                    'position_y' => 20 + count($sections) * 5,
+                    'element_width' => 40,
+                    'style' => ['font_size' => $heading ? 23 : 15],
+                ];
+            }
+
             foreach (json_decode($settings['foodfoto_custom_blocks'] ?? '[]', true) ?: [] as $i => $block) {
                 $type = $block['type'] ?? null;
                 if (!in_array($type, ['heading', 'text', 'button', 'image'], true)) continue;
