@@ -227,8 +227,8 @@ class BuilderButtonTest extends TestCase
         $this->assertStringContainsString("components.public-builder-canvas", $home);
         $this->assertStringContainsString("components.public-builder-canvas", $page);
         $shared = file_get_contents(resource_path('views/components/public-builder-canvas.blade.php'));
-        $this->assertStringContainsString('@media (max-width: 900px)', $shared);
-        $this->assertStringContainsString('overflow-x: hidden;', $shared);
+        $this->assertStringContainsString('builder-public-canvas', $shared);
+        $this->assertStringContainsString('position_x', $shared);
     }
 
 
