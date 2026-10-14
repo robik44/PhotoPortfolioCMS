@@ -34,9 +34,7 @@ class PhotoLibraryTest extends TestCase
 
     private function upload(string $name): UploadedFile
     {
-        return UploadedFile::fake()->createWithContent($name, base64_decode(
-            'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII='
-        ));
+        return UploadedFile::fake()->image($name, 32, 32);
     }
 
     public function test_library_lists_unassigned_and_shared_photos_with_both_filename_formats(): void
