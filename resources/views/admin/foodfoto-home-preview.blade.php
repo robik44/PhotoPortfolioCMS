@@ -65,7 +65,9 @@
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
 </header>
 <section class="hero">
- @if(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
+ @if(!empty($previewDecorations['preview_hero_image']))
+ <img class="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
+ @elseif(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
  <img class="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
  <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
@@ -113,9 +115,9 @@
  </div>
  <div class="process-steps">
   @foreach([
-   ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', 95],
-   ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', 18],
-   ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', 45]
+   ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', (int) ($sections[5]['photo_id'] ?? 0)],
+   ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) ($sections[14]['photo_id'] ?? 0)],
+   ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', (int) ($sections[16]['photo_id'] ?? 0)]
   ] as $stage)
   <article class="process-step">
    @if($processPhoto = $photos->get($stage[3]))
@@ -133,7 +135,7 @@
 </section>
 <section class="about-experience" aria-labelledby="experience-heading">
  <div class="visual">
-  @if($aboutPhoto = $photos->get((int)($sections[25]['photo_id'] ?? 0)))
+  @if($aboutPhoto = $photos->get((int)($sections[6]['photo_id'] ?? 0)))
    <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
