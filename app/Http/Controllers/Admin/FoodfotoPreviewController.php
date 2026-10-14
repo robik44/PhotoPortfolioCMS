@@ -191,7 +191,10 @@ class FoodfotoPreviewController extends Controller
             $clean[$id] = compact('x', 'y', 'w', 'z');
         }
         SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_positions'], ['value' => json_encode($clean)]);
-        return redirect()->route('foodfoto.canvas')->with('foodfoto_layout_saved', true);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'positions' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_layout_saved', true);
     }
 
     public function saveCanvasTexts(Request $request)
