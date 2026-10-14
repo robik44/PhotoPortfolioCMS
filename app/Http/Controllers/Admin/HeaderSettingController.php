@@ -8,6 +8,7 @@ use App\Services\SiteFontLibrary;
 use App\Support\HeaderFonts;
 use App\Support\HeaderSettings;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 
 class HeaderSettingController extends Controller
@@ -31,6 +32,8 @@ class HeaderSettingController extends Controller
         $validated = $request->validate(HeaderSettings::rules($fonts) + [
             'font_file' => SiteFontLibrary::uploadRules(false),
             'font_target' => ['required_with:font_file', 'in:logo,subtitle,both'],
+            'brand_image_file' => ['nullable', 'image', 'mimes:png,webp', 'max:3072'],
+            'remove_brand_image' => ['sometimes', 'boolean'],
         ], [
             'font_file.max' => 'Plik czcionki może mieć maksymalnie 5 MB.',
             'header_logo_font_family.in' => 'Wybierz czcionkę logo z listy.',
@@ -47,6 +50,13 @@ class HeaderSettingController extends Controller
         ]);
         $data = array_intersect_key($validated, HeaderSettings::DEFAULTS);
         $data['logo_subtitle'] = $data['logo_subtitle'] ?? '';
+        $data['header_brand_image'] = $current['header_brand_image'] ?? '';
+        if ($request->boolean('remove_brand_image')) {
+            $data['header_brand_image'] = '';
+        }
+        if ($request->hasFile('brand_image_file')) {
+            $data['header_brand_image'] = $request->file('brand_image_file')->store('branding', 'public');
+        }
         foreach (['header_padding_top', 'header_padding_bottom'] as $key) {
             $data[$key] = $data[$key] ?? $current[$key];
         }
