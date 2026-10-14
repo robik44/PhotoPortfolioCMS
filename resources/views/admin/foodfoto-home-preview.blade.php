@@ -299,7 +299,16 @@ document.addEventListener('DOMContentLoaded',()=>{
 <aside id="ff-unified-panel" aria-label="Narzędzia buildera FoodFoto" style="position:fixed;right:18px;top:55px;bottom:18px;width:340px;max-width:calc(100vw - 36px);z-index:110;background:#fff;box-shadow:0 6px 30px #0003;border:1px solid #b7b7b7;padding:14px;overflow:auto;font:13px Arial,sans-serif">
  <h2 style="font:22px Georgia,serif;margin:0 0 10px">Builder FoodFoto</h2>
  <p id="ff-unified-selection" role="status">Kliknij tekst lub zdjęcie na stronie, aby je edytować.</p>
- <div id="ff-unified-tools"></div>
+ <form id="ff-save-all-form" method="POST" action="{{ route('foodfoto.canvas.save-all') }}" style="margin:12px 0;border:1px solid #c9d9ce;padding:10px">
+ @csrf
+ <input name="layout" id="ff-all-layout" type="hidden">
+ <input name="texts" id="ff-all-texts" type="hidden">
+ <input name="typography" id="ff-all-typography" type="hidden">
+ <input name="photos" id="ff-all-photos" type="hidden">
+ <button type="submit" style="padding:12px;width:100%;background:#244e36;color:white;border:0;font-size:15px;cursor:pointer">Zapisz wszystkie zmiany</button>
+</form>
+@if(session('foodfoto_all_saved'))<p role="status" style="color:#216235">Zapisano wszystkie zmiany w wersji roboczej.</p>@endif
+<div id="ff-unified-tools"></div>
  <p style="color:#666;font-size:11px">Wersja robocza — każdą część zapisuj odpowiednim przyciskiem. Strona publiczna nie zmienia się.</p>
 </aside>
 <div id="ff-photo-panel" style="position:fixed;left:18px;top:55px;z-index:102;background:white;border:1px solid #aaa;padding:12px;font:13px Arial;max-width:330px">
@@ -397,6 +406,27 @@ document.addEventListener('DOMContentLoaded',()=>{
  }
  all.forEach(el=>el.addEventListener('click',()=>select(el)));
  photo.hidden=true;
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const form=document.getElementById('ff-save-all-form');
+ if(!form)return;
+ form.addEventListener('submit',event=>{
+  for(const [source,target] of [
+   ['ff-layout-form','ff-all-layout'],
+   ['ff-text-form','ff-all-texts'],
+   ['ff-type-form','ff-all-typography'],
+   ['ff-photo-form','ff-all-photos'],
+  ]){
+   const child=document.getElementById(source);
+   if(!child){event.preventDefault();alert('Brak narzędzia edycji: '+source);return}
+   child.dispatchEvent(new Event('submit',{bubbles:false,cancelable:true}));
+   const value=child.querySelector('input[type="hidden"][name]:not([name="_token"])');
+   if(!value || !value.value){event.preventDefault();alert('Nie udało się zebrać danych: '+source);return}
+   document.getElementById(target).value=value.value;
+  }
+ });
 });
 </script>
 <div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
