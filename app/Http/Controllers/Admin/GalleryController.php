@@ -156,7 +156,7 @@ class GalleryController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'gallery_collection_id' => ['required', 'integer', 'exists:gallery_collections,id'],
+            'gallery_collection_id' => ['nullable', 'integer', 'exists:gallery_collections,id'],
         ] + \App\Support\GalleryBackLink::rules() + GalleryTypography::rules() + \App\Support\Seo::rules() + [
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', \Illuminate\Validation\Rule::when($request->input('slug') !== $gallery->slug, ['not_regex:/^[0-9]+$/']), \Illuminate\Validation\Rule::unique('galleries', 'slug')->ignore($gallery->id)],
         ]);
@@ -165,7 +165,7 @@ class GalleryController extends Controller
             'title' => $data['title'],
             'slug' => $data['slug'] ?? $gallery->slug,
             'description' => $data['description'] ?? null,
-            'gallery_collection_id' => (int) $data['gallery_collection_id'],
+            'gallery_collection_id' => $data['gallery_collection_id'] ?? $gallery->gallery_collection_id,
         ]);
 
         $gallery->update(\Illuminate\Support\Arr::only($data, array_keys(\App\Support\Seo::rules())));
