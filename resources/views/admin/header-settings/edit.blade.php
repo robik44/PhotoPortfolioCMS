@@ -41,6 +41,19 @@
             @csrf
             @method('PUT')
 
+            <fieldset style="margin:24px 0;padding:20px;border:1px solid #ddd;border-radius:8px;">
+                <legend>Logo graficzne FoodFoto</legend>
+                <p>Opcjonalne logo po lewej stronie nazwy. PNG lub WebP z przezroczystym tłem, maks. 3 MB. Pozostaw bez pliku, aby zachować obecny nagłówek.</p>
+                @if(!empty($settings['header_brand_image']))
+                    <img src="{{ asset('storage/'.$settings['header_brand_image']) }}" alt="Aktualne logo graficzne" style="max-width:170px;max-height:120px;object-fit:contain;display:block;margin-bottom:12px;">
+                    <label><input type="checkbox" name="remove_brand_image" value="1" style="width:auto;"> Usuń obecne logo graficzne</label>
+                @endif
+                <label for="brand_image_file">Wgraj logo</label>
+                <input id="brand_image_file" name="brand_image_file" type="file" accept=".png,.webp,image/png,image/webp">
+                <label for="header_brand_image_width">Szerokość logo (px)</label>
+                <input id="header_brand_image_width" name="header_brand_image_width" type="number" min="24" max="240" step="1" required value="{{ old('header_brand_image_width', $settings['header_brand_image_width']) }}">
+            </fieldset>
+
             @foreach (['logo' => 'Nazwa / logo tekstowe', 'subtitle' => 'Podtytuł'] as $part => $label)
                 @php
                     $textKey = $part === 'logo' ? 'logo' : 'logo_subtitle';
