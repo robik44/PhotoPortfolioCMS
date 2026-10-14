@@ -120,6 +120,7 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 
 Route::middleware(["auth"])->group(function () {
     Route::get('/admin/foodfoto-canvas', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'canvas'])->name('foodfoto.canvas');
+    Route::post('/admin/foodfoto-canvas/photos', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasPhotos'])->name('foodfoto.canvas.photos');
     Route::post('/admin/foodfoto-canvas/typography', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasTypography'])->name('foodfoto.canvas.typography');
     Route::post('/admin/foodfoto-canvas/texts', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasTexts'])->name('foodfoto.canvas.texts');
     Route::post('/admin/foodfoto-canvas/layout', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasLayout'])->name('foodfoto.canvas.layout');
