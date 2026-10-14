@@ -4,7 +4,6 @@ namespace App\Console\Commands;
 
 use App\Models\PageBuilder;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Storage;
 
 class FoodfotoHomeLayout extends Command
 {
@@ -69,7 +68,7 @@ class FoodfotoHomeLayout extends Command
         // Keep original element ids, text, photo references, gallery settings and SEO metadata.
         // The first 23 existing elements remain entirely unchanged.
         $layout = [
-            23 => [145, 1.1261731543159, 40],  // Existing Portfolio H2, visually hidden below.
+            23 => [145, 1.1261731543159, 40],  // Existing Portfolio H2 is preserved.
             24 => [145, 0, 100],                 // Original gallery
             25 => [194, 0, 100],                 // Large editorial photo
             26 => [244, 8, 84],                  // Editorial body copy
@@ -86,10 +85,7 @@ class FoodfotoHomeLayout extends Command
             $sections[$i]['element_width'] = $width;
         }
 
-        // Keeping this h2 as a hidden visual label avoids deleting existing text;
-        // preserve accessible gallery heading and #portfolio anchor.
-        $sections[23]['style']['color'] = '#222222';
-        $sections[23]['element_width'] = 40;
+        // Preserve the existing gallery heading and #portfolio anchor.
 
         $content['sections'] = $sections;
         $content['settings']['foodfoto_layout_version'] = 'editorial-preserve-32-v1';
