@@ -3,8 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=1400">
+@if($public)
+@include('components.seo-meta', ['seo' => \\App\\Support\\Seo::meta(null)])
+@else
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Podgląd nowego FoodFoto — tylko administrator</title>
+@endif
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff;color:#202019;font-family:Georgia,'Times New Roman',serif}a{color:inherit;text-decoration:none}
 .preview-top{position:relative;background:#25352a;color:white;z-index:50;padding:12px 38px;font:14px Arial,sans-serif;display:flex;align-items:center;justify-content:space-between}
@@ -83,11 +87,26 @@
 .ff-ruler-top,.ff-ruler-left{display:none}.ff-layout-editing .ff-ruler-top,.ff-layout-editing .ff-ruler-left{display:block}
 #ff-size{padding:5px;border:1px solid #bbb}
 </style>
+@foreach($editorPositions as $id => $pos)
+@if(in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true) && is_array($pos))
+<style>
+[data-move-id="{{ $id }}"] {
+ translate: {{ max(-350,min(350,(int)($pos['x'] ?? 0))) }}px {{ max(-350,min(350,(int)($pos['y'] ?? 0))) }}px;
+ @if((int)($pos['w'] ?? 0) > 0)width:{{ min(1200,(int)$pos['w']) }}px;@endif
+ @if((int)($pos['z'] ?? 0) !== 0)z-index:{{ max(-5,min(25,(int)$pos['z'])) }};@endif
+}
+</style>
+@endif
+@endforeach
 </head>
 <body>
-<div class="preview-top"><strong>WERSJA ROBOCZA — tylko podgląd, bez zapisu do CMS</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
+@unless($public)
+<div class="preview-top"><strong>WERSJA ROBOCZA — dostęp administratora</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
+@endunless
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
+@unless($public)
 <div class="ff-ruler-top" aria-hidden="true"></div><div class="ff-ruler-left" aria-hidden="true"></div><div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
+@endunless
 <header class="header">
  <a class="brand" href="{{ url('/') }}"><span class="brand-mark"><span>food</span><span>foto</span></span><span class="brand-name">Magda Gugała</span></a>
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
@@ -197,6 +216,7 @@
 </div>
 
 
+@unless($public)
 <div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
  <button id="ff-layout-toggle" type="button" aria-pressed="false">Przesuwaj elementy ↔</button>
  <div id="ff-layout-controls" hidden>
@@ -287,4 +307,5 @@
 })();
 </script>
 <script src="{{ asset('js/foodfoto-visual-editor.js') }}" defer></script>
+@endunless
 </body></html>
