@@ -152,7 +152,7 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
  <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" data-move-id="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" @if($canvas) data-canvas-text="preview_hero_title" @endif style="white-space:pre-line">{{ $canvas ? ($canvasTexts['preview_hero_title'] ?? ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry')) : ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry') }}</h1><p data-preview-field="preview_hero_description" @if($canvas) data-canvas-text="preview_hero_description" @endif>{{ $canvas ? ($canvasTexts['preview_hero_description'] ?? ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.')) : ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.') }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label" @if($canvas) data-canvas-text="preview_hero_button_label" @endif>{{ $canvas ? ($canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio')) : ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}</span> →</a></div>
+ <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" @if($canvas) data-canvas-text="preview_hero_title" @endif style="white-space:pre-line">{{ $canvas ? ($canvasTexts['preview_hero_title'] ?? ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry')) : ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry') }}</h1><p data-preview-field="preview_hero_description" @if($canvas) data-canvas-text="preview_hero_description" @endif>{{ $canvas ? ($canvasTexts['preview_hero_description'] ?? ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.')) : ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.') }}</p><a class="btn" @if($canvas) data-move-id="hero-button" @endif href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label" @if($canvas) data-canvas-text="preview_hero_button_label" @endif>{{ $canvas ? ($canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio')) : ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}</span> →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
@@ -166,7 +166,7 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
  @php($url=$seoLinks[mb_strtolower($name)] ?? null)
  <article class="service" @if($canvas) data-move-id="service-{{ $titleIndex }}" @endif>
  @if($url)<a href="{{ $url }}">@endif
- @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" @if($canvas) data-canvas-photo="service-{{ $imageIndex }}" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
+ @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" @if($canvas) data-canvas-photo="service-{{ $imageIndex }}" data-move-id="service-photo-{{ $imageIndex }}" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
  <h3>{{ $name }} @if($url)↗@endif</h3>
  @if($url)</a>@endif
  <p>{{ $sections[$textIndex]['content'] ?? '' }}</p></article>
@@ -200,7 +200,7 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
   ] as $stage)
   <article class="process-step" @if($canvas) data-move-id="process-step-{{ $stage[0] }}" @endif>
    @if($processPhoto = $photos->get($stage[3]))
-    <img loading="lazy" @if($canvas) data-canvas-photo="process-photo-{{ $loop->index }}" @endif src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
+    <img loading="lazy" @if($canvas) data-canvas-photo="process-photo-{{ $loop->index }}" data-move-id="stage-image-{{ $loop->index }}" @endif src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
    @else
     <div class="placeholder" style="height:195px">Fotografia</div>
    @endif
@@ -257,7 +257,7 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
       <img @if($canvas) data-canvas-photo="custom-{{ $loop->index }}" @endif style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
     @endif
   @elseif(($block['type'] ?? '') === 'button')
-    <a class="btn" href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
+    <a class="btn" @if($canvas) data-move-id="custom-button-{{ $loop->index }}" @endif href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
   @endif
   </div>
 @endforeach
