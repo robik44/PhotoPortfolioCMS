@@ -14,7 +14,7 @@
 .nav{display:flex;gap:26px;font:12px Arial,sans-serif;letter-spacing:.1em;text-transform:uppercase}
 .hero{position:relative;min-height:550px;display:flex;align-items:center;background:#f4f1eb;overflow:hidden}
 .hero .hero-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.hero:before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,249,246,.92),rgba(250,249,246,.75) 38%,transparent 80%);z-index:1}
-.hero-copy{position:relative;z-index:2;padding:60px 85px;width:60%}.hero h1{font-size:80px;font-weight:400;line-height:.98;letter-spacing:-.045em;margin:0 0 25px}
+.hero-copy{position:relative;z-index:2;padding:60px var(--hero-copy-x,85px);width:65%}.hero h1{font-size:var(--hero-heading-size,80px);font-weight:400;line-height:.98;letter-spacing:-.045em;margin:0 0 25px}
 .hero p{font:15px/1.7 Arial,sans-serif;max-width:480px;letter-spacing:.08em;text-transform:uppercase}
 .btn{display:inline-block;margin-top:25px;padding:13px 22px;border:1px solid #202019;font:12px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase}
 .section{padding:92px 80px}.section h2{font-size:55px;font-weight:400;line-height:1.1;margin:0 0 18px;letter-spacing:-.035em}.lead{font:18px/1.7 Arial,sans-serif;max-width:850px;color:#53564c}
@@ -32,7 +32,7 @@
 .services-section{padding-top:58px}
 /* Editorial three-stage process between the story and portfolio sections. */
 .process-section{position:relative;display:grid;grid-template-columns:30% 1fr;gap:54px;align-items:start;padding:90px 80px 102px;background:#fff}
-.process-intro h2{font-size:60px;font-weight:400;line-height:1.03;letter-spacing:-.04em;margin:0 0 22px}
+.process-intro h2{white-space:pre-line;font-size:60px;font-weight:400;line-height:1.03;letter-spacing:-.04em;margin:0 0 22px}
 .process-intro p{max-width:300px;font:17px/1.65 Arial,sans-serif;color:#66675f}
 .process-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
 .process-step img{display:block;width:100%;height:195px;object-fit:cover;background:#f2f0eb}
@@ -72,7 +72,7 @@
  <a class="brand" href="{{ url('/') }}"><span class="brand-mark"><span>food</span><span>foto</span></span><span class="brand-name">Magda Gugała</span></a>
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
 </header>
-<section class="hero">
+<section class="hero" style="--hero-copy-x:{{ (int)($previewDecorations['preview_hero_copy_x'] ?? 85) }}px;--hero-heading-size:{{ (int)($previewDecorations['preview_hero_heading_size'] ?? 80) }}px">
  @if(!empty($previewDecorations['preview_hero_image']))
  <img class="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
  @elseif(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
@@ -118,14 +118,14 @@
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro">
-  <h2 id="foodfoto-process-heading">Od pomysłu<br>do kadru</h2>
-  <p>Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.</p>
+  <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title">{{ $previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru' }}</h2>
+  <p data-preview-field="preview_process_description">{{ $previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.' }}</p>
  </div>
  <div class="process-steps">
   @foreach([
-   ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', (int) ($sections[5]['photo_id'] ?? 0)],
-   ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) ($sections[14]['photo_id'] ?? 0)],
-   ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', (int) ($sections[16]['photo_id'] ?? 0)]
+   ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', (int) (($previewDecorations['preview_process_1_photo_id'] ?? null) ?: ($sections[5]['photo_id'] ?? 0))],
+   ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) (($previewDecorations['preview_process_2_photo_id'] ?? null) ?: ($sections[14]['photo_id'] ?? 0))],
+   ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', (int) (($previewDecorations['preview_process_3_photo_id'] ?? null) ?: ($sections[16]['photo_id'] ?? 0))]
   ] as $stage)
   <article class="process-step">
    @if($processPhoto = $photos->get($stage[3]))
@@ -176,11 +176,11 @@
 <footer class="foot"><span>FoodFoto — Magda Gugała</span><span><a href="{{ url('/kontakt') }}">Kontakt</a> · <a href="{{ url('/o-mnie') }}">O mnie</a></span></footer>
 </div>
 
-<button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj teksty podglądu ✎</button>
+<button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
 <aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony">
  <button class="close" type="button" id="foodfoto-edit-close">Zamknij ×</button>
- <h2 style="margin:0 0 12px;font:26px Georgia,serif;">Edycja na podglądzie</h2>
- <p>Zmiany widać natychmiast. Zapis dotyczy tylko nowej wersji FoodFoto. Zdjęcia zmienisz w <a href="{{ route('site-settings.edit') }}" style="text-decoration:underline;">Ustawieniach witryny</a>.</p>
+ <h2 style="margin:0 0 12px;font:26px Georgia,serif;">Edytor nowej strony</h2>
+ <p>Teksty i proporcje aktualizują się na żywo. Zdjęcia z biblioteki zmienią się po zapisaniu. Wszystko dotyczy wyłącznie niepublicznego podglądu.</p>
  @if(session('foodfoto_content_saved'))<p role="status" style="color:#286b35">Zapisano teksty podglądu.</p>@endif
  @if($errors->any())<p role="alert" style="color:#a22">Nie zapisano zmian: {{ $errors->first() }}</p>@endif
  <form id="foodfoto-content-form" method="POST" action="{{ route('foodfoto.home.preview.content') }}">
@@ -192,7 +192,9 @@
   'preview_editorial_title' => ['Więcej niż zwykłe zdjęcia — nagłówek','Więcej niż zwykłe zdjęcia'],
   'preview_editorial_description' => ['Więcej niż zwykłe zdjęcia — opis','Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.'],
   'preview_experience_title' => ['Doświadczenie — nagłówek','Od niemal 30 lat z aparatem przy stole'],
-  'preview_experience_description' => ['Doświadczenie — opis','Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.']
+  'preview_experience_description' => ['Doświadczenie — opis','Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.'],
+  'preview_process_title' => ['Od pomysłu do kadru — nagłówek','Od pomysłu do kadru'],
+  'preview_process_description' => ['Od pomysłu do kadru — opis','Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.']
  ] as $name => $field)
  <label for="edit-{{ $name }}">{{ $field[0] }}</label>
  @if(str_contains($name,'description'))
@@ -201,6 +203,31 @@
  <input id="edit-{{ $name }}" type="text" name="{{ $name }}" required maxlength="{{ $name === 'preview_hero_title' ? 160 : ($name === 'preview_hero_button_label' ? 80 : 600) }}" value="{{ old($name, $previewDecorations[$name] ?? $field[1]) }}">
  @endif
  @endforeach
+ <fieldset style="margin-top:18px;border:1px solid #ddd;padding:12px;">
+ <legend>Fotografie z biblioteki</legend>
+ @foreach([
+  'preview_editorial_photo_id' => 'Więcej niż zwykłe zdjęcia',
+  'preview_experience_photo_id' => 'Doświadczenie',
+  'preview_process_1_photo_id' => 'Proces — koncepcja',
+  'preview_process_2_photo_id' => 'Proces — realizacja',
+  'preview_process_3_photo_id' => 'Proces — rezultat'
+ ] as $photoKey => $photoLabel)
+ <label for="{{ $photoKey }}">{{ $photoLabel }}</label>
+ <select name="{{ $photoKey }}" id="{{ $photoKey }}" style="width:100%;padding:8px;">
+ <option value="">Dotychczasowe zdjęcie</option>
+ @foreach($photoOptions as $photoOption)
+ <option value="{{ $photoOption->id }}" @selected((string) old($photoKey,$previewDecorations[$photoKey] ?? '') === (string)$photoOption->id)>#{{ $photoOption->id }} — {{ Str::limit($photoOption->title ?: $photoOption->alt ?: 'Fotografia', 48) }}</option>
+ @endforeach
+ </select>
+ @endforeach
+ </fieldset>
+ <fieldset style="margin-top:18px;border:1px solid #ddd;padding:12px;">
+ <legend>Układ banera głównego</legend>
+ <label for="preview_hero_heading_size">Wielkość nagłówka (44–120 px): <output id="heading-size-val">{{ $previewDecorations['preview_hero_heading_size'] ?? 80 }}</output> px</label>
+ <input id="preview_hero_heading_size" type="range" name="preview_hero_heading_size" min="44" max="120" step="1" value="{{ old('preview_hero_heading_size',$previewDecorations['preview_hero_heading_size'] ?? 80) }}">
+ <label for="preview_hero_copy_x">Odstęp tekstu od lewej (30–220 px): <output id="copy-x-val">{{ $previewDecorations['preview_hero_copy_x'] ?? 85 }}</output> px</label>
+ <input id="preview_hero_copy_x" type="range" name="preview_hero_copy_x" min="30" max="220" step="1" value="{{ old('preview_hero_copy_x',$previewDecorations['preview_hero_copy_x'] ?? 85) }}">
+ </fieldset>
  <p><button type="submit">Zapisz zmiany</button></p>
  </form>
 </aside>
@@ -209,6 +236,10 @@
  const open=document.getElementById('foodfoto-edit-open'),panel=document.getElementById('foodfoto-editor');
  open.addEventListener('click',()=>{panel.classList.add('open');open.setAttribute('aria-expanded','true')});
  document.getElementById('foodfoto-edit-close').addEventListener('click',()=>{panel.classList.remove('open');open.setAttribute('aria-expanded','false')});
+ const hero=document.querySelector('.hero');
+ const size=document.getElementById('preview_hero_heading_size'),offset=document.getElementById('preview_hero_copy_x');
+ size.addEventListener('input',()=>{hero.style.setProperty('--hero-heading-size',size.value+'px');document.getElementById('heading-size-val').textContent=size.value});
+ offset.addEventListener('input',()=>{hero.style.setProperty('--hero-copy-x',offset.value+'px');document.getElementById('copy-x-val').textContent=offset.value});
  document.querySelectorAll('#foodfoto-content-form [name]').forEach(input=>{
   const output=document.querySelector('[data-preview-field="'+input.name+'"]');
   if(output)input.addEventListener('input',()=>{output.textContent=input.value});
