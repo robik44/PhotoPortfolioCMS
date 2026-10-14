@@ -1694,7 +1694,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!rect.width || !rect.height) return;
         nextInsertionPoint = {
             x: Math.max(0, Math.min(95, ((event.clientX - rect.left) / rect.width) * 100)),
-            y: Math.max(0, ((event.clientY - rect.top) / rect.height) * 100),
+            y: Math.max(0, ((event.clientY - rect.top) / rect.height) * content.offsetHeight / 9),
         };
     });
 
