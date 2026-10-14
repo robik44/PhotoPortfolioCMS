@@ -55,7 +55,7 @@
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
  <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
- <img class="hero-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+ <img class="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  <div class="hero-copy"><h1>Apetyt<br>na dobre kadry</h1><p>Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.</p><a class="btn" href="#portfolio">Zobacz portfolio →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
@@ -89,7 +89,7 @@
 </section>
 <section class="editorial">
  @if($photo=$photos->get((int)($sections[25]['photo_id']??0)))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro">
@@ -114,7 +114,7 @@
   </article>
   @endforeach
  </div>
- <img class="process-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+ <img class="process-basil" src="{{ !empty($previewDecorations['preview_basil_process']) ? asset('storage/'.$previewDecorations['preview_basil_process']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
 </section>
 <section class="section">
  <h2>Publikacje i realizacje</h2>
