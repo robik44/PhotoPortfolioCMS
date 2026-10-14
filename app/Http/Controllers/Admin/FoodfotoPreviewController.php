@@ -119,7 +119,7 @@ class FoodfotoPreviewController extends Controller
         $id = 'fffont_' . bin2hex(random_bytes(6));
         $path = $file->storeAs('foodfoto-canvas-fonts', $id . '.' . $extension, 'public');
         $fonts[$id] = ['label' => mb_substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 70),
-            'url' => \\Illuminate\\Support\\Facades\\Storage::disk('public')->url($path)];
+            'url' => \Illuminate\Support\Facades\Storage::disk('public')->url($path)];
         SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_fonts'], [
             'value' => json_encode($fonts, JSON_UNESCAPED_UNICODE),
         ]);
