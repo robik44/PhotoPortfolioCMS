@@ -426,7 +426,9 @@ document.addEventListener('DOMContentLoaded', () => {
   ]){
    const child=document.getElementById(source);
    if(!child){event.preventDefault();alert('Brak narzędzia edycji: '+source);return}
-   child.dispatchEvent(new Event('submit',{bubbles:false,cancelable:true}));
+   const collectOnly=new Event('submit',{bubbles:false,cancelable:true});
+   collectOnly.preventDefault(); // Run each form's serializer without submitting that form.
+   child.dispatchEvent(collectOnly);
    const value=child.querySelector('input[type="hidden"][name]:not([name="_token"])');
    if(!value || !value.value){event.preventDefault();alert('Nie udało się zebrać danych: '+source);return}
    document.getElementById(target).value=value.value;
