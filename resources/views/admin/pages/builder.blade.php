@@ -592,6 +592,19 @@
                 + Separator
             </button>
 
+            <div class="fve-sidebar-title" style="margin-top:22px;">
+                Gotowe układy
+            </div>
+            <button type="button" class="fve-tool" data-fve-preset="image-text">
+                + Zdjęcie i tekst
+            </button>
+            <button type="button" class="fve-tool" data-fve-preset="text-image">
+                + Tekst i zdjęcie
+            </button>
+            <button type="button" class="fve-tool" data-fve-preset="three-steps">
+                + Trzy etapy
+            </button>
+
         </aside>
 
         <main class="fve-stage" id="fve-stage">
@@ -2343,6 +2356,103 @@ document.addEventListener("DOMContentLoaded", function () {
                 );
             });
         });
+
+    // A layout preset inserts ordinary builder elements, not a locked component.
+    // Every image, heading and text remains independently editable and movable.
+    function addLayoutPreset(preset) {
+        const lastBottom = data.sections.reduce((max, section) => {
+            const top = Number(section.position_y) || 0;
+            const height = (Number(section.element_height) || (
+                ['image', 'gallery', 'thumbnail_gallery'].includes(section.type) ? 420 : 120
+            )) / 9;
+            return Math.max(max, top + height);
+        }, 0);
+        const startY = Math.max(5, lastBottom + 8);
+        const created = [];
+
+        function insert(type, options) {
+            addElement(type);
+            const item = data.sections[data.sections.length - 1];
+            Object.assign(item, options);
+            if (options.style) item.style = { ...item.style, ...options.style };
+            created.push(item.id);
+            return item;
+        }
+
+        if (preset === 'image-text' || preset === 'text-image') {
+            const imageFirst = preset === 'image-text';
+            const imageX = imageFirst ? 5 : 54;
+            const copyX = imageFirst ? 55 : 5;
+            insert('image', {
+                position_x: imageX, position_y: startY,
+                element_width: 41, image_height: 390,
+                element_height: 390, image_fit: 'cover'
+            });
+            insert('heading', {
+                content: 'Nowy nagłówek sekcji',
+                position_x: copyX, position_y: startY + 5,
+                element_width: 40, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 48, line_height: 1.14 }
+            });
+            insert('text', {
+                content: 'Wpisz tutaj własny opis. Wszystkie elementy można osobno przesuwać i edytować.',
+                position_x: copyX, position_y: startY + 17,
+                element_width: 38, semantic_tag: 'p',
+                style: { font_size: 20, line_height: 1.55 }
+            });
+            insert('button', {
+                content: 'ZOBACZ WIĘCEJ',
+                position_x: copyX, position_y: startY + 32,
+                element_width: 22
+            });
+        } else if (preset === 'three-steps') {
+            insert('heading', {
+                content: 'Od pomysłu do kadru',
+                position_x: 5, position_y: startY,
+                element_width: 90, heading_level: 'h2', semantic_tag: 'h2',
+                style: { font_size: 48, line_height: 1.14, text_align: 'center' }
+            });
+            const headings = ['Koncepcja', 'Stylizacja', 'Fotografia'];
+            const labels = [
+                'Pomysł i przygotowanie kompozycji.',
+                'Dobór produktów, rekwizytów i detali.',
+                'Światło, kadr i finalne zdjęcie.'
+            ];
+            for (let index = 0; index < 3; index++) {
+                const x = 5 + index * 31;
+                insert('image', {
+                    position_x: x, position_y: startY + 12,
+                    element_width: 28, image_height: 295,
+                    element_height: 295, image_fit: 'cover'
+                });
+                insert('heading', {
+                    content: headings[index],
+                    position_x: x, position_y: startY + 48,
+                    element_width: 28, heading_level: 'h3', semantic_tag: 'h3',
+                    style: { font_size: 29, line_height: 1.2 }
+                });
+                insert('text', {
+                    content: labels[index],
+                    position_x: x, position_y: startY + 55,
+                    element_width: 28, semantic_tag: 'p',
+                    style: { font_size: 17, line_height: 1.5 }
+                });
+            }
+        } else {
+            return;
+        }
+
+        selectedIds.clear();
+        created.forEach(id => selectedIds.add(id));
+        selected = created[0] || null;
+        render();
+        const primary = data.sections.find(item => item.id === selected);
+        if (primary) showProperties(primary);
+    }
+
+    document.querySelectorAll('[data-fve-preset]').forEach(button => {
+        button.addEventListener('click', () => addLayoutPreset(button.dataset.fvePreset));
+    });
 
     function updateZoom() {
 
