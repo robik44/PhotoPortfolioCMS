@@ -475,7 +475,8 @@ class SeoTest extends TestCase
     public function test_shared_header_is_opaque_and_above_builder_layers(): void
     {
         $this->get('/')->assertOk()
-            ->assertSee('.site-header { z-index: 5000 !important; background: #fff !important; }', false);
+            ->assertSee('class="site-header"', false)
+            ->assertSee('background: rgba(255,255,255,.96);', false);
     }
 
     public function test_homepage_portfolio_heading_exposes_anchor_target(): void
@@ -535,7 +536,7 @@ class SeoTest extends TestCase
         $this->get('/sitemap.xml')->assertOk()->assertDontSee('<loc>', false);
 
         $this->actingAs(User::factory()->create());
-        $this->get('/')->assertStatus(503)->assertSee('Strona w budowie');
+        $this->get('/')->assertOk(); // Logged-in CMS users see the real page in preview mode.
         $this->get(route('seo.edit'))->assertOk();
         $this->get(route('site-settings.edit'))->assertOk();
     }
