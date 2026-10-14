@@ -1330,6 +1330,30 @@ document.addEventListener("DOMContentLoaded", function () {
         return box;
     }
 
+    // Opt-in flowing layout: preserve old absolute positions and overlays.
+    function reflowElements() {
+        const entries = data.sections.map(item => ({
+            item, node: Array.from(content.querySelectorAll(".fve-element")).find(n => n.dataset.id === item.id)
+        })).filter(entry => entry.node);
+        entries.sort((a, b) => (Number(a.item.position_y) || 0) - (Number(b.item.position_y) || 0));
+        const sources = [];
+        for (const entry of entries) {
+            const baseTop = (Number(entry.item.position_y) || 0) * 9;
+            const shift = sources.reduce((sum, src) => sum + (baseTop >= src.bottom - 0.5 ? src.delta : 0), 0);
+            entry.node.style.top = (baseTop + shift) + "px";
+            if (entry.item.flow_mode === 'auto') {
+                const height = entry.node.offsetHeight;
+                if (!Number.isFinite(Number(entry.item.flow_base_height)) || Number(entry.item.flow_base_height) <= 0) {
+                    entry.item.flow_base_height = height;
+                }
+                const baseline = Number(entry.item.flow_base_height) || height;
+                const delta = height - baseline;
+                if (Math.abs(delta) > 0.5) sources.push({bottom: baseTop + baseline, delta});
+            }
+        }
+        return Math.max(900, ...entries.map(e => e.node.offsetTop + e.node.offsetHeight + 40));
+    }
+
     function render() {
 
         content.innerHTML = "";
@@ -1672,10 +1696,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
 
         requestAnimationFrame(function () {
-            let maxBottom = 900;
-            content.querySelectorAll(".fve-element").forEach(function (element) {
-                maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 40);
-            });
+            const maxBottom = reflowElements();
             content.style.height = maxBottom + "px";
             content.style.minHeight = maxBottom + "px";
             page.style.minHeight = "0";
@@ -2020,6 +2041,29 @@ document.addEventListener("DOMContentLoaded", function () {
 
         }
 
+        // New content may grow vertically without disturbing the existing page.
+        const flowWrap = document.createElement('label');
+        flowWrap.className = 'fve-field';
+        flowWrap.style.display = 'flex';
+        flowWrap.style.gap = '10px';
+        flowWrap.style.alignItems = 'center';
+        const flowInput = document.createElement('input');
+        flowInput.type = 'checkbox';
+        flowInput.checked = item.flow_mode === 'auto';
+        flowInput.addEventListener('change', () => {
+            if (flowInput.checked) {
+                const node = Array.from(content.querySelectorAll('.fve-element')).find(n => n.dataset.id === item.id);
+                item.flow_base_height = node?.offsetHeight || Number(item.element_height) || 50;
+                item.flow_mode = 'auto';
+            } else {
+                item.flow_mode = 'free';
+            }
+            render();
+        });
+        flowWrap.appendChild(flowInput);
+        flowWrap.appendChild(document.createTextNode('Automatyczny układ — odsuwaj elementy poniżej przy zmianie wysokości'));
+        properties.appendChild(flowWrap);
+
         field(
             "Pozycja X (%)",
             "number",
@@ -2326,6 +2370,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 line_height: 1.6,
                 letter_spacing: 0
             },
+            flow_mode: options.silent ? 'free' : 'auto',
+            flow_base_height: 0,
             position_x: 5,
             position_y: data.sections.length
                 ? Math.max(...data.sections.map(section => Number(section.position_y) || 0)) + 10
