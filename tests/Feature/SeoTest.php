@@ -475,8 +475,8 @@ class SeoTest extends TestCase
     public function test_shared_header_is_opaque_and_above_builder_layers(): void
     {
         $this->get('/')->assertOk()
-            ->assertSee('class="site-header"', false)
-            ->assertSee('background: rgba(255,255,255,.96);', false);
+            ->assertSee('z-index: 5000 !important;', false)
+            ->assertSee('background: #fff !important;', false);
     }
 
     public function test_homepage_portfolio_heading_exposes_anchor_target(): void
