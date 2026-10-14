@@ -254,4 +254,12 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get(route('foodfoto.home.preview'))->assertStatus(409);
     }
 
+    public function test_combined_save_serializers_do_not_submit_their_individual_forms(): void
+    {
+        // Guard against accidental browser navigation to old absolute APP_URL forms.
+        $template = file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString('collectOnly.preventDefault()', $template);
+        $this->assertStringContainsString('child.dispatchEvent(collectOnly)', $template);
+    }
+
 }
