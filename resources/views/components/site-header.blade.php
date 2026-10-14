@@ -38,7 +38,7 @@
     }
     .site-header .logo > .logo-brand-row { display:flex; align-items:center; gap:0; margin-top:0; flex-wrap:nowrap; width:max-content; max-width:none; }
     /* The uploaded PNG contains right-side white padding: compensate optically. */
-    .site-header .logo-brand-image + .logo-brand-divider { margin-left:-23px; }
+    .site-header .logo-brand-image + .logo-brand-divider { margin-left:-13px; }
     .site-header .logo-brand-divider + .logo-text-stack { margin-left:18px; }
     .site-header .logo .logo-text-stack > span:last-child { margin-top:var(--header-logo-subtitle-gap); }
     .site-header .logo-brand-image { display:block; width:var(--brand-image-width, 76px); height:auto; max-height:120px; object-fit:contain; }
