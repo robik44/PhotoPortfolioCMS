@@ -212,6 +212,23 @@
  @if($photo=$photos->get((int)($sections[31]['photo_id']??0)))<img loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Kontakt — fotografia żywności' }}">@endif
 </section>
 
+@if(count($customBlocks))
+<section class="section" id="foodfoto-custom-elements" aria-label="Dodatkowe elementy strony">
+@foreach($customBlocks as $block)
+  @if(($block['type'] ?? '') === 'heading')
+    <h2>{{ $block['content'] ?? '' }}</h2>
+  @elseif(($block['type'] ?? '') === 'text')
+    <p style="font:18px/1.7 Arial,sans-serif;white-space:pre-line">{{ $block['content'] ?? '' }}</p>
+  @elseif(($block['type'] ?? '') === 'image')
+    @if($customPhoto = $photos->get((int)($block['photo_id'] ?? 0)))
+      <img style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
+    @endif
+  @elseif(($block['type'] ?? '') === 'button')
+    <a class="btn" href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
+  @endif
+@endforeach
+</section>
+@endif
 <footer class="foot"><span>FoodFoto — Magda Gugała</span><span><a href="{{ url('/kontakt') }}">Kontakt</a> · <a href="{{ url('/o-mnie') }}">O mnie</a></span></footer>
 </div>
 
@@ -290,6 +307,71 @@
  </fieldset>
  <p><button type="submit">Zapisz zmiany</button></p>
  </form>
+<section style="margin:28px 0 36px;padding:14px;border:1px solid #ddd" aria-label="Dodawanie elementów">
+<h3 style="margin:0 0 8px">Dodatkowe elementy strony</h3>
+<p>Dodaj nagłówek, tekst, zdjęcie albo przycisk. Elementy pojawią się nad stopką również na stronie publicznej.</p>
+@if(session('foodfoto_blocks_saved'))<p role="status">Zapisano dodatkowe elementy.</p>@endif
+<form id="ff-blocks-form" action="{{ route('foodfoto.home.preview.blocks') }}" method="POST">
+@csrf
+<div id="ff-blocks-list">
+@foreach($customBlocks as $i => $block)
+<div class="ff-block-entry" style="border-bottom:1px solid #ccc;padding:10px 0">
+<label>Rodzaj elementu</label>
+<select data-block-field="type" name="blocks[{{ $i }}][type]">
+@foreach(['heading'=>'Nagłówek','text'=>'Tekst','image'=>'Zdjęcie','button'=>'Przycisk'] as $typeValue=>$typeLabel)
+<option value="{{ $typeValue }}" @selected(($block['type'] ?? '') === $typeValue)>{{ $typeLabel }}</option>
+@endforeach
+</select>
+<label>Tekst / podpis</label>
+<textarea data-block-field="content" name="blocks[{{ $i }}][content]" rows="2" maxlength="2000">{{ $block['content'] ?? '' }}</textarea>
+<label>Zdjęcie z biblioteki</label>
+<select data-block-field="photo_id" name="blocks[{{ $i }}][photo_id]">
+<option value="">Wybierz zdjęcie</option>
+@foreach($photoOptions as $option)
+<option value="{{ $option->id }}" @selected((int)($block['photo_id'] ?? 0) === (int)$option->id)>#{{ $option->id }} — {{ Str::limit($option->title ?: $option->alt ?: 'Zdjęcie',50) }}</option>
+@endforeach
+</select>
+<label>Link przycisku</label><input data-block-field="url" name="blocks[{{ $i }}][url]" value="{{ $block['url'] ?? '' }}" maxlength="500">
+<button type="button" class="ff-block-remove" style="margin-top:8px">Usuń element</button>
+</div>
+@endforeach
+</div>
+<button id="ff-block-add" type="button">+ Dodaj element</button>
+<button type="submit">Zapisz elementy</button>
+</form>
+<template id="ff-block-template">
+<div class="ff-block-entry" style="border-bottom:1px solid #ccc;padding:10px 0">
+<label>Rodzaj elementu</label><select data-block-field="type"><option value="heading">Nagłówek</option><option value="text">Tekst</option><option value="image">Zdjęcie</option><option value="button">Przycisk</option></select>
+<label>Tekst / podpis</label><textarea data-block-field="content" rows="2" maxlength="2000"></textarea>
+<label>Zdjęcie z biblioteki</label><select data-block-field="photo_id"><option value="">Wybierz zdjęcie</option>@foreach($photoOptions as $option)<option value="{{ $option->id }}">#{{ $option->id }} — {{ Str::limit($option->title ?: $option->alt ?: 'Zdjęcie', 50) }}</option>@endforeach</select>
+<label>Link przycisku</label><input data-block-field="url" maxlength="500">
+<button type="button" class="ff-block-remove" style="margin-top:8px">Usuń element</button>
+</div>
+</template>
+</section>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const list = document.getElementById('ff-blocks-list');
+ const form = document.getElementById('ff-blocks-form');
+ const refresh = () => [...list.querySelectorAll('.ff-block-entry')].forEach((entry,index) => {
+  entry.querySelectorAll('[data-block-field]').forEach(input => input.name = 'blocks['+index+']['+input.dataset.blockField+']');
+ });
+ document.getElementById('ff-block-add').addEventListener('click', () => {
+  if(list.querySelectorAll('.ff-block-entry').length >= 30) return alert('Maksymalnie 30 elementów');
+  list.appendChild(document.getElementById('ff-block-template').content.cloneNode(true));
+  refresh();
+ });
+ list.addEventListener('click', e => { if(e.target.closest('.ff-block-remove')) {e.target.closest('.ff-block-entry').remove();refresh();} });
+ form.addEventListener('submit', e => {
+  refresh();
+  // Laravel accepts an empty array only when explicitly signaled.
+  if (!list.children.length) {
+   const empty = document.createElement('input');empty.type='hidden';empty.name='blocks';empty.value='[]';form.appendChild(empty);
+  }
+ });
+ refresh();
+});
+</script>
 </aside>
 <script>
 (function(){
