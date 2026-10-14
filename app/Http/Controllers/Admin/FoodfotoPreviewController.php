@@ -66,6 +66,34 @@ class FoodfotoPreviewController extends Controller
         return redirect()->route('foodfoto.home.preview')->with('foodfoto_content_saved', true);
     }
 
+    public function updateBlocks(Request $request)
+    {
+        $data = $request->validate([
+            'blocks' => ['required', 'array', 'max:30'],
+            'blocks.*.type' => ['required', 'in:heading,text,image,button'],
+            'blocks.*.content' => ['nullable', 'string', 'max:2000'],
+            'blocks.*.photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'blocks.*.url' => ['nullable', 'string', 'max:500'],
+        ]);
+        $clean = [];
+        foreach ($data['blocks'] as $block) {
+            $type = $block['type'];
+            if ($type === 'image' && empty($block['photo_id'])) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'blocks' => 'Wybierz zdjęcie dla każdego elementu typu Zdjęcie.',
+                ]);
+            }
+            $clean[] = [
+                'type' => $type,
+                'content' => trim((string) ($block['content'] ?? '')),
+                'photo_id' => $type === 'image' ? (int) ($block['photo_id'] ?? 0) : null,
+                'url' => $type === 'button' ? trim((string) ($block['url'] ?? '#kontakt')) : null,
+            ];
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_custom_blocks'], ['value' => json_encode($clean, JSON_UNESCAPED_UNICODE)]);
+        return redirect()->route('foodfoto.home.preview')->with('foodfoto_blocks_saved', true);
+    }
+
     public function __invoke(): Response
     {
         return $this->renderPage(false);
@@ -126,13 +154,18 @@ class FoodfotoPreviewController extends Controller
         // Preserve numeric photo IDs: merge() renumbers numeric collection keys.
         $photos = $photos->union(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
 
+        $customBlocks = json_decode(SiteSetting::where('key', 'foodfoto_custom_blocks')->value('value') ?: '[]', true);
+        if (!is_array($customBlocks)) $customBlocks = [];
+        $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
+        $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
+
         $editorPositions = json_decode(SiteSetting::where('key', 'preview_editor_positions')->value('value') ?: '{}', true);
         if (!is_array($editorPositions)) $editorPositions = [];
 
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
