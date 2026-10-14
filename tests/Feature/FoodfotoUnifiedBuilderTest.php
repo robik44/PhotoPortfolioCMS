@@ -241,4 +241,16 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_title']);
     }
 
+    public function test_older_codespaces_home_uses_private_fixture_without_modifying_live_layout(): void
+    {
+        $live = $this->homepage();
+        $before = $live->content;
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('Tryb testowy Codespaces')
+            ->assertSee('ff-unified-panel');
+        $this->assertSame($before, $live->fresh()->content);
+        $this->get(route('foodfoto.home.preview'))->assertStatus(409);
+    }
+
 }
