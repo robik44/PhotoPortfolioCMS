@@ -10,9 +10,29 @@ use App\Models\Photo;
 use App\Models\SiteSetting;
 use App\Support\Seo;
 use Illuminate\Http\Response;
+use Illuminate\Http\Request;
 
 class FoodfotoPreviewController extends Controller
 {
+    public function updateContent(Request $request)
+    {
+        $validated = $request->validate([
+            'preview_hero_title' => ['required', 'string', 'max:160'],
+            'preview_hero_description' => ['required', 'string', 'max:500'],
+            'preview_hero_button_label' => ['required', 'string', 'max:80'],
+            'preview_editorial_title' => ['required', 'string', 'max:600'],
+            'preview_editorial_description' => ['required', 'string', 'max:600'],
+            'preview_experience_title' => ['required', 'string', 'max:600'],
+            'preview_experience_description' => ['required', 'string', 'max:600'],
+        ]);
+
+        foreach ($validated as $key => $value) {
+            SiteSetting::updateOrCreate(['key' => $key], ['value' => trim($value)]);
+        }
+
+        return redirect()->route('foodfoto.home.preview')->with('foodfoto_content_saved', true);
+    }
+
     public function __invoke(): Response
     {
         $builder = PageBuilder::query()->whereNull('page_id')->where('type', 'home')->firstOrFail();
