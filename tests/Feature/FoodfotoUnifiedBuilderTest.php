@@ -391,16 +391,16 @@ class FoodfotoUnifiedBuilderTest extends TestCase
 
     public function test_custom_font_upload_is_private_and_accepted_only_for_supported_signatures(): void
     {
-        \Illuminate\\Support\\Facades\\Storage::fake('public');
+        \Illuminate\Support\Facades\Storage::fake('public');
         $this->homepage();
-        $valid = \Illuminate\\Http\\UploadedFile::fake()->createWithContent('example.woff2', 'wOF2'.str_repeat("x", 60));
+        $valid = \Illuminate\Http\UploadedFile::fake()->createWithContent('example.woff2', 'wOF2'.str_repeat("x", 60));
         $this->post(route('foodfoto.canvas.fonts'), ['font' => $valid])->assertRedirect('/login');
         $this->actingAs(User::factory()->create())->withoutVite();
-        $valid = \Illuminate\\Http\\UploadedFile::fake()->createWithContent('example.woff2', 'wOF2'.str_repeat("x", 60));
+        $valid = \Illuminate\Http\UploadedFile::fake()->createWithContent('example.woff2', 'wOF2'.str_repeat("x", 60));
         $this->postJson(route('foodfoto.canvas.fonts'), ['font' => $valid])
             ->assertOk()->assertJsonPath('success', true);
         $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('example (własna)');
-        $bad = \Illuminate\\Http\\UploadedFile::fake()->createWithContent('malicious.woff2', 'NOT-A-FONT');
+        $bad = \Illuminate\Http\UploadedFile::fake()->createWithContent('malicious.woff2', 'NOT-A-FONT');
         $this->postJson(route('foodfoto.canvas.fonts'), ['font' => $bad])->assertStatus(422);
     }
 
