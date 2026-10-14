@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120">
+<defs><linearGradient id="leaf" x2="1" y2="1"><stop stop-color="#84b648"/><stop offset=".56" stop-color="#3c812c"/><stop offset="1" stop-color="#1f5c2d"/></linearGradient></defs>
+<g fill="none" stroke="#45843b" stroke-width="2.3" stroke-linecap="round"><path d="M15 110Q61 61 78 21"/><path d="M54 72Q66 69 89 60"/><path d="M45 81Q40 62 26 53"/></g>
+<g fill="url(#leaf)" stroke="#376a31" stroke-width="1.2">
+<path d="M77 30C51 23 57 4 81 3c17-1 26 11 13 24-6 6-12 7-17 3Z"/>
+<path d="M66 53C51 31 70 21 86 28c17 8 6 28-20 25Z"/>
+<path d="M88 61C99 39 114 45 116 59c3 18-16 21-28 2Z"/>
+<path d="M47 77C19 79 12 65 21 56c12-12 31 1 26 21Z"/>
+<path d="M30 91C7 94 3 82 11 74c10-11 25 1 19 17Z"/>
+</g>
+<g stroke="#bbda8a" stroke-width="1" opacity=".65"><path d="M77 30 83 9M66 53 80 32M88 61l21-3M47 77 24 61M30 91 14 78"/></g>
+</svg>
