@@ -45,7 +45,9 @@
  <div class="lead">{{ $sections[4]['content'] ?? '' }}</div>
  <div class="services">
  @foreach([ [5,8,11], [6,9,12], [7,10,13], [14,17,20], [15,18,21], [16,19,22] ] as $indices)
- @php([$imageIndex,$titleIndex,$textIndex]=$indices)
+ @php($imageIndex = $indices[0])
+ @php($titleIndex = $indices[1])
+ @php($textIndex = $indices[2])
  @php($name=trim($sections[$titleIndex]['content'] ?? ''))
  @php($url=$seoLinks[mb_strtolower($name)] ?? null)
  <article class="service">
