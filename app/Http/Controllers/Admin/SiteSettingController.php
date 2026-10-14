@@ -23,6 +23,9 @@ class SiteSettingController extends Controller
             'hero_photo_id' => null,
             'hero_image' => null,
             'site_under_construction' => '0',
+            'preview_basil_hero' => null,
+            'preview_basil_editorial' => null,
+            'preview_basil_process' => null,
         ];
 
         $settings = array_merge(
@@ -54,6 +57,9 @@ class SiteSettingController extends Controller
             'favicon' => ['nullable', 'image', 'mimes:png', 'max:2048', 'dimensions:min_width=48,min_height=48'],
             'background_color' => ['nullable', 'string', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'site_under_construction' => ['sometimes', 'boolean'],
+            'preview_basil_hero_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
+            'preview_basil_editorial_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
+            'preview_basil_process_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
         ]);
 
         foreach ([
@@ -96,6 +102,14 @@ class SiteSettingController extends Controller
             SiteSetting::updateOrCreate(['key' => 'favicon'], ['value' => $path]);
             if ($oldIcon) {
                 Storage::disk('public')->delete($oldIcon);
+            }
+        }
+
+        foreach (['hero', 'editorial', 'process'] as $placement) {
+            $input = 'preview_basil_'.$placement.'_file';
+            if ($request->hasFile($input)) {
+                $path = $request->file($input)->store('foodfoto-decorations', 'public');
+                SiteSetting::updateOrCreate(['key' => 'preview_basil_'.$placement], ['value' => $path]);
             }
         }
 
