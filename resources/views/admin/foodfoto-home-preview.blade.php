@@ -63,25 +63,41 @@
 #foodfoto-editor input,#foodfoto-editor textarea{width:100%;padding:9px;border:1px solid #bbb;font:14px Arial,sans-serif;box-sizing:border-box}
 #foodfoto-editor button{background:#26392b;color:#fff;border:0;padding:10px 14px;cursor:pointer}
 #foodfoto-editor .close{float:right;background:#ddd;color:#222}
+
+/* Private layout editor: rulers are overlay guides, not live content. */
+[data-foodfoto-layout]{position:relative}
+.ff-layout-editing [data-move-id]{outline:1px dashed rgba(37,70,44,.6);cursor:grab;touch-action:none}
+.ff-layout-editing [data-move-id].ff-selected{outline:3px solid #376e46;outline-offset:2px}
+.ff-dragging,.ff-dragging *{cursor:grabbing!important;user-select:none!important}
+.ff-guide-x,.ff-guide-y{position:absolute;z-index:70;pointer-events:none;background:#26a663}
+.ff-guide-x{top:0;bottom:0;width:1px}.ff-guide-y{left:0;right:0;height:1px}
+.ff-guide-x[hidden],.ff-guide-y[hidden]{display:none}
+#ff-layout-toolbar{position:fixed;left:20px;bottom:20px;z-index:90;display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:white;border:1px solid #aaa;padding:10px;max-width:800px;box-shadow:0 4px 18px #0003;font:13px Arial,sans-serif}
+#ff-layout-toolbar button{border:1px solid #ccc;background:#f5f5f5;padding:8px 11px;cursor:pointer;color:#222}
+#ff-layout-toolbar button.primary{background:#26392b;color:white}
+#ff-layout-controls[hidden]{display:none}
+#ff-layout-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#ff-layout-status{max-width:300px;color:#444}
 </style>
 </head>
 <body>
 <div class="preview-top"><strong>WERSJA ROBOCZA — tylko podgląd, bez zapisu do CMS</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
-<div class="wrap">
+<div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
+<div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
 <header class="header">
  <a class="brand" href="{{ url('/') }}"><span class="brand-mark"><span>food</span><span>foto</span></span><span class="brand-name">Magda Gugała</span></a>
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
 </header>
 <section class="hero" style="--hero-copy-x:{{ (int)($previewDecorations['preview_hero_copy_x'] ?? 85) }}px;--hero-heading-size:{{ (int)($previewDecorations['preview_hero_heading_size'] ?? 80) }}px">
  @if(!empty($previewDecorations['preview_hero_image']))
- <img class="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
+ <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
  @elseif(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
- <img class="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
+ <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
- <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
+ <img class="hero-photo" data-move-id="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
- <img class="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy"><h1 data-preview-field="preview_hero_title" style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p data-preview-field="preview_hero_description">{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }}</span> →</a></div>
+ <img class="hero-basil" data-move-id="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+ <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p data-preview-field="preview_hero_description">{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }}</span> →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
@@ -113,15 +129,15 @@
  </div>
 </section>
 <section class="editorial">
- @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2 data-preview-field="preview_editorial_title">{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p data-preview-field="preview_editorial_description">{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
+ <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title">{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p data-preview-field="preview_editorial_description">{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
- <div class="process-intro">
+ <div class="process-intro" data-move-id="process-intro">
   <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title">{{ $previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru' }}</h2>
   <p data-preview-field="preview_process_description">{{ $previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.' }}</p>
  </div>
- <div class="process-steps">
+ <div class="process-steps" data-move-id="process-steps">
   @foreach([
    ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', (int) (($previewDecorations['preview_process_1_photo_id'] ?? null) ?: ($sections[5]['photo_id'] ?? 0))],
    ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) (($previewDecorations['preview_process_2_photo_id'] ?? null) ?: ($sections[14]['photo_id'] ?? 0))],
@@ -139,15 +155,15 @@
   </article>
   @endforeach
  </div>
- <img class="process-basil" src="{{ !empty($previewDecorations['preview_basil_process']) ? asset('storage/'.$previewDecorations['preview_basil_process']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+ <img class="process-basil" data-move-id="process-basil" src="{{ !empty($previewDecorations['preview_basil_process']) ? asset('storage/'.$previewDecorations['preview_basil_process']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
 </section>
 <section class="about-experience" aria-labelledby="experience-heading">
- <div class="visual">
+ <div class="visual" data-move-id="experience-photo">
   @if($aboutPhoto = $photos->get((int)(($previewDecorations['preview_experience_photo_id'] ?? null) ?: ($sections[6]['photo_id'] ?? 0))))
    <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
- <div class="experience-copy">
+ <div class="experience-copy" data-move-id="experience-copy">
   <div class="eyebrow">Doświadczenie, które widać</div>
   <h2 id="experience-heading" data-preview-field="preview_experience_title">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
   <p data-preview-field="preview_experience_description">{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
@@ -176,6 +192,23 @@
 <footer class="foot"><span>FoodFoto — Magda Gugała</span><span><a href="{{ url('/kontakt') }}">Kontakt</a> · <a href="{{ url('/o-mnie') }}">O mnie</a></span></footer>
 </div>
 
+
+<div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
+ <button id="ff-layout-toggle" type="button" aria-pressed="false">Przesuwaj elementy ↔</button>
+ <div id="ff-layout-controls" hidden>
+  <button type="button" id="ff-layout-undo">Cofnij ↶</button>
+  <button type="button" id="ff-layout-discard">Odrzuć zmiany</button>
+  <button type="button" id="ff-layout-reset">Reset pozycji</button>
+  <label><input id="ff-layout-snap" type="checkbox" checked> Przyciąganie i prowadnice</label>
+  <form id="ff-layout-form" method="POST" action="{{ route('foodfoto.home.preview.layout') }}">
+   @csrf
+   <input id="ff-layout-json" type="hidden" name="layout">
+   <button class="primary" type="submit">Zapisz układ</button>
+  </form>
+ </div>
+ <span id="ff-layout-status" role="status"></span>
+</div>
+@if(session('foodfoto_layout_saved'))<p style="position:fixed;top:40px;left:20px;background:#e5f5e9;padding:8px;z-index:90;font:14px Arial,sans-serif">Pozycje zapisane.</p>@endif
 <button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
 <aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony">
  <button class="close" type="button" id="foodfoto-edit-close">Zamknij ×</button>
@@ -246,4 +279,5 @@
  });
 })();
 </script>
+<script src="{{ asset('js/foodfoto-visual-editor.js') }}" defer></script>
 </body></html>
