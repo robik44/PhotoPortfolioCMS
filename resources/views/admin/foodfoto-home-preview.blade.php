@@ -49,41 +49,11 @@
 .about-experience p{font:18px/1.7 Arial,sans-serif;color:#53554d;max-width:440px}
 .about-experience .about-basil{position:absolute;right:12px;bottom:12px;width:65px;height:65px;pointer-events:none}
 /* FOODFOTO-BASIL-START */
-
-/* FOODFOTO — FOTOREALISTYCZNA BAZYLIA */
-.hero-basil {
-    position: absolute;
-    z-index: 3;
-    width: 92px;
-    height: auto;
-    left: -18px;
-    top: 53%;
-    transform: rotate(-18deg);
-    pointer-events: none;
-    opacity: 1;
-}
-.editorial-basil {
-    position: absolute;
-    z-index: 2;
-    width: 128px;
-    height: auto;
-    right: -34px;
-    bottom: 18px;
-    transform: rotate(12deg);
-    pointer-events: none;
-    opacity: 1;
-}
-.process-basil {
-    position: absolute;
-    z-index: 2;
-    width: 88px;
-    height: auto;
-    left: -16px;
-    bottom: -8px;
-    transform: rotate(-22deg);
-    pointer-events: none;
-    opacity: 1;
-}
+/* Three restrained photographic accents; only preview changes. */
+.hero-basil{position:absolute;z-index:3;width:102px;height:auto;left:-34px;top:56%;transform:rotate(-22deg);pointer-events:none;opacity:.96}
+.editorial-basil{position:absolute;z-index:2;width:164px;height:auto;right:-42px;bottom:9px;transform:rotate(9deg);pointer-events:none;opacity:1}
+.process-basil{position:absolute;z-index:2;width:92px;height:auto;left:12px;top:22px;bottom:auto;transform:rotate(-20deg);pointer-events:none;opacity:.96}
+.about-experience .about-basil{display:none}
 /* FOODFOTO-BASIL-END */
 </style>
 </head>
