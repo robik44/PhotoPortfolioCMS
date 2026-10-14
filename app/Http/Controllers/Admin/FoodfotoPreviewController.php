@@ -112,7 +112,8 @@ class FoodfotoPreviewController extends Controller
         $extraPhotoIds = collect(['preview_editorial_photo_id', 'preview_experience_photo_id', 'preview_process_1_photo_id', 'preview_process_2_photo_id', 'preview_process_3_photo_id'])
             ->map(fn ($key) => $previewDecorations[$key] ?? null)
             ->filter(fn ($id) => is_numeric($id))->map(fn ($id) => (int) $id)->unique();
-        $photos = $photos->merge(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
+        // Preserve numeric photo IDs: merge() renumbers numeric collection keys.
+        $photos = $photos->union(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
 
         $editorPositions = json_decode(SiteSetting::where('key', 'preview_editor_positions')->value('value') ?: '{}', true);
         if (!is_array($editorPositions)) $editorPositions = [];
