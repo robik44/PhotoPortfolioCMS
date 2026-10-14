@@ -281,6 +281,17 @@ document.addEventListener('DOMContentLoaded',()=>{
  const form=document.getElementById('ff-type-form');
  const size=document.getElementById('ff-type-size'),slider=document.getElementById('ff-type-slider');
  const line=document.getElementById('ff-type-line'),space=document.getElementById('ff-type-space');
+ const extraInputs={
+  font_family:document.getElementById('ff-type-family'),
+  font_weight:document.getElementById('ff-type-weight'),
+  text_align:document.getElementById('ff-type-align'),
+  text_transform:document.getElementById('ff-type-transform'),
+  word_spacing:document.getElementById('ff-type-word'),
+  margin_top:document.getElementById('ff-type-margin-top'),
+  margin_bottom:document.getElementById('ff-type-margin-bottom'),
+  max_width:document.getElementById('ff-type-max-width')
+ };
+ const extraDefaults={font_family:'inherit',font_weight:400,text_align:'inherit',text_transform:'none',word_spacing:0,margin_top:0,margin_bottom:0,max_width:0};
  const values={...@json($canvasTypography)};
  let selected=null;
  function read(el){
@@ -291,11 +302,17 @@ document.addEventListener('DOMContentLoaded',()=>{
  function apply(){
   if(!selected)return;
   let v={font_size:Number(size.value),line_height:Number(line.value),letter_spacing:Number(space.value)};
+  for(const [key,input] of Object.entries(extraInputs))v[key]=['font_weight','word_spacing','margin_top','margin_bottom','max_width'].includes(key)?Number(input.value):input.value;
   if(!(v.font_size>=8&&v.font_size<=160&&v.line_height>=.5&&v.line_height<=3&&v.letter_spacing>=-5&&v.letter_spacing<=20))return;
   values[selected.dataset.canvasText]=v;
   selected.style.setProperty('font-size',v.font_size+'px','important');
   selected.style.setProperty('line-height',String(v.line_height),'important');
   selected.style.setProperty('letter-spacing',v.letter_spacing+'px','important');
+  const cssProperties={'font-family':v.font_family,'font-weight':v.font_weight,'text-align':v.text_align,
+   'text-transform':v.text_transform,'word-spacing':v.word_spacing+'px',
+   'margin-top':v.margin_top+'px','margin-bottom':v.margin_bottom+'px',
+   'max-width':v.max_width?v.max_width+'px':'none'};
+  for(const [prop,val] of Object.entries(cssProperties))selected.style.setProperty(prop,String(val),'important');
   slider.value=v.font_size;
  }
  nodes.forEach(el=>el.addEventListener('click',()=>{
@@ -304,9 +321,16 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('ff-type-selected').textContent=el.innerText.slice(0,65);
   const v=read(el);
   size.value=v.font_size;slider.value=v.font_size;line.value=v.line_height;space.value=v.letter_spacing;
+  for(const [key,input] of Object.entries(extraInputs))input.value=v[key]??extraDefaults[key];
  }));
- [size,line,space].forEach(input=>input.addEventListener('input',apply));
+ [size,line,space,...Object.values(extraInputs)].forEach(input=>input.addEventListener('input',apply));
  slider.addEventListener('input',()=>{size.value=slider.value;apply()});
+ document.getElementById('ff-type-select-box').addEventListener('click',()=>{
+  if(!selected){alert('Najpierw wybierz nagłówek lub tekst na stronie.');return;}
+  const block=selected.closest('[data-move-id]');
+  if(!block){alert('Brak osobnego boksu dla tego tekstu.');return;}
+  document.dispatchEvent(new CustomEvent('ff-select-text-box',{detail:{id:block.dataset.moveId}}));
+ });
  form.addEventListener('submit',async event=>{
   event.preventDefault();
   apply();
