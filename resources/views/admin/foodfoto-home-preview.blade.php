@@ -26,7 +26,7 @@
 .thumbs{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}.thumbs img{width:calc(20% - 10px);height:180px;object-fit:cover}
 .contact{position:relative;min-height:410px;background:#e8e4db}.contact img{width:100%;display:block;height:auto}
 .foot{padding:45px 80px;display:flex;justify-content:space-between;font:13px Arial,sans-serif;border-top:1px solid #ddd}
-.placeholder{background:#eceee8;display:grid;place-items:center;color:#777;font:13px Arial,sans-serif}
+.hero-basil{position:absolute;z-index:3;width:65px;height:65px;pointer-events:none;opacity:.9;left:10px;top:62%;transform:rotate(-23deg)}.editorial{position:relative}.editorial-basil{position:absolute;z-index:2;right:16px;bottom:12px;width:66px;height:66px;pointer-events:none;opacity:.9;transform:rotate(22deg)}.placeholder{background:#eceee8;display:grid;place-items:center;color:#777;font:13px Arial,sans-serif}
 /* Preserve the SEO/service heading for assistive technologies, without displaying it. */
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .services-section{padding-top:58px}
@@ -40,7 +40,12 @@
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
 </header>
 <section class="hero">
- @if($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))<img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">@endif
+ @if(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
+ <img src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
+ @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
+ <img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
+ @endif
+ <img class="hero-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  <div class="hero-copy"><h1>Apetyt<br>na dobre kadry</h1><p>Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.</p><a class="btn" href="#portfolio">Zobacz portfolio →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
@@ -74,7 +79,7 @@
 </section>
 <section class="editorial">
  @if($photo=$photos->get((int)($sections[25]['photo_id']??0)))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ <img class="editorial-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="section">
  <h2>Publikacje i realizacje</h2>
