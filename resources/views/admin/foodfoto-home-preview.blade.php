@@ -124,6 +124,22 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
 @endforeach
 @endif
 @if($canvas)
+<style>
+/* Fixed-width grid tracks: resizing one gallery card never shrinks siblings. */
+.cards-gallery{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:start}
+.cards-gallery>a{min-width:0;max-width:none;justify-self:start;box-sizing:border-box}
+.cards-gallery>a.ff-width-resized{max-width:none!important}
+.cards-gallery>a.ff-free-resized{display:flex;flex-direction:column;overflow:visible}
+.cards-gallery>a.ff-free-resized img{display:block;flex:1 1 0;min-height:0;width:100%!important;height:calc(100% - 32px)!important;aspect-ratio:auto!important;object-fit:fill!important}
+.cards-gallery>a.ff-free-resized h3{flex:0 0 32px;margin:0;padding-top:5px;box-sizing:border-box}
+.cards-gallery>a.ff-width-resized:not(.ff-height-resized) img{aspect-ratio:4/3;height:auto;object-fit:cover}
+.about-experience{align-items:start!important}
+.about-experience .visual{align-self:start!important;min-width:0;overflow:visible}
+.about-experience .visual.ff-free-resized img{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;object-fit:fill!important;display:block}
+[data-move-id].ff-free-resized:is(img){object-fit:fill!important;aspect-ratio:auto!important;max-width:none!important}
+</style>
+@endif
+@if($canvas)
 <style>.ff-layout-editing [data-move-id]{position:relative;cursor:grab}.ff-layout-editing [data-move-id] a{pointer-events:none}.ff-layout-editing [data-move-id]:hover{outline:2px dashed #1e774a;outline-offset:2px}</style>
 @endif
 </head>
