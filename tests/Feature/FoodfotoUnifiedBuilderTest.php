@@ -110,4 +110,27 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertDatabaseMissing('page_builders', ['type' => 'foodfoto_draft']);
     }
 
+    public function test_real_homepage_canvas_is_private_and_keeps_its_positions_in_draft_only(): void
+    {
+        $sections = array_fill(0, 32, ['type' => 'text', 'content' => 'Test']);
+        $sections[3]['content'] = 'Co tworzę';
+        $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'selected', 'gallery_ids' => []];
+        $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        $sections[31] = ['type' => 'image', 'photo_id' => 96];
+        PageBuilder::create(['page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['version' => 1, 'settings' => [], 'sections' => $sections]]);
+        $this->get(route('foodfoto.canvas'))->assertRedirect('/login');
+        $this->actingAs(User::factory()->create())->withoutVite()
+            ->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('EDYTOR NA PRAWDZIWYM UKŁADZIE')
+            ->assertSee('data-move-id="services-intro"', false)
+            ->assertHeader('X-Robots-Tag', 'noindex, nofollow, noarchive');
+        $payload = json_encode(['services-intro' => ['x' => 25, 'y' => -10, 'w' => 0, 'z' => 1]]);
+        $this->post(route('foodfoto.canvas.layout'), ['layout' => $payload])
+            ->assertRedirect(route('foodfoto.canvas'));
+        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_positions', 'value' => $payload]);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'preview_editor_positions']);
+        $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('translate: 25px -10px', false);
+    }
+
 }
