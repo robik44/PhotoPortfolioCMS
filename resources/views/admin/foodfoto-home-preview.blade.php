@@ -27,6 +27,9 @@
 .contact{position:relative;min-height:410px;background:#e8e4db}.contact img{width:100%;display:block;height:auto}
 .foot{padding:45px 80px;display:flex;justify-content:space-between;font:13px Arial,sans-serif;border-top:1px solid #ddd}
 .placeholder{background:#eceee8;display:grid;place-items:center;color:#777;font:13px Arial,sans-serif}
+/* Preserve the SEO/service heading for assistive technologies, without displaying it. */
+.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.services-section{padding-top:58px}
 </style>
 </head>
 <body>
@@ -40,8 +43,8 @@
  @if($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))<img src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">@endif
  <div class="hero-copy"><h1>Apetyt<br>na dobre kadry</h1><p>Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.</p><a class="btn" href="#portfolio">Zobacz portfolio →</a></div>
 </section>
-<section class="section" id="uslugi">
- <h2>{{ $sections[3]['content'] ?? 'Co tworzę' }}</h2>
+<section class="section services-section" id="uslugi">
+ <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
  <div class="lead">{{ $sections[4]['content'] ?? '' }}</div>
  <div class="services">
  @foreach([ [5,8,11], [6,9,12], [7,10,13], [14,17,20], [15,18,21], [16,19,22] ] as $indices)
