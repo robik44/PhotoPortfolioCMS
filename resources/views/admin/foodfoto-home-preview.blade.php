@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  <button type="submit" style="padding:12px;width:100%;background:#244e36;color:white;border:0;font-size:15px;cursor:pointer">Zapisz wszystkie zmiany</button>
 </form>
 @if(session('foodfoto_all_saved'))<p role="status" style="color:#216235">Zapisano wszystkie zmiany w wersji roboczej.</p>@endif
-<p id="ff-save-status" role="status" style="font-size:12px;color:#215638"></p>
+<p id="ff-save-status" role="status" aria-live="polite" hidden style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:300;padding:15px 22px;border:2px solid #23613e;background:#e9f6ed;color:#123d25;box-shadow:0 6px 24px #0003;font:bold 15px Arial,sans-serif;max-width:80vw;text-align:center"></p>
 <div id="ff-unified-tools"></div>
  <p style="color:#666;font-size:11px">Wersja robocza — każdą część zapisuj odpowiednim przyciskiem. Strona publiczna nie zmienia się.</p>
 </aside>
@@ -421,6 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
  form.addEventListener('submit',async event=>{
   event.preventDefault();
   const status=document.getElementById('ff-save-status');
+  status.hidden=false;
   status.textContent='Trwa zapisywanie…';
   for(const [source,target] of [
    ['ff-layout-form','ff-all-layout'],
@@ -450,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
    if(response.status===0 || (response.status>=300&&response.status<400)){
     status.textContent='Serwer żąda przekierowania — sprawdź logowanie lub adres aplikacji. Zmiany nie zostały potwierdzone.';
    }else if(response.ok){
-    status.textContent='Zapisano projekt roboczy. Możesz odświeżyć stronę i sprawdzić pozycje.';
+    status.textContent='Zapisano wszystkie zmiany w wersji roboczej. Możesz teraz odświeżyć stronę.';
    }else{
     let message='';
     try { const data=await response.json(); message=data.message||''; } catch(_){}
