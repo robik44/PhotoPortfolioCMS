@@ -55,6 +55,14 @@
 .process-basil{position:absolute;z-index:2;width:92px;height:auto;left:12px;top:22px;bottom:auto;transform:rotate(-20deg);pointer-events:none;opacity:.96}
 .about-experience .about-basil{display:none}
 /* FOODFOTO-BASIL-END */
+
+/* Editing overlay exists only in authenticated, noindex preview. */
+#foodfoto-edit-open{position:fixed;bottom:22px;right:24px;z-index:80;background:#26392b;color:#fff;border:0;padding:14px 20px;font:600 14px Arial,sans-serif;cursor:pointer;box-shadow:0 6px 22px #0003}
+#foodfoto-editor{display:none;position:fixed;z-index:85;right:20px;top:20px;bottom:20px;width:380px;max-width:calc(100vw - 40px);background:#fff;box-shadow:0 8px 50px #0005;overflow-y:auto;padding:24px;font:14px/1.5 Arial,sans-serif;color:#202019}
+#foodfoto-editor.open{display:block}#foodfoto-editor label{display:block;margin:12px 0 5px;font-weight:600}
+#foodfoto-editor input,#foodfoto-editor textarea{width:100%;padding:9px;border:1px solid #bbb;font:14px Arial,sans-serif;box-sizing:border-box}
+#foodfoto-editor button{background:#26392b;color:#fff;border:0;padding:10px 14px;cursor:pointer}
+#foodfoto-editor .close{float:right;background:#ddd;color:#222}
 </style>
 </head>
 <body>
@@ -73,7 +81,7 @@
  <img class="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy"><h1 style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p>{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }} →</a></div>
+ <div class="hero-copy"><h1 data-preview-field="preview_hero_title" style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p data-preview-field="preview_hero_description">{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }}</span> →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
@@ -106,7 +114,7 @@
 </section>
 <section class="editorial">
  @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p>{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2 data-preview-field="preview_editorial_title">{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p data-preview-field="preview_editorial_description">{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro">
@@ -141,8 +149,8 @@
  </div>
  <div class="experience-copy">
   <div class="eyebrow">Doświadczenie, które widać</div>
-  <h2 id="experience-heading">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
-  <p>{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
+  <h2 id="experience-heading" data-preview-field="preview_experience_title">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
+  <p data-preview-field="preview_experience_description">{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
   <a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a>
   <img class="about-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  </div>
@@ -167,4 +175,44 @@
 
 <footer class="foot"><span>FoodFoto — Magda Gugała</span><span><a href="{{ url('/kontakt') }}">Kontakt</a> · <a href="{{ url('/o-mnie') }}">O mnie</a></span></footer>
 </div>
+
+<button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj teksty podglądu ✎</button>
+<aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony">
+ <button class="close" type="button" id="foodfoto-edit-close">Zamknij ×</button>
+ <h2 style="margin:0 0 12px;font:26px Georgia,serif;">Edycja na podglądzie</h2>
+ <p>Zmiany widać natychmiast. Zapis dotyczy tylko nowej wersji FoodFoto. Zdjęcia zmienisz w <a href="{{ route('site-settings.edit') }}" style="text-decoration:underline;">Ustawieniach witryny</a>.</p>
+ @if(session('foodfoto_content_saved'))<p role="status" style="color:#286b35">Zapisano teksty podglądu.</p>@endif
+ @if($errors->any())<p role="alert" style="color:#a22">Nie zapisano zmian: {{ $errors->first() }}</p>@endif
+ <form id="foodfoto-content-form" method="POST" action="{{ route('foodfoto.home.preview.content') }}">
+ @csrf
+ @foreach([
+  'preview_hero_title' => ['Baner — nagłówek','Apetyt na dobre kadry'],
+  'preview_hero_description' => ['Baner — opis','Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.'],
+  'preview_hero_button_label' => ['Baner — przycisk','Zobacz portfolio'],
+  'preview_editorial_title' => ['Więcej niż zwykłe zdjęcia — nagłówek','Więcej niż zwykłe zdjęcia'],
+  'preview_editorial_description' => ['Więcej niż zwykłe zdjęcia — opis','Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.'],
+  'preview_experience_title' => ['Doświadczenie — nagłówek','Od niemal 30 lat z aparatem przy stole'],
+  'preview_experience_description' => ['Doświadczenie — opis','Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.']
+ ] as $name => $field)
+ <label for="edit-{{ $name }}">{{ $field[0] }}</label>
+ @if(str_contains($name,'description'))
+ <textarea id="edit-{{ $name }}" name="{{ $name }}" required maxlength="600" rows="3">{{ old($name, $previewDecorations[$name] ?? $field[1]) }}</textarea>
+ @else
+ <input id="edit-{{ $name }}" type="text" name="{{ $name }}" required maxlength="{{ $name === 'preview_hero_title' ? 160 : ($name === 'preview_hero_button_label' ? 80 : 600) }}" value="{{ old($name, $previewDecorations[$name] ?? $field[1]) }}">
+ @endif
+ @endforeach
+ <p><button type="submit">Zapisz zmiany</button></p>
+ </form>
+</aside>
+<script>
+(function(){
+ const open=document.getElementById('foodfoto-edit-open'),panel=document.getElementById('foodfoto-editor');
+ open.addEventListener('click',()=>{panel.classList.add('open');open.setAttribute('aria-expanded','true')});
+ document.getElementById('foodfoto-edit-close').addEventListener('click',()=>{panel.classList.remove('open');open.setAttribute('aria-expanded','false')});
+ document.querySelectorAll('#foodfoto-content-form [name]').forEach(input=>{
+  const output=document.querySelector('[data-preview-field="'+input.name+'"]');
+  if(output)input.addEventListener('input',()=>{output.textContent=input.value});
+ });
+})();
+</script>
 </body></html>
