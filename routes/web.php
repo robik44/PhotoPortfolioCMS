@@ -20,6 +20,10 @@ Route::get('/sitemap.xml', [\App\Http\Controllers\SeoController::class, 'sitemap
 Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots'])->name('robots');
 
 Route::get("/", function () {
+    if (SiteSetting::where('key', 'foodfoto_new_home_published')->value('value') === '1') {
+        return app(\\App\\Http\\Controllers\\Admin\\FoodfotoPreviewController::class)->publicHome();
+    }
+
     $galleries = Gallery::with("photos")
         ->orderBy("sort_order")
         ->get();
