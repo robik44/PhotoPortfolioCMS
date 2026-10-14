@@ -84,9 +84,12 @@
     .site-header .main-submenu a { display: block; padding: 9px 16px; white-space: nowrap; }
     .site-header .main-submenu a:hover { opacity: 1; background: #f7f7f7; }
     /* Keep the full-size brand intact; move the menu below it before space runs out. */
-    @media (min-width: 521px) and (max-width: 1650px) {
-        .site-header .header-inner { flex-wrap: wrap; justify-content: center; row-gap: 14px; }
-        .site-header .main-menu { justify-content: center; flex-wrap: wrap; }
+    /* Brand stays at the left edge and menu at the right on desktop. */
+    .site-header .header-inner { justify-content: space-between; }
+    .site-header .main-menu { margin-left: auto; justify-content: flex-end; }
+    @media (min-width: 521px) and (max-width: 1300px) {
+        .site-header .header-inner { flex-wrap: wrap; justify-content: space-between; row-gap: 14px; }
+        .site-header .main-menu { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
     }
     @media (max-width: 520px) {
         .site-header .header-inner {
