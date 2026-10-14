@@ -99,13 +99,18 @@
 @endif
 @endforeach
 @if($canvas)
+@foreach($canvasFontOptions as $fontId => $fontInfo)
+@if(preg_match('/^fffont_[a-f0-9]{12}$/', (string)$fontId) && is_array($fontInfo))
+<style>@font-face{font-family:'{{ $fontId }}';src:url('{{ $fontInfo['url'] ?? '' }}') format('{{ str_ends_with($fontInfo['url'] ?? '', '.woff2') ? 'woff2' : 'woff' }}');font-display:swap;}</style>
+@endif
+@endforeach
 @foreach($canvasTypography as $key => $style)
 @if(preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', (string)$key) && is_array($style))
 <style>[data-canvas-text="{{ $key }}"]{
 font-size:{{ max(8,min(160,(float)($style['font_size'] ?? 18))) }}px!important;
 line-height:{{ max(.5,min(3,(float)($style['line_height'] ?? 1.4))) }}!important;
 letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!important;
-font-family:{{ in_array(($style['font_family'] ?? 'inherit'), ['inherit','Georgia','Arial','Helvetica','Verdana','Tahoma','Trebuchet MS','Times New Roman','Courier New'], true) ? (($style['font_family'] ?? 'inherit') === 'inherit' ? 'inherit' : "'" . ($style['font_family'] ?? 'inherit') . "'") : 'inherit' }}!important;
+font-family:{{ array_key_exists(($style['font_family'] ?? ''), $canvasFontOptions) && preg_match('/^fffont_[a-f0-9]{12}$/', (string)($style['font_family'] ?? '')) ? "'" . $style['font_family'] . "'" : (in_array(($style['font_family'] ?? 'inherit'), ['inherit','Georgia','Arial','Helvetica','Verdana','Tahoma','Trebuchet MS','Times New Roman','Courier New'], true) ? (($style['font_family'] ?? 'inherit') === 'inherit' ? 'inherit' : "'" . ($style['font_family'] ?? 'inherit') . "'") : 'inherit') }}!important;
 font-weight:{{ max(100,min(900,(int)($style['font_weight'] ?? 400))) }}!important;
 text-align:{{ in_array(($style['text_align'] ?? 'inherit'), ['inherit','left','center','right','justify'], true) ? ($style['text_align'] ?? 'inherit') : 'inherit' }}!important;
 text-transform:{{ in_array(($style['text_transform'] ?? 'none'), ['none','uppercase','lowercase','capitalize'], true) ? ($style['text_transform'] ?? 'none') : 'none' }}!important;
@@ -271,7 +276,13 @@ max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$styl
  <input id="ff-type-slider" type="range" min="8" max="160" step=".1" value="18" style="width:100%">
  <label>Interlinia <input id="ff-type-line" type="number" min=".5" max="3" step=".05" value="1.4" style="width:100%"></label>
  <label>Odstępy liter (px) <input id="ff-type-space" type="number" min="-5" max="20" step=".01" value="0" style="width:100%"></label>
- <label>Krój pisma <select id="ff-type-family"><option value="inherit">Dziedziczony</option><option>Georgia</option><option>Arial</option><option>Helvetica</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Times New Roman</option><option>Courier New</option></select></label>
+ <label>Krój pisma <select id="ff-type-family"><option value="inherit">Dziedziczony</option><option>Georgia</option><option>Arial</option><option>Helvetica</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Times New Roman</option><option>Courier New</option>@foreach($canvasFontOptions as $fontId=>$fontInfo)<option value="{{ $fontId }}">{{ $fontInfo['label'] ?? $fontId }} (własna)</option>@endforeach</select></label>
+ <form id="ff-font-upload" enctype="multipart/form-data" style="margin:10px 0">
+  <label>Dodaj własną czcionkę WOFF / WOFF2 (do 2 MB)
+   <input name="font" type="file" accept=".woff,.woff2" required>
+  </label><button type="submit">Dodaj czcionkę</button>
+  <p id="ff-font-upload-status" role="status"></p>
+ </form>
  <label>Grubość <select id="ff-type-weight">@foreach(range(100,900,100) as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></label>
  <label>Wyrównanie <select id="ff-type-align"><option value="inherit">Dziedziczone</option><option value="left">Do lewej</option><option value="center">Wyśrodkuj</option><option value="right">Do prawej</option><option value="justify">Wyjustuj</option></select></label>
  <label>Wielkość liter <select id="ff-type-transform"><option value="none">Normalna</option><option value="uppercase">Wersaliki</option><option value="lowercase">Małe</option><option value="capitalize">Pierwsze Litery Wielkie</option></select></label>
@@ -300,6 +311,34 @@ document.addEventListener('DOMContentLoaded',()=>{
   max_width:document.getElementById('ff-type-max-width')
  };
  const extraDefaults={font_family:'inherit',font_weight:400,text_align:'inherit',text_transform:'none',word_spacing:0,margin_top:0,margin_bottom:0,max_width:0};
+ const canvasFontOptions={...@json($canvasFontOptions)};
+ const fontFamilyInput=document.getElementById('ff-type-family');
+ document.getElementById('ff-font-upload').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const status=document.getElementById('ff-font-upload-status');
+  status.textContent='Wysyłanie czcionki…';
+  try{
+   const form=event.currentTarget,body=new FormData(form);
+   body.append('_token',document.querySelector('#ff-save-all-form input[name="_token"]').value);
+   const response=await fetch('/admin/foodfoto-canvas/fonts',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   const result=await response.json();
+   const added=Object.entries(result.fonts).filter(([key])=>!canvasFontOptions[key]);
+   Object.assign(canvasFontOptions,result.fonts);
+   for(const [id,info] of added){
+    const option=document.createElement('option');option.value=id;option.textContent=info.label+' (własna)';
+    fontFamilyInput.appendChild(option);
+    const css=document.createElement('style');
+    css.textContent="@font-face{font-family:'"+id+"';src:url('"+info.url+"');font-display:swap}";
+    document.head.appendChild(css);
+    fontFamilyInput.value=id;
+   }
+   status.textContent='Czcionka dodana do wersji roboczej. Zaznacz tekst, wybierz krój i zapisz typografię.';
+   form.reset();
+  }catch(error){status.textContent='Błąd dodawania czcionki: '+error.message}
+ });
  const values={...@json($canvasTypography)};
  let selected=null;
  function read(el){
