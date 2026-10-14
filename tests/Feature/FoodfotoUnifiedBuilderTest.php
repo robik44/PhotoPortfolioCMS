@@ -200,6 +200,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->actingAs(User::factory()->create())->withoutVite()
             ->get(route('foodfoto.canvas'))->assertOk()
             ->assertSee('id="ff-unified-panel"', false)
+            ->assertSee('action="/admin/foodfoto-canvas/save-all"', false)
             ->assertSee('id="ff-unified-tools"', false)
             ->assertSee('id="ff-type-panel"', false)
             ->assertSee('id="ff-photo-panel"', false)
@@ -228,7 +229,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->post(route('foodfoto.canvas.save-all'), $invalid)->assertStatus(422);
         $this->assertDatabaseMissing('site_settings', ['key' => 'foodfoto_canvas_draft_positions']);
         $this->post(route('foodfoto.canvas.save-all'), $payload)
-            ->assertRedirect(route('foodfoto.canvas'));
+            ->assertRedirect(route('foodfoto.canvas', [], false));
         foreach ([
             'foodfoto_canvas_draft_positions',
             'foodfoto_canvas_draft_texts',
