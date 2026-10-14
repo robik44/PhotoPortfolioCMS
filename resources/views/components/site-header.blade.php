@@ -36,7 +36,9 @@
         color: inherit;
         text-decoration: none;
     }
-    .site-header .logo > .logo-brand-row { display:flex; align-items:center; gap:18px; margin-top:0; flex-wrap:nowrap; width:max-content; max-width:none; }
+    .site-header .logo > .logo-brand-row { display:flex; align-items:center; gap:0; margin-top:0; flex-wrap:nowrap; width:max-content; max-width:none; }
+    .site-header .logo-brand-image + .logo-brand-divider { margin-left:8px; }
+    .site-header .logo-brand-divider + .logo-text-stack { margin-left:18px; }
     .site-header .logo .logo-text-stack > span:last-child { margin-top:var(--header-logo-subtitle-gap); }
     .site-header .logo-brand-image { display:block; width:var(--brand-image-width, 76px); height:auto; max-height:120px; object-fit:contain; }
     .site-header .logo-text-stack { display:flex; flex-direction:column; flex-shrink:0; min-width:max-content; }
