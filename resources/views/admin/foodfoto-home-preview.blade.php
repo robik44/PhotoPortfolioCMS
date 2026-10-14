@@ -48,6 +48,43 @@
 .about-experience h2{font:400 59px/1.08 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:18px 0}
 .about-experience p{font:18px/1.7 Arial,sans-serif;color:#53554d;max-width:440px}
 .about-experience .about-basil{position:absolute;right:12px;bottom:12px;width:65px;height:65px;pointer-events:none}
+/* FOODFOTO-BASIL-START */
+
+/* FOODFOTO — FOTOREALISTYCZNA BAZYLIA */
+.hero-basil {
+    position: absolute;
+    z-index: 3;
+    width: 92px;
+    height: auto;
+    left: -18px;
+    top: 53%;
+    transform: rotate(-18deg);
+    pointer-events: none;
+    opacity: 1;
+}
+.editorial-basil {
+    position: absolute;
+    z-index: 2;
+    width: 128px;
+    height: auto;
+    right: -34px;
+    bottom: 18px;
+    transform: rotate(12deg);
+    pointer-events: none;
+    opacity: 1;
+}
+.process-basil {
+    position: absolute;
+    z-index: 2;
+    width: 88px;
+    height: auto;
+    left: -16px;
+    bottom: -8px;
+    transform: rotate(-22deg);
+    pointer-events: none;
+    opacity: 1;
+}
+/* FOODFOTO-BASIL-END */
 </style>
 </head>
 <body>
