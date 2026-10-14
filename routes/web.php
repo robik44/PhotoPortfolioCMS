@@ -21,7 +21,7 @@ Route::get('/robots.txt', [\App\Http\Controllers\SeoController::class, 'robots']
 
 Route::get("/", function () {
     if (SiteSetting::where('key', 'foodfoto_new_home_published')->value('value') === '1') {
-        return app(\\App\\Http\\Controllers\\Admin\\FoodfotoPreviewController::class)->publicHome();
+        return app(\App\Http\Controllers\Admin\FoodfotoPreviewController::class)->publicHome();
     }
 
     $galleries = Gallery::with("photos")
