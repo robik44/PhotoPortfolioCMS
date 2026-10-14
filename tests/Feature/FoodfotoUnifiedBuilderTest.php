@@ -90,7 +90,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ];
         $this->postJson(route('foodfoto.builder.save'), ['content' => $draft])->assertOk();
         $this->get(route('foodfoto.builder.edit'))->assertOk()
-            ->assertSee('Mój tekst po przesunięciu')
+            ->assertSee('moveable-headline')
             ->assertSee('24.5')
             ->assertSee('42.1');
         $saved = PageBuilder::where('type', 'foodfoto_draft')->firstOrFail();
@@ -106,7 +106,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->homepage();
         $this->postJson(route('foodfoto.builder.save'), ['content' => [
             'version' => 1, 'settings' => [], 'sections' => [],
-        ]])->assertUnauthorized();
+        ]])->assertRedirect('/login');
         $this->assertDatabaseMissing('page_builders', ['type' => 'foodfoto_draft']);
     }
 
