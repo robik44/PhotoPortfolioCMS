@@ -133,4 +133,27 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('translate: 25px -10px', false);
     }
 
+    public function test_canvas_text_edits_are_private_and_reopen_without_publication(): void
+    {
+        $sections = array_fill(0, 32, ['type' => 'text', 'content' => 'Test']);
+        $sections[3]['content'] = 'Co tworzę';
+        $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'selected', 'gallery_ids' => []];
+        $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        $sections[31] = ['type' => 'image', 'photo_id' => 96];
+        PageBuilder::create(['page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['version' => 1, 'settings' => [], 'sections' => $sections]]);
+        $this->post(route('foodfoto.canvas.texts'), ['texts' => '{}'])->assertRedirect('/login');
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->post(route('foodfoto.canvas.texts'), [
+            'texts' => json_encode(['preview_hero_title' => 'Nowy tytuł roboczy', 'section-4' => 'Opis roboczy']),
+        ])->assertRedirect(route('foodfoto.canvas'));
+        $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('Nowy tytuł roboczy')->assertSee('Opis roboczy');
+        $this->get('/')->assertOk()->assertDontSee('Nowy tytuł roboczy');
+        $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_title']);
+        $this->post(route('foodfoto.canvas.texts'), [
+            'texts' => json_encode(['preview_hero_title' => '<script>bad()</script>Safe']),
+        ])->assertRedirect(route('foodfoto.canvas'));
+        $this->get(route('foodfoto.canvas'))->assertOk()->assertDontSee('<script>bad()</script>', false);
+    }
+
 }
