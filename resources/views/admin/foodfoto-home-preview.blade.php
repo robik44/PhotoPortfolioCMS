@@ -123,11 +123,11 @@
  <img class="hero-photo" data-move-id="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" data-move-id="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p data-preview-field="preview_hero_description">{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }}</span> →</a></div>
+ <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" @if($canvas) data-canvas-text="preview_hero_title" @endif style="white-space:pre-line">{{ $canvas ? ($canvasTexts['preview_hero_title'] ?? ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry')) : ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry') }}</h1><p data-preview-field="preview_hero_description" @if($canvas) data-canvas-text="preview_hero_description" @endif>{{ $canvas ? ($canvasTexts['preview_hero_description'] ?? ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.')) : ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.') }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label" @if($canvas) data-canvas-text="preview_hero_button_label" @endif>{{ $canvas ? ($canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio')) : ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}</span> →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
- <div class="lead" @if($canvas) data-move-id="services-intro" @endif>{{ $sections[4]['content'] ?? '' }}</div>
+ <div class="lead" @if($canvas) data-move-id="services-intro" data-canvas-text="section-4" @endif>{{ $canvas ? ($canvasTexts['section-4'] ?? ($sections[4]['content'] ?? '')) : ($sections[4]['content'] ?? '') }}</div>
  <div class="services">
  @foreach([ [5,8,11], [6,9,12], [7,10,13], [14,17,20], [15,18,21], [16,19,22] ] as $indices)
  @php($imageIndex = $indices[0])
@@ -156,12 +156,12 @@
 </section>
 <section class="editorial">
  @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title">{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p data-preview-field="preview_editorial_description">{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title" @if($canvas) data-canvas-text="preview_editorial_title" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_title'] ?? ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia')) : ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia') }}</h2><p data-preview-field="preview_editorial_description" @if($canvas) data-canvas-text="preview_editorial_description" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_description'] ?? ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.')) : ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.') }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro" data-move-id="process-intro">
-  <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title">{{ $previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru' }}</h2>
-  <p data-preview-field="preview_process_description">{{ $previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.' }}</p>
+  <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title" @if($canvas) data-canvas-text="preview_process_title" @endif>{{ $canvas ? ($canvasTexts['preview_process_title'] ?? ($previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru')) : ($previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru') }}</h2>
+  <p data-preview-field="preview_process_description" @if($canvas) data-canvas-text="preview_process_description" @endif>{{ $canvas ? ($canvasTexts['preview_process_description'] ?? ($previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.')) : ($previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.') }}</p>
  </div>
  <div class="process-steps" data-move-id="process-steps">
   @foreach([
@@ -191,8 +191,8 @@
  </div>
  <div class="experience-copy" data-move-id="experience-copy">
   <div class="eyebrow">Doświadczenie, które widać</div>
-  <h2 id="experience-heading" data-preview-field="preview_experience_title">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
-  <p data-preview-field="preview_experience_description">{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
+  <h2 id="experience-heading" data-preview-field="preview_experience_title" @if($canvas) data-canvas-text="preview_experience_title" @endif>{{ $canvas ? ($canvasTexts['preview_experience_title'] ?? ($previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole')) : ($previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole') }}</h2>
+  <p data-preview-field="preview_experience_description" @if($canvas) data-canvas-text="preview_experience_description" @endif>{{ $canvas ? ($canvasTexts['preview_experience_description'] ?? ($previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.')) : ($previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.') }}</p>
   <a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a>
   <img class="about-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  </div>
@@ -239,6 +239,31 @@
 
 
 @unless($public)
+@if($canvas)
+<div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
+ <button type="button" id="ff-text-enable">Edytuj teksty ✎</button>
+ <form action="{{ route('foodfoto.canvas.texts') }}" id="ff-text-form" method="POST" style="display:inline">@csrf<input type="hidden" name="texts" id="ff-text-json"><button type="submit">Zapisz teksty</button></form>
+ <small style="display:block;margin-top:8px">Po kliknięciu „Edytuj teksty” możesz zmienić zawartość zaznaczonych nagłówków i opisów bezpośrednio na stronie. Ten zapis dotyczy tylko wersji roboczej.</small>
+</div>
+@if(session('foodfoto_texts_saved'))<p role="status" style="position:fixed;right:20px;top:180px;background:#e6f3e6;z-index:99;padding:8px">Teksty zapisane w wersji roboczej.</p>@endif
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const btn=document.getElementById('ff-text-enable');
+ const form=document.getElementById('ff-text-form');
+ const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ let active=false;
+ btn.addEventListener('click',function(){
+  active=!active;
+  nodes.forEach(el=>{el.contentEditable=active?'true':'false';el.style.outline=active?'1px dashed #42774a':''});
+  btn.textContent=active?'Zakończ edycję tekstów':'Edytuj teksty ✎';
+ });
+ form.addEventListener('submit',function(){
+  const values={};nodes.forEach(el=>values[el.dataset.canvasText]=el.innerText);
+  document.getElementById('ff-text-json').value=JSON.stringify(values);
+ });
+});
+</script>
+@endif
 <div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
  <button id="ff-layout-toggle" type="button" aria-pressed="false">Przesuwaj elementy ↔</button>
  <div id="ff-layout-controls" hidden>
