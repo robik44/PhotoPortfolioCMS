@@ -347,6 +347,99 @@ document.addEventListener('DOMContentLoaded',()=>{
  <form id="ff-photo-form" action="{{ route('foodfoto.canvas.photos') }}" method="POST" style="display:inline">@csrf<input type="hidden" name="photos" id="ff-photo-json"><button type="submit">Zapisz zdjęcia</button></form>
  <small style="display:block;margin-top:7px">Kliknij fotografię na stronie, a następnie wybierz miniaturę. Zmiany dotyczą tylko projektu roboczego.</small>
 </div>
+<div id="ff-photo-actions-panel" style="position:fixed;left:18px;top:140px;width:310px;max-width:calc(100vw - 36px);z-index:103;background:white;border:1px solid #aaa;box-shadow:0 4px 18px #0002;padding:12px;font:13px Arial,sans-serif">
+ <strong>Akcja po kliknięciu zdjęcia</strong>
+ <p style="margin:7px 0"><button id="ff-action-choose" type="button">Wybierz zdjęcie do ustawienia ↖</button></p>
+ <div id="ff-action-editor" hidden>
+  <p id="ff-action-selection"></p>
+  <label for="ff-action-mode">Po kliknięciu:</label>
+  <select id="ff-action-mode" style="width:100%;padding:7px">
+   <option value="none">Brak akcji</option>
+   <option value="lightbox">Powiększ zdjęcie</option>
+   <option value="link">Otwórz galerię lub podstronę</option>
+  </select>
+  <label id="ff-action-url-wrap" hidden>Adres podstrony (np. /portfolio/nazwa-galerii)
+   <input id="ff-action-url" type="text" placeholder="/portfolio/nazwa-galerii" style="width:100%;padding:7px;box-sizing:border-box">
+  </label>
+  <button id="ff-action-save" type="button" style="margin-top:8px">Zapisz akcję zdjęcia</button>
+ </div>
+ <p id="ff-action-status" role="status" style="font-size:12px"></p>
+</div>
+<div id="ff-photo-lightbox" hidden role="dialog" aria-label="Powiększenie zdjęcia" style="position:fixed;inset:0;background:#000e;z-index:350;align-items:center;justify-content:center;padding:40px;box-sizing:border-box">
+ <button type="button" id="ff-lightbox-close" aria-label="Zamknij powiększenie" style="position:absolute;top:16px;right:24px;color:white;background:none;border:0;font:36px Arial;cursor:pointer">×</button>
+ <img id="ff-lightbox-image" alt="" style="max-width:100%;max-height:90vh;object-fit:contain">
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const saved={...@json($canvasPhotoActions)};
+ const images=[...document.querySelectorAll('img[data-canvas-photo]')];
+ const chooser=document.getElementById('ff-action-choose');
+ const editor=document.getElementById('ff-action-editor');
+ const mode=document.getElementById('ff-action-mode');
+ const url=document.getElementById('ff-action-url');
+ const urlWrap=document.getElementById('ff-action-url-wrap');
+ const status=document.getElementById('ff-action-status');
+ const box=document.getElementById('ff-photo-lightbox');
+ const zoom=document.getElementById('ff-lightbox-image');
+ let selecting=false, selected=null;
+ function choose(img){
+  selected=img;
+  const slot=img.dataset.canvasPhoto;
+  const action=saved[slot]||{mode:'none',url:''};
+  document.getElementById('ff-action-selection').textContent='Zdjęcie: '+slot;
+  mode.value=action.mode||'none';
+  url.value=action.url||'';
+  urlWrap.hidden=mode.value!=='link';
+  editor.hidden=false;
+  status.textContent='';
+  selecting=false;
+  chooser.textContent='Wybierz inne zdjęcie ↖';
+ }
+ chooser.addEventListener('click',()=>{selecting=true;chooser.textContent='Kliknij zdjęcie na stronie…';});
+ mode.addEventListener('change',()=>urlWrap.hidden=mode.value!=='link');
+ images.forEach(img=>img.addEventListener('click',event=>{
+  if(document.body.classList.contains('ff-layout-editing')||document.getElementById('ff-photo-panel').dataset.choosing)return;
+  if(selecting){event.preventDefault();event.stopPropagation();choose(img);return;}
+  const action=saved[img.dataset.canvasPhoto];
+  if(!action||action.mode==='none')return;
+  if(action.mode==='lightbox'){
+   event.preventDefault();event.stopPropagation();
+   zoom.src=img.currentSrc||img.src;zoom.alt=img.alt;
+   box.hidden=false;box.style.display='flex';
+  }else if(action.mode==='link'&&action.url){
+   event.preventDefault();event.stopPropagation();
+   window.location.assign(action.url);
+  }
+ },true));
+ function close(){box.hidden=true;box.style.display='none';zoom.removeAttribute('src');}
+ document.getElementById('ff-lightbox-close').addEventListener('click',close);
+ box.addEventListener('click',event=>{if(event.target===box)close()});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!box.hidden)close()});
+ document.getElementById('ff-action-save').addEventListener('click',async()=>{
+  if(!selected){status.textContent='Najpierw wybierz zdjęcie.';return;}
+  const action={mode:mode.value,url:mode.value==='link'?url.value.trim():''};
+  if(action.mode==='link'&&!/^\/(?!\/)[a-zA-Z0-9/_?=&%.#-]*$/.test(action.url)){
+   status.textContent='Podaj adres wewnętrzny zaczynający się od /, np. /portfolio/nazwa.';return;
+  }
+  const slot=selected.dataset.canvasPhoto;
+  const next={...saved,[slot]:action};
+  const body=new FormData();
+  body.append('_token',document.querySelector('#ff-save-all-form input[name="_token"]').value);
+  body.append('actions',JSON.stringify(next));
+  status.textContent='Trwa zapisywanie…';
+  try{
+   const response=await fetch('/admin/foodfoto-canvas/photo-actions',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok){status.textContent='Błąd zapisu HTTP '+response.status;return;}
+   const result=await response.json();
+   if(!result.success){status.textContent='Nie potwierdzono zapisu.';return;}
+   Object.assign(saved,result.actions);
+   status.textContent='Zapisano akcję zdjęcia.';
+  }catch(error){status.textContent='Błąd połączenia: '+error.message;}
+ });
+});
+</script>
 <div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
  <button type="button" id="ff-photo-close">Zamknij ×</button>
  <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
