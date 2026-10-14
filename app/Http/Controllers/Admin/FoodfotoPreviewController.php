@@ -101,6 +101,42 @@ class FoodfotoPreviewController extends Controller
     }
 
 
+    public function saveCanvasElements(Request $request)
+    {
+        $payload = $request->validate(['elements' => ['required', 'string', 'max:100000']]);
+        $elements = json_decode($payload['elements'], true);
+        abort_unless(is_array($elements) && array_is_list($elements) && count($elements) <= 80, 422);
+        $clean = [];
+        $ids = [];
+        foreach ($elements as $entry) {
+            abort_unless(is_array($entry), 422);
+            $id = $entry['id'] ?? '';
+            $type = $entry['type'] ?? '';
+            abort_unless(is_string($id) && preg_match('/^ffel_[a-z0-9]{8,24}$/', $id)
+                && !in_array($id, $ids, true)
+                && in_array($type, ['heading','text','image','thumbnail_gallery','gallery','button','separator'], true), 422);
+            $ids[] = $id;
+            $text = trim((string) ($entry['content'] ?? ''));
+            abort_unless(mb_strlen($text) <= 2000, 422);
+            $photoId = (int) ($entry['photo_id'] ?? 0);
+            $galleryId = (int) ($entry['gallery_id'] ?? 0);
+            $target = trim((string) ($entry['url'] ?? ''));
+            abort_unless(strlen($target) <= 500 && (!$target || preg_match('~^/(?!/)[a-zA-Z0-9/_?=&%.#-]*$~', $target)), 422);
+            if ($type === 'image') abort_unless(!$photoId || Photo::whereKey($photoId)->exists(), 422);
+            if ($type === 'gallery') abort_unless(!$galleryId || Gallery::whereKey($galleryId)->exists(), 422);
+            $clean[] = [
+                'id' => $id, 'type' => $type, 'content' => $text,
+                'photo_id' => $type === 'image' ? $photoId : 0,
+                'gallery_id' => $type === 'gallery' ? $galleryId : 0,
+                'url' => $type === 'button' ? ($target ?: '#portfolio') : '',
+            ];
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_extra_elements'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        return response()->json(['success' => true, 'elements' => $clean]);
+    }
+
     public function uploadCanvasFont(Request $request)
     {
         $request->validate(['font' => ['required', 'file', 'max:2048']]);
@@ -436,6 +472,12 @@ class FoodfotoPreviewController extends Controller
         $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
 
+        $canvasElements = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_extra_elements')->value('value') ?: '[]', true) : [];
+        if (!is_array($canvasElements) || !array_is_list($canvasElements)) $canvasElements = [];
+        $canvasElementPhotos = collect($canvasElements)->pluck('photo_id')->filter()->map(fn($id)=>(int)$id)->unique();
+        $photos = $photos->union(Photo::whereIn('id', $canvasElementPhotos)->get()->keyBy('id'));
+        $canvasGalleryOptions = $canvas ? Gallery::query()->orderBy('title')->get(['id','title'])->map(fn($gallery)=>['id'=>$gallery->id,'title'=>$gallery->title])->all() : [];
+
         $canvasPhotoActions = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photo_actions')->value('value') ?: '{}', true) : [];
         if (!is_array($canvasPhotoActions)) $canvasPhotoActions = [];
 
@@ -460,7 +502,7 @@ class FoodfotoPreviewController extends Controller
         ])->values()->all() : [];
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture', 'canvasFontOptions'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture', 'canvasFontOptions', 'canvasElements', 'canvasGalleryOptions'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
