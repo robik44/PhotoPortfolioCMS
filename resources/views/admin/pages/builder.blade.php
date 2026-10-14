@@ -1685,6 +1685,19 @@ document.addEventListener("DOMContentLoaded", function () {
         window.ThumbnailGallery.fitCanvas(content);
     }
 
+    // Clicking empty canvas sets the insertion point for the next new element.
+    // Coordinates are normalized against the canvas so zoom does not change placement.
+    let nextInsertionPoint = null;
+    content.addEventListener("click", function (event) {
+        if (event.target !== content) return;
+        const rect = content.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        nextInsertionPoint = {
+            x: Math.max(0, Math.min(95, ((event.clientX - rect.left) / rect.width) * 100)),
+            y: Math.max(0, ((event.clientY - rect.top) / rect.height) * 100),
+        };
+    });
+
     content.addEventListener("mousedown", function (event) {
         if (event.target !== content) return;
         selectedIds.clear();
@@ -2343,6 +2356,14 @@ document.addEventListener("DOMContentLoaded", function () {
             gallery_gap: 14,
             gallery_ratio: "1 / .7"
         };
+
+        // New elements start where the editor last clicked on empty canvas.
+        // Layout presets and scripted additions keep their own explicit positions.
+        if (!options.silent && nextInsertionPoint) {
+            item.position_x = Math.min(nextInsertionPoint.x, Math.max(0, 100 - item.element_width));
+            item.position_y = nextInsertionPoint.y;
+            nextInsertionPoint = null;
+        }
 
         window.builderTypography.initialize(item);
         if (type === 'heading') item.heading_level = 'h2';
