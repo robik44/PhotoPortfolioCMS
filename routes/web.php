@@ -119,6 +119,8 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/foodfoto-builder', [\App\Http\Controllers\Admin\FoodfotoUnifiedBuilderController::class, 'edit'])->name('foodfoto.builder.edit');
+    Route::post('/admin/foodfoto-builder', [\App\Http\Controllers\Admin\FoodfotoUnifiedBuilderController::class, 'save'])->name('foodfoto.builder.save');
     Route::get('/admin/foodfoto-preview', \App\Http\Controllers\Admin\FoodfotoPreviewController::class)->name('foodfoto.home.preview');
     Route::post('/admin/foodfoto-preview/content', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateContent'])->name('foodfoto.home.preview.content');
     Route::post('/admin/foodfoto-preview/blocks', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateBlocks'])->name('foodfoto.home.preview.blocks');
