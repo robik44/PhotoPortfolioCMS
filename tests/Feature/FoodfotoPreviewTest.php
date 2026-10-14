@@ -71,4 +71,50 @@ class FoodfotoPreviewTest extends TestCase
             ])->assertStatus(422);
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_editor_positions']);
     }
+
+    public function test_publication_requires_explicit_confirmation_and_can_rollback(): void
+    {
+        $sections = array_fill(0, 32, ['type' => 'text', 'content' => 'Original']);
+        $sections[3]['content'] = 'Co tworzę';
+        $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'selected', 'gallery_ids' => []];
+        $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        $sections[31] = ['type' => 'image', 'photo_id' => 96];
+        $builder = PageBuilder::create([
+            'page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['sections' => $sections],
+        ]);
+        $original = $builder->content;
+        $this->artisan('foodfoto:publish-home', ['--publish' => true])->assertFailed();
+        $this->get('/')->assertOk()->assertDontSee('Przesuwaj elementy');
+
+        $this->artisan('foodfoto:publish-home', [
+            '--publish' => true, '--confirm-production' => true,
+        ])->assertSuccessful();
+
+        $this->get('/')->assertOk()
+            ->assertSee('Apetyt na dobre kadry')
+            ->assertDontSee('Przesuwaj elementy')
+            ->assertDontSee('foodfoto-edit-open')
+            ->assertDontSee('noindex,nofollow,noarchive');
+
+        $this->assertSame($original, $builder->fresh()->content);
+
+        $this->artisan('foodfoto:publish-home', [
+            '--rollback' => true, '--confirm-production' => true,
+        ])->assertSuccessful();
+        $this->get('/')->assertOk()->assertDontSee('Apetyt na dobre kadry');
+        $this->assertSame($original, $builder->fresh()->content);
+    }
+
+    public function test_publication_rejects_changed_builder_layout(): void
+    {
+        PageBuilder::create([
+            'page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['sections' => []],
+        ]);
+        $this->artisan('foodfoto:publish-home', [
+            '--publish' => true, '--confirm-production' => true,
+        ])->assertFailed();
+        $this->assertDatabaseMissing('site_settings', ['key' => 'foodfoto_new_home_published', 'value' => '1']);
+    }
 }
