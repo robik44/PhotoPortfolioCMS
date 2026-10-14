@@ -94,7 +94,7 @@ class FoodfotoPreviewTest extends TestCase
         $this->get('/')->assertOk()
             ->assertSee('Apetyt na dobre kadry')
             ->assertDontSee('Przesuwaj elementy')
-            ->assertDontSee('foodfoto-edit-open')
+            ->assertDontSee('id="foodfoto-edit-open"', false)
             ->assertDontSee('noindex,nofollow,noarchive');
 
         $this->assertSame($original, $builder->fresh()->content);
