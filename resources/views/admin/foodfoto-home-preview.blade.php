@@ -78,12 +78,16 @@
 #ff-layout-controls[hidden]{display:none}
 #ff-layout-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
 #ff-layout-status{max-width:300px;color:#444}
+.ff-ruler-top{position:absolute;left:35px;right:0;top:0;height:25px;z-index:65;pointer-events:none;background:repeating-linear-gradient(to right,#889689 0,#889689 1px,transparent 1px,transparent 10px),linear-gradient(#f4f7f2,#f4f7f2);background-size:100% 7px,100% 100%;background-position:left bottom;opacity:.7}
+.ff-ruler-left{position:absolute;top:25px;bottom:0;left:0;width:25px;z-index:65;pointer-events:none;background:repeating-linear-gradient(to bottom,#889689 0,#889689 1px,transparent 1px,transparent 10px),#f4f7f2;background-size:7px 100%,100% 100%;background-position:right top;opacity:.7}
+.ff-ruler-top,.ff-ruler-left{display:none}.ff-layout-editing .ff-ruler-top,.ff-layout-editing .ff-ruler-left{display:block}
+#ff-size{padding:5px;border:1px solid #bbb}
 </style>
 </head>
 <body>
 <div class="preview-top"><strong>WERSJA ROBOCZA — tylko podgląd, bez zapisu do CMS</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
-<div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
+<div class="ff-ruler-top" aria-hidden="true"></div><div class="ff-ruler-left" aria-hidden="true"></div><div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
 <header class="header">
  <a class="brand" href="{{ url('/') }}"><span class="brand-mark"><span>food</span><span>foto</span></span><span class="brand-name">Magda Gugała</span></a>
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
@@ -198,6 +202,9 @@
  <div id="ff-layout-controls" hidden>
   <button type="button" id="ff-layout-undo">Cofnij ↶</button>
   <button type="button" id="ff-layout-discard">Odrzuć zmiany</button>
+  <label for="ff-size">Szerokość px</label><input id="ff-size" type="number" min="0" max="1200" step="1" value="0" title="0 = wymiar oryginalny" style="width:72px"><button type="button" id="ff-size-apply">Ustaw</button>
+  <button type="button" id="ff-layer-up">Warstwa +</button><button type="button" id="ff-layer-down">Warstwa −</button>
+
   <button type="button" id="ff-layout-reset">Reset pozycji</button>
   <label><input id="ff-layout-snap" type="checkbox" checked> Przyciąganie i prowadnice</label>
   <form id="ff-layout-form" method="POST" action="{{ route('foodfoto.home.preview.layout') }}">
