@@ -10,7 +10,8 @@ class FoodfotoHomeLayout extends Command
     protected $signature = 'foodfoto:home-layout
         {--apply : Save the planned layout after creating a backup}
         {--restore= : Restore from a previously generated backup filename}
-        {--force : Allow replacement when the composition was already applied}';
+        {--force : Allow replacement when the composition was already applied}
+        {--confirm-production : Explicitly confirm that --apply changes the currently served homepage}';
 
     protected $description = 'Safely preview, apply or restore the FoodFoto homepage layout without changing SEO copy or gallery selections.';
 
@@ -69,7 +70,7 @@ class FoodfotoHomeLayout extends Command
         // The first 23 existing elements remain entirely unchanged.
         $layout = [
             23 => [145, 1.1261731543159, 40],  // Existing Portfolio H2 is preserved.
-            24 => [145, 0, 100],                 // Original gallery
+            24 => [152.01069214822, 0, 100],                 // Original gallery
             25 => [194, 0, 100],                 // Large editorial photo
             26 => [244, 8, 84],                  // Editorial body copy
             27 => [284, 65, 27],                 // Original three photos
@@ -99,8 +100,13 @@ class FoodfotoHomeLayout extends Command
         )->values()->all());
 
         if (!$this->option('apply')) {
-            $this->comment('DRY RUN — database unchanged. Pass --apply to save with automatic backup.');
+            $this->comment('DRY RUN — database unchanged. A separate production confirmation is required for applying.');
             return self::SUCCESS;
+        }
+
+        if (!$this->option('confirm-production')) {
+            $this->error('Refusing to modify the live homepage. --apply also requires --confirm-production.');
+            return self::FAILURE;
         }
 
         $directory = storage_path('app/foodfoto-layout-backups');
@@ -144,6 +150,10 @@ class FoodfotoHomeLayout extends Command
             return self::FAILURE;
         }
 
+        if (!$this->option('confirm-production')) {
+            $this->error('Restore changes the live homepage. Pass --confirm-production to proceed.');
+            return self::FAILURE;
+        }
         $builder->content = $data;
         $builder->save();
         $this->info('Restored layout from '.$filename);
