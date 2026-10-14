@@ -263,6 +263,15 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
  <input id="ff-type-slider" type="range" min="8" max="160" step=".1" value="18" style="width:100%">
  <label>Interlinia <input id="ff-type-line" type="number" min=".5" max="3" step=".05" value="1.4" style="width:100%"></label>
  <label>Odstępy liter (px) <input id="ff-type-space" type="number" min="-5" max="20" step=".01" value="0" style="width:100%"></label>
+ <label>Krój pisma <select id="ff-type-family"><option value="inherit">Dziedziczony</option><option>Georgia</option><option>Arial</option><option>Helvetica</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Times New Roman</option><option>Courier New</option></select></label>
+ <label>Grubość <select id="ff-type-weight">@foreach(range(100,900,100) as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></label>
+ <label>Wyrównanie <select id="ff-type-align"><option value="inherit">Dziedziczone</option><option value="left">Do lewej</option><option value="center">Wyśrodkuj</option><option value="right">Do prawej</option><option value="justify">Wyjustuj</option></select></label>
+ <label>Wielkość liter <select id="ff-type-transform"><option value="none">Normalna</option><option value="uppercase">Wersaliki</option><option value="lowercase">Małe</option><option value="capitalize">Pierwsze Litery Wielkie</option></select></label>
+ <label>Odstępy słów (px, krok 0,1) <input id="ff-type-word" type="number" min="-20" max="50" step=".1" value="0"></label>
+ <label>Margines górny (px) <input id="ff-type-margin-top" type="number" min="-100" max="200" step="1" value="0"></label>
+ <label>Margines dolny (px) <input id="ff-type-margin-bottom" type="number" min="-100" max="200" step="1" value="0"></label>
+ <label>Maksymalna szerokość tekstu (px; 0 = bez limitu) <input id="ff-type-max-width" type="number" min="0" max="1200" step="1" value="0"></label>
+ <p style="margin:10px 0">Boks tekstowy: <button id="ff-type-select-box" type="button">Zaznacz i rozciągaj ↘</button></p>
  <form id="ff-type-form" method="POST" action="{{ route('foodfoto.canvas.typography', [], false) }}">@csrf<input type="hidden" name="typography" id="ff-type-json"><button type="submit">Zapisz typografię</button></form>
  <small>Ustawienia dotyczą tylko wersji roboczej.</small>
 </aside>
