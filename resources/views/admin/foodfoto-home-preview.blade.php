@@ -99,6 +99,17 @@
 @endif
 @endforeach
 @if($canvas)
+@foreach($canvasTypography as $key => $style)
+@if(preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', (string)$key) && is_array($style))
+<style>[data-canvas-text="{{ $key }}"]{
+font-size:{{ max(8,min(160,(float)($style['font_size'] ?? 18))) }}px!important;
+line-height:{{ max(.5,min(3,(float)($style['line_height'] ?? 1.4))) }}!important;
+letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!important;
+}</style>
+@endif
+@endforeach
+@endif
+@if($canvas)
 <style>.ff-layout-editing [data-move-id]{position:relative;cursor:grab}.ff-layout-editing [data-move-id] a{pointer-events:none}.ff-layout-editing [data-move-id]:hover{outline:2px dashed #1e774a;outline-offset:2px}</style>
 @endif
 </head>
@@ -240,6 +251,51 @@
 
 @unless($public)
 @if($canvas)
+<aside id="ff-type-panel" style="position:fixed;right:18px;top:235px;z-index:101;background:white;border:1px solid #aaa;padding:14px;width:275px;font:13px Arial">
+ <strong>Typografia — kliknij tekst</strong>
+ <p id="ff-type-selected" style="font-size:12px">Nie wybrano tekstu</p>
+ <label>Rozmiar (px, krok 0,1) <input id="ff-type-size" type="number" min="8" max="160" step=".1" value="18" style="width:100%"></label>
+ <input id="ff-type-slider" type="range" min="8" max="160" step=".1" value="18" style="width:100%">
+ <label>Interlinia <input id="ff-type-line" type="number" min=".5" max="3" step=".05" value="1.4" style="width:100%"></label>
+ <label>Odstępy liter (px) <input id="ff-type-space" type="number" min="-5" max="20" step=".01" value="0" style="width:100%"></label>
+ <form id="ff-type-form" method="POST" action="{{ route('foodfoto.canvas.typography') }}">@csrf<input type="hidden" name="typography" id="ff-type-json"><button type="submit">Zapisz typografię</button></form>
+ <small>Ustawienia dotyczą tylko wersji roboczej.</small>
+</aside>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ const form=document.getElementById('ff-type-form');
+ const size=document.getElementById('ff-type-size'),slider=document.getElementById('ff-type-slider');
+ const line=document.getElementById('ff-type-line'),space=document.getElementById('ff-type-space');
+ const values=@json($canvasTypography);
+ let selected=null;
+ function read(el){
+  const css=getComputedStyle(el);
+  const id=el.dataset.canvasText;
+  return values[id] || {font_size:parseFloat(css.fontSize)||18,line_height:parseFloat(css.lineHeight)/(parseFloat(css.fontSize)||18)||1.4,letter_spacing:parseFloat(css.letterSpacing)||0};
+ }
+ function apply(){
+  if(!selected)return;
+  let v={font_size:Number(size.value),line_height:Number(line.value),letter_spacing:Number(space.value)};
+  if(!(v.font_size>=8&&v.font_size<=160&&v.line_height>=.5&&v.line_height<=3&&v.letter_spacing>=-5&&v.letter_spacing<=20))return;
+  values[selected.dataset.canvasText]=v;
+  selected.style.setProperty('font-size',v.font_size+'px','important');
+  selected.style.setProperty('line-height',String(v.line_height),'important');
+  selected.style.setProperty('letter-spacing',v.letter_spacing+'px','important');
+  slider.value=v.font_size;
+ }
+ nodes.forEach(el=>el.addEventListener('click',()=>{
+  if(selected) selected.style.outline='';
+  selected=el;selected.style.outline='2px solid #1b8058';
+  document.getElementById('ff-type-selected').textContent=el.innerText.slice(0,65);
+  const v=read(el);
+  size.value=v.font_size;slider.value=v.font_size;line.value=v.line_height;space.value=v.letter_spacing;
+ }));
+ [size,line,space].forEach(input=>input.addEventListener('input',apply));
+ slider.addEventListener('input',()=>{size.value=slider.value;apply()});
+ form.addEventListener('submit',()=>document.getElementById('ff-type-json').value=JSON.stringify(values));
+});
+</script>
 <div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
  <button type="button" id="ff-text-enable">Edytuj teksty ✎</button>
  <form action="{{ route('foodfoto.canvas.texts') }}" id="ff-text-form" method="POST" style="display:inline">@csrf<input type="hidden" name="texts" id="ff-text-json"><button type="submit">Zapisz teksty</button></form>
