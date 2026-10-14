@@ -93,6 +93,7 @@
 [data-move-id="{{ $id }}"] {
  translate: {{ max(-350,min(350,(int)($pos['x'] ?? 0))) }}px {{ max(-350,min(350,(int)($pos['y'] ?? 0))) }}px;
  @if((int)($pos['w'] ?? 0) > 0)width:{{ min(1200,(int)$pos['w']) }}px;@endif
+ @if((int)($pos['h'] ?? 0) > 0)height:{{ min(1200,(int)$pos['h']) }}px;@endif
  @if((int)($pos['z'] ?? 0) !== 0)z-index:{{ max(-5,min(25,(int)$pos['z'])) }};@endif
 }
 </style>
@@ -718,6 +719,7 @@ document.addEventListener('DOMContentLoaded', () => {
   <button type="button" id="ff-layout-undo">Cofnij ↶</button>
   <button type="button" id="ff-layout-discard">Odrzuć zmiany</button>
   <label for="ff-size">Szerokość px</label><input id="ff-size" type="number" min="0" max="1200" step="1" value="0" title="0 = wymiar oryginalny" style="width:72px"><button type="button" id="ff-size-apply">Ustaw</button>
+  <label for="ff-height">Wysokość px</label><input id="ff-height" type="number" min="0" max="1200" step="1" value="0" title="0 = wysokość automatyczna" style="width:72px"><button type="button" id="ff-height-apply">Ustaw wysokość</button>
   <button type="button" id="ff-layer-up">Warstwa +</button><button type="button" id="ff-layer-down">Warstwa −</button>
 
   <button type="button" id="ff-layout-reset">Reset pozycji</button>
