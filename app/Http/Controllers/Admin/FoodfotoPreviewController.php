@@ -156,6 +156,20 @@ class FoodfotoPreviewController extends Controller
         $clean['font_weight'] = (int) $weight;
         $clean['text_align'] = $align;
         $clean['text_transform'] = $transform;
+        foreach (['color', 'background_color'] as $name) {
+            $raw = $style[$name] ?? ($name === 'color' ? 'inherit' : 'transparent');
+            abort_unless(is_string($raw) && (
+                $raw === 'inherit' || $raw === 'transparent' ||
+                preg_match('/^#[0-9a-fA-F]{6}$/', $raw)
+            ), 422);
+            $clean[$name] = $raw;
+        }
+        foreach (['color_alpha', 'background_alpha'] as $name) {
+            $alpha = $style[$name] ?? 100;
+            abort_unless(is_numeric($alpha) && $alpha >= 0 && $alpha <= 100, 422);
+            $clean[$name] = (int) $alpha;
+        }
+
         foreach (['word_spacing' => [-20, 50, 1], 'margin_top' => [-100, 200, 1],
             'margin_bottom' => [-100, 200, 1], 'max_width' => [0, 1200, 1]] as $key => [$min, $max, $precision]) {
             $value = $style[$key] ?? 0;
