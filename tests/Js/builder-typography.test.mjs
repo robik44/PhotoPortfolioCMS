@@ -53,7 +53,7 @@ function setup(item, galleryList = [], photoList = []) {
     const functions = slice('    function ensureItem(item, index)', '    function label(type)', offset)
         + slice('    function createElementContent(item)', '    function render()', offset)
         + slice('    function field(', '    function showProperties(item)', offset)
-        + slice('    function showProperties(item)', '    function addElement(type)', offset);
+        + slice('    function showProperties(item)', '    function addElement(type, options = {})', offset);
     vm.runInContext(functions + '\nensureItem(item, 0);\nfunction render() { preview = createElementContent(item); }\nshowProperties(item); render();', context);
     return { context, preview: () => context.preview };
 }
