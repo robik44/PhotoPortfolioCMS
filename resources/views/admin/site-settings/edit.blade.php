@@ -84,6 +84,17 @@
                             @if(!empty($settings['preview_hero_image']))
                                 <img src="{{ asset('storage/'.$settings['preview_hero_image']) }}" alt="Zdjęcie banera w podglądzie" style="max-width:320px;width:100%;height:auto;display:block;margin:10px 0;">
                             @endif
+                            <div style="display:grid;gap:12px;margin:16px 0;">
+                                @foreach(['preview_hero_title' => 'Nagłówek banera', 'preview_hero_description' => 'Opis banera', 'preview_hero_button_label' => 'Napis na przycisku', 'preview_hero_button_url' => 'Link przycisku (np. #portfolio lub /kontakt)'] as $settingKey => $settingLabel)
+                                    <label for="{{ $settingKey }}" style="display:block;font-weight:600;">{{ $settingLabel }}
+                                        @if($settingKey === 'preview_hero_description')
+                                            <textarea id="{{ $settingKey }}" name="{{ $settingKey }}" maxlength="500" required rows="3" style="width:100%;display:block;margin-top:6px;">{{ old($settingKey, $settings[$settingKey]) }}</textarea>
+                                        @else
+                                            <input id="{{ $settingKey }}" name="{{ $settingKey }}" type="text" required maxlength="{{ $settingKey === 'preview_hero_title' ? 160 : ($settingKey === 'preview_hero_button_label' ? 80 : 255) }}" value="{{ old($settingKey, $settings[$settingKey]) }}" style="width:100%;display:block;margin-top:6px;">
+                                        @endif
+                                    </label>
+                                @endforeach
+                            </div>
                             <label for="preview_hero_image_file" style="display:block;font-weight:600;margin-bottom:8px;">Nowe zdjęcie banera podglądu</label>
                             <input type="file" id="preview_hero_image_file" name="preview_hero_image_file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" style="width:100%;">
                         </div>
