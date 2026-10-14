@@ -26,6 +26,7 @@ class SiteSettingController extends Controller
             'preview_basil_hero' => null,
             'preview_basil_editorial' => null,
             'preview_basil_process' => null,
+            'preview_hero_image' => null,
         ];
 
         $settings = array_merge(
@@ -60,6 +61,7 @@ class SiteSettingController extends Controller
             'preview_basil_hero_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_basil_editorial_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_basil_process_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
+            'preview_hero_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
         ]);
 
         foreach ([
@@ -111,6 +113,11 @@ class SiteSettingController extends Controller
                 $path = $request->file($input)->store('foodfoto-decorations', 'public');
                 SiteSetting::updateOrCreate(['key' => 'preview_basil_'.$placement], ['value' => $path]);
             }
+        }
+
+        if ($request->hasFile('preview_hero_image_file')) {
+            $path = $request->file('preview_hero_image_file')->store('foodfoto-preview-hero', 'public');
+            SiteSetting::updateOrCreate(['key' => 'preview_hero_image'], ['value' => $path]);
         }
 
         return redirect()
