@@ -184,7 +184,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ])])->assertStatus(422);
         $this->post(route('foodfoto.canvas.photos'), ['photos' => '{}'])
             ->assertRedirect(route('foodfoto.canvas'));
-        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_photos', 'value' => '{}']);
+        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_photos', 'value' => '[]']);
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_image']);
     }
 
