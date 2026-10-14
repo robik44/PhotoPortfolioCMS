@@ -36,7 +36,8 @@
         color: inherit;
         text-decoration: none;
     }
-    .site-header .logo-brand-row { display:flex; align-items:center; gap:18px; }
+    .site-header .logo > .logo-brand-row { display:flex; align-items:center; gap:18px; margin-top:0; }
+    .site-header .logo .logo-text-stack > span:last-child { margin-top:var(--header-logo-subtitle-gap); }
     .site-header .logo-brand-image { display:block; width:var(--brand-image-width, 76px); height:auto; max-height:120px; object-fit:contain; }
     .site-header .logo-text-stack { display:flex; flex-direction:column; min-width:0; }
     .site-header .main-menu {
@@ -58,7 +59,7 @@
     .site-header .header-inner { padding-top: var(--header-padding-top); padding-bottom: var(--header-padding-bottom); }
     .site-header .logo { display: block; max-width: 100%; white-space: normal; overflow-wrap: anywhere; text-transform: none !important; }
     .site-header .logo span { display: block; text-transform: none !important; }
-    .site-header .logo > span:last-child { margin-top: var(--header-logo-subtitle-gap); }
+    .site-header .logo > span:last-child { margin-top:0; }
     .site-header.header-layout-center .header-inner { flex-direction: column; align-items: center; gap: 16px; }
     .site-header.header-layout-center .logo { text-align: center; }
     .site-header.header-layout-center .main-menu { justify-content: center; flex-wrap: wrap; }
