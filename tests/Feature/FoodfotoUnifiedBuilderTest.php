@@ -128,7 +128,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $payload = json_encode(['services-intro' => ['x' => 25, 'y' => -10, 'w' => 0, 'z' => 1]]);
         $this->post(route('foodfoto.canvas.layout'), ['layout' => $payload])
             ->assertRedirect(route('foodfoto.canvas'));
-        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_positions', 'value' => $payload]);
+        $this->assertSame(0, json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_positions')->value('value'), true)['services-intro']['h']);
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_editor_positions']);
         $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('translate: 25px -10px', false);
     }
@@ -337,7 +337,7 @@ class FoodfotoUnifiedBuilderTest extends TestCase
     {
         $this->homepage();
         $this->actingAs(User::factory()->create());
-        $layout=['hero-text'=>['x'=>32,'y'=>5,'w'=>0,'z'=>0]];
+        $layout=['hero-text'=>['x'=>32,'y'=>5,'w'=>0,'h'=>0,'z'=>0]];
         $this->postJson(route('foodfoto.canvas.layout'),[
             'layout'=>json_encode($layout),
         ])->assertOk()->assertJsonPath('positions.hero-text.x',32);
@@ -402,6 +402,29 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get(route('foodfoto.canvas'))->assertOk()->assertSee('example (własna)');
         $bad = \Illuminate\Http\UploadedFile::fake()->createWithContent('malicious.woff2', 'NOT-A-FONT');
         $this->postJson(route('foodfoto.canvas.fonts'), ['font' => $bad])->assertStatus(422);
+    }
+
+    public function test_freeform_two_dimensional_resize_survives_draft_reload(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $payload=['gallery-1'=>['x'=>5,'y'=>8,'w'=>520,'h'=>280,'z'=>1],
+            'hero-button'=>['x'=>0,'y'=>0,'w'=>350,'h'=>75,'z'=>0]];
+        $this->postJson(route('foodfoto.canvas.layout'),['layout'=>json_encode($payload)])
+            ->assertOk()->assertJsonPath('positions.gallery-1.h',280)
+            ->assertJsonPath('positions.hero-button.w',350);
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('height:280px;',false)
+            ->assertSee('height:75px;',false);
+    }
+
+    public function test_layout_rejects_oversized_height(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create());
+        $this->postJson(route('foodfoto.canvas.layout'), [
+            'layout'=>json_encode(['hero-text'=>['x'=>0,'y'=>0,'w'=>150,'h'=>1500,'z'=>0]]),
+        ])->assertStatus(422);
     }
 
 }
