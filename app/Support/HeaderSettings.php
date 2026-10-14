@@ -10,6 +10,8 @@ class HeaderSettings
     public const DEFAULTS = [
         'logo' => 'MAGDA GUGAŁA',
         'logo_subtitle' => 'FOTOGRAFIA ŻYWNOŚCI',
+        'header_brand_image' => '',
+        'header_brand_image_width' => 76,
         'header_logo_font_family' => 'Arial',
         'header_subtitle_font_family' => 'Arial',
         'header_logo_font_size' => 28,
@@ -36,6 +38,8 @@ class HeaderSettings
         return [
             'logo' => ['required', 'string', 'max:255'],
             'logo_subtitle' => ['nullable', 'string', 'max:255'],
+            'header_brand_image' => ['nullable', 'string', 'max:255'],
+            'header_brand_image_width' => ['required', 'integer', 'between:24,240'],
             'header_logo_font_family' => ['required', 'string', Rule::in(array_keys(HeaderFonts::families($fonts)))],
             'header_subtitle_font_family' => ['required', 'string', Rule::in(array_keys(HeaderFonts::families($fonts)))],
             'header_logo_font_size' => ['required', 'integer', 'between:8,96'],
