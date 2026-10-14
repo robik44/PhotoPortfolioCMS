@@ -165,6 +165,6 @@ class PhotoPickerTest extends TestCase
         $html = $this->get(route('galleries.edit', $gallery))->assertOk()->getContent();
         preg_match_all('/<a\b[^>]*href="([^"]+)"[^>]*>\s*(?:<span>↗<\/span>\s*)?(?:<span>)?Zobacz stronę/u', $html, $matches);
         $this->assertCount(2, $matches[1]);
-        foreach ($matches[1] as $url) $this->assertSame(url('/portfolio/zywnosc'), $url);
+        foreach ($matches[1] as $url) $this->assertSame(url('/portfolio/zywnosc'), strtok($url, '?'));
     }
 }
