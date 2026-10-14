@@ -177,6 +177,6 @@ class HomeBuilderSyncTest extends TestCase
 
         $this->assertMatchesRegularExpression('/<h1 class="builder-public-text"[^>]*>\\s*Fotografia żywności\\s*<\\/h1>/s', $html);
         $this->assertMatchesRegularExpression('/<h2 class="builder-public-text"[^>]*>\\s*Portfolio\\s*<\\/h2>/s', $html);
-        $this->assertMatchesRegularExpression('/<h3 style="[^"]*">Stylizacje<\\/h3>/', $html);
+        $this->assertMatchesRegularExpression('/<h3[^>]*class="builder-gallery-card-title"[^>]*>Stylizacje<\\/h3>/', $html);
     }
 }
