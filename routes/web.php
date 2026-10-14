@@ -147,8 +147,15 @@ Route::middleware(["auth"])->group(function () {
     Route::get("/admin", [DashboardController::class, "index"])
         ->name("dashboard");
 
-    Route::get("/admin/home-builder", [\App\Http\Controllers\Admin\HomeBuilderController::class, "edit"])
-        ->name("home-builder.edit");
+    Route::get("/admin/home-builder", function () {
+        if (SiteSetting::where('key', 'foodfoto_new_home_published')->value('value') === '1') {
+            return redirect()->route('foodfoto.home.preview');
+        }
+        return app(\App\Http\Controllers\Admin\HomeBuilderController::class)->edit();
+    })->name("home-builder.edit");
+
+    Route::get("/admin/home-builder/legacy", [\App\Http\Controllers\Admin\HomeBuilderController::class, "edit"])
+        ->name("home-builder.legacy");
 
     Route::post("/admin/home-builder", [\App\Http\Controllers\Admin\HomeBuilderController::class, "save"])
         ->name("home-builder.save");
