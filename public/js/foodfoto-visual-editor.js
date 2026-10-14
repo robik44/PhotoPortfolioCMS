@@ -31,6 +31,9 @@
             el.style.translate = p.x + 'px ' + p.y + 'px';
             el.style.width = p.w > 0 ? p.w + 'px' : '';
             el.style.height = p.h > 0 ? p.h + 'px' : '';
+            el.classList.toggle('ff-free-resized',p.w>0&&p.h>0);
+            el.classList.toggle('ff-width-resized',p.w>0);
+            el.classList.toggle('ff-height-resized',p.h>0);
             if (el.tagName === 'IMG') el.style.objectFit = p.h > 0 && p.w > 0 ? 'fill' : '';
             if (el.tagName === 'IMG' && p.h > 0 && p.w > 0) el.style.maxWidth='none'; else if(el.tagName==='IMG') el.style.maxWidth='';
             el.style.zIndex = p.z ? String(p.z) : '';
@@ -54,6 +57,8 @@
             selected.clear(); selected.add(id);
         }
         apply();
+        const only=selected.size===1 ? positions[Array.from(selected)[0]] : null;
+        if(only){document.getElementById('ff-size').value=only.w||0;document.getElementById('ff-height').value=only.h||0;}
     }
     function setEditing(active) {
         editing = active;
@@ -85,6 +90,12 @@
         requestAnimationFrame(()=>root.dispatchEvent(new Event('click')));
     });
 
+    // While arranging, links remain selection targets and must never navigate.
+    root.addEventListener('click',e=>{
+        if(!editing)return;
+        const link=e.target.closest('a,[role="link"]');
+        if(link){e.preventDefault();e.stopImmediatePropagation();}
+    },true);
     root.addEventListener('pointerdown', e => {
         if (!editing || e.button !== 0) return;
         const el = e.target.closest('[data-move-id]');
