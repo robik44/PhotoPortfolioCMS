@@ -656,6 +656,103 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
 });
 </script>
+<style>
+#ff-element-palette{position:fixed;z-index:112;left:0;top:0;bottom:0;width:205px;box-sizing:border-box;padding:18px 12px;background:#fff;border-right:1px solid #cbd3ce;overflow:auto;font:13px Arial,sans-serif}
+#ff-element-palette h3{font:bold 13px Arial;margin:5px 0 14px}
+#ff-element-palette button{display:block;width:100%;padding:11px 8px;margin:7px 0;background:white;border:1px solid #d2d9d3;border-radius:5px;text-align:left;cursor:pointer;font:13px Arial}
+#ff-element-palette button:hover{background:#edf5ed}
+#ff-added-props{border:1px solid #d9dfd9;padding:12px;margin-top:12px;background:#fff}
+#ff-added-props label{display:block;margin:10px 0}
+#ff-added-props input,#ff-added-props textarea,#ff-added-props select{display:block;box-sizing:border-box;width:100%;padding:7px;margin-top:4px}
+#ff-added-props button{padding:9px;margin:4px 0}
+body.ff-canvas-compact #ff-element-palette~#ff-added-element-toggle{position:fixed;bottom:14px;left:12px;z-index:116}
+</style>
+<aside id="ff-element-palette" aria-label="Dodawanie elementów">
+ <h3>ELEMENTY</h3>
+ <button type="button" data-add-ff="text">+ Tekst</button>
+ <button type="button" data-add-ff="heading">+ Nagłówek</button>
+ <button type="button" data-add-ff="image">+ Zdjęcie</button>
+ <button type="button" data-add-ff="thumbnail_gallery">+ Galeria miniaturek</button>
+ <button type="button" data-add-ff="gallery">+ Galeria</button>
+ <button type="button" data-add-ff="button">+ Przycisk</button>
+ <button type="button" data-add-ff="separator">+ Separator</button>
+ <p style="font-size:11px;color:#777;line-height:1.5">Nowe elementy są dodawane do szkicu na końcu strony. Możesz je przesuwać i zmieniać ich rozmiary.</p>
+ <p id="ff-add-status" role="status"></p>
+</aside>
+<button id="ff-added-element-toggle" type="button" style="display:none">Elementy</button>
+<div id="ff-added-props" hidden>
+ <strong>Właściwości nowego elementu</strong>
+ <p id="ff-added-selected"></p>
+ <label>Treść / podpis<textarea id="ff-added-content" rows="4" maxlength="2000"></textarea></label>
+ <label>Zdjęcie z biblioteki<select id="ff-added-photo"></select></label>
+ <label>Galeria<select id="ff-added-gallery"></select></label>
+ <label>Adres przycisku (np. /portfolio)<input id="ff-added-url" type="text"></label>
+ <button type="button" id="ff-added-save">Zapisz element</button>
+ <button type="button" id="ff-added-remove">Usuń element</button>
+ <p id="ff-added-status" role="status"></p>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const elements=[...@json($canvasElements)], photos=@json($photoPickerOptions), galleries=@json($canvasGalleryOptions);
+ const props=document.getElementById('ff-added-props'),label=document.getElementById('ff-added-selected');
+ let selected=null;
+ const fields={content:document.getElementById('ff-added-content'),
+  photo_id:document.getElementById('ff-added-photo'),
+  gallery_id:document.getElementById('ff-added-gallery'),
+  url:document.getElementById('ff-added-url')};
+ const csrf=document.querySelector('#ff-save-all-form input[name="_token"]').value;
+ for(const [select,list] of [[fields.photo_id,photos],[fields.gallery_id,galleries]]){
+  const empty=document.createElement('option');empty.value='0';empty.textContent='Wybierz';select.appendChild(empty);
+  list.forEach(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;select.appendChild(option)});
+ }
+ async function persist(status){
+  status.textContent='Zapisywanie szkicu…';
+  try{
+   const body=new FormData();body.append('_token',csrf);body.append('elements',JSON.stringify(elements));
+   const response=await fetch('/admin/foodfoto-canvas/elements',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const result=await response.json();
+   if(!result.success)throw Error('Brak potwierdzenia');
+   window.location.reload();
+  }catch(error){status.textContent='Błąd zapisu: '+error.message}
+ }
+ document.querySelectorAll('[data-add-ff]').forEach(button=>button.addEventListener('click',()=>{
+  const type=button.dataset.addFf;
+  const id='ffel_'+(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).slice(0,20);
+  elements.push({id,type,content:({heading:'Nowy nagłówek',text:'Nowy tekst',button:'Zobacz więcej'}[type]||''),photo_id:0,gallery_id:0,url:'#portfolio'});
+  persist(document.getElementById('ff-add-status'));
+ }));
+ function choose(id){
+  selected=elements.find(el=>el.id===id)||null;
+  if(!selected)return;
+  props.hidden=false;label.textContent='Typ: '+selected.type;
+  fields.content.value=selected.content||'';
+  fields.photo_id.value=selected.photo_id||0;
+  fields.gallery_id.value=selected.gallery_id||0;
+  fields.url.value=selected.url||'';
+  fields.photo_id.parentElement.hidden=selected.type!=='image';
+  fields.gallery_id.parentElement.hidden=!['gallery','thumbnail_gallery'].includes(selected.type);
+  fields.url.parentElement.hidden=selected.type!=='button';
+  fields.content.parentElement.hidden=!['heading','text','button'].includes(selected.type);
+ }
+ document.querySelectorAll('[data-added-element]').forEach(el=>el.addEventListener('click',()=>choose(el.dataset.addedElement)));
+ document.getElementById('ff-added-save').addEventListener('click',()=>{
+  if(!selected)return;
+  selected.content=fields.content.value;selected.photo_id=Number(fields.photo_id.value);
+  selected.gallery_id=Number(fields.gallery_id.value);selected.url=fields.url.value;
+  persist(document.getElementById('ff-added-status'));
+ });
+ document.getElementById('ff-added-remove').addEventListener('click',()=>{
+  if(!selected)return;
+  const ix=elements.findIndex(el=>el.id===selected.id);if(ix>=0)elements.splice(ix,1);
+  persist(document.getElementById('ff-added-status'));
+ });
+ const right=document.getElementById('ff-unified-panel');
+ if(right)right.appendChild(props);
+});
+</script>
 <div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
  <button type="button" id="ff-photo-close">Zamknij ×</button>
  <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
