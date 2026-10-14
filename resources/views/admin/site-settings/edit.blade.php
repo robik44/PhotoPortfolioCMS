@@ -99,6 +99,27 @@
                             <input type="file" id="preview_hero_image_file" name="preview_hero_image_file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" style="width:100%;">
                         </div>
 
+                        @foreach([
+                            'editorial' => ['Więcej niż zwykłe zdjęcia', 'preview_editorial_title', 'preview_editorial_description', 'preview_editorial_photo_id'],
+                            'experience' => ['Sekcja doświadczenia', 'preview_experience_title', 'preview_experience_description', 'preview_experience_photo_id']
+                        ] as $sectionCode => $sectionFields)
+                            <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
+                                <h3 style="font-weight:700;font-size:17px;margin-bottom:12px;">Podgląd FoodFoto — {{ $sectionFields[0] }}</h3>
+                                <p style="font-size:13px;color:#555;">Te pola zmieniają tylko nowy podgląd, nie aktualną publiczną stronę.</p>
+                                <label for="{{ $sectionFields[1] }}" style="display:block;font-weight:600;margin-top:12px;">Nagłówek</label>
+                                <input id="{{ $sectionFields[1] }}" type="text" name="{{ $sectionFields[1] }}" maxlength="600" required value="{{ old($sectionFields[1], $settings[$sectionFields[1]]) }}" style="width:100%;margin-top:5px;">
+                                <label for="{{ $sectionFields[2] }}" style="display:block;font-weight:600;margin-top:12px;">Opis</label>
+                                <textarea id="{{ $sectionFields[2] }}" name="{{ $sectionFields[2] }}" maxlength="600" required rows="4" style="width:100%;margin-top:5px;">{{ old($sectionFields[2], $settings[$sectionFields[2]]) }}</textarea>
+                                <label for="{{ $sectionFields[3] }}" style="display:block;font-weight:600;margin-top:12px;">Fotografia z biblioteki</label>
+                                <select id="{{ $sectionFields[3] }}" name="{{ $sectionFields[3] }}" style="width:100%;margin-top:5px;">
+                                    <option value="">Użyj dotychczasowej fotografii</option>
+                                    @foreach($photos as $photo)
+                                        <option value="{{ $photo->id }}" @selected((string)old($sectionFields[3], $settings[$sectionFields[3]] ?? '') === (string)$photo->id)>#{{ $photo->id }} — {{ $photo->title ?: $photo->alt ?: 'Fotografia' }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endforeach
+
                         <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
                             <h3 style="font-size:17px;font-weight:700;margin:0 0 10px;">FoodFoto — listki bazylii w nowym podglądzie</h3>
                             <p style="font-size:13px;color:#555;margin-bottom:12px;">Możesz podmienić każdą dekorację osobno. PNG lub WebP z przezroczystym tłem, maksymalnie 5 MB. Zmiana dotyczy wyłącznie podglądu nowej strony głównej.</p>
