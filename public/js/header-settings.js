@@ -13,11 +13,12 @@
     const brandInput = form.elements.namedItem('brand_image_file');
     const brandPreview = document.getElementById('header-preview-image');
     const brandDivider = document.getElementById('header-preview-divider');
-    const initialBrandSrc = brandPreview.getAttribute('src') || '';
+    const initialBrandSrc = brandPreview?.getAttribute('src') || '';
     let brandBlobUrl = null;
     function updateBrandPreview() {
         if (brandBlobUrl) URL.revokeObjectURL(brandBlobUrl);
         brandBlobUrl = null;
+        if (!brandInput || !brandPreview || !brandDivider) return;
         const file = brandInput.files[0];
         if (file && /^image\/(png|webp)$/.test(file.type)) brandBlobUrl = URL.createObjectURL(file);
         const removed = form.elements.namedItem('remove_brand_image')?.checked || false;
@@ -27,7 +28,7 @@
         if (src) brandPreview.src = src;
         brandPreview.style.width = number('header_brand_image_width', 76, 24, 240) + 'px';
     }
-    brandInput.addEventListener('change', updateBrandPreview);
+    brandInput?.addEventListener('change', updateBrandPreview);
     form.elements.namedItem('remove_brand_image')?.addEventListener('change', updateBrandPreview);
     let localFace = null;
     let loadVersion = 0;
