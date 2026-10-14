@@ -24,9 +24,13 @@
             <h2 id="header-preview-title">PODGLĄD NAGŁÓWKA</h2>
             <p>Zmiany są widoczne od razu. Zostaną opublikowane po kliknięciu „Zapisz nagłówek”.</p>
             <div id="header-live-preview" class="header-live-preview">
-                <div class="header-preview-brand">
-                    <span id="header-preview-logo"></span>
-                    <span id="header-preview-subtitle"></span>
+                <div class="header-preview-brand-row">
+                    <img id="header-preview-image" src="{{ !empty($settings['header_brand_image']) ? asset('storage/'.$settings['header_brand_image']) : '' }}" alt="Podgląd logo" @if(empty($settings['header_brand_image'])) hidden @endif>
+                    <span id="header-preview-divider" aria-hidden="true" @if(empty($settings['header_brand_image'])) hidden @endif></span>
+                    <div class="header-preview-brand">
+                        <span id="header-preview-logo"></span>
+                        <span id="header-preview-subtitle"></span>
+                    </div>
                 </div>
                 <div class="header-preview-menu" aria-label="Przykładowe położenie menu">
                     <span>Start</span><span>Portfolio ▾</span><span>O mnie</span><span>Kontakt</span>
@@ -167,6 +171,9 @@
         .header-preview-section { margin: 24px 0; padding: 16px; border: 1px solid #ddd; border-radius: 8px; background: #fafafa; }
         .header-preview-section h2 { font-weight: 700; }
         .header-live-preview { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 24px; padding: 24px; margin-top: 16px; background: #fff; border: 1px solid #eee; }
+        .header-preview-brand-row {display:flex;align-items:center;gap:18px;max-width:100%;}
+        #header-preview-image {width:76px;height:auto;max-height:120px;object-fit:contain;}
+        #header-preview-divider {width:1px;align-self:stretch;min-height:34px;background:#b0ada7;flex-shrink:0;}
         .header-preview-brand { max-width: 100%; overflow-wrap: anywhere; }
         .header-preview-brand span { display: block; }
         .header-preview-brand span + span { margin-top: var(--header-logo-subtitle-gap, 4px); }
