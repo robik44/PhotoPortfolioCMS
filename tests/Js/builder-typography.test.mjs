@@ -163,7 +163,7 @@ test('full: thumbnail block renders ordered live Photo references and its own se
         assert.equal(grid.style['--tg-height'], undefined);
         assert.equal(find(context.properties, element => element['aria-label'] === 'Rodzaj czcionki'), undefined);
         assert.equal(find(context.properties, element => element['data-thumbnail-setting'] === 'image_fit'), undefined);
-        assert.equal(find(context.properties, element => element['data-thumbnail-setting'] === 'thumbnail_height'), undefined);
+        assert.ok(find(context.properties, element => element['data-thumbnail-setting'] === 'thumbnail_height'));
         for (const [key, value, variable, expected] of [
             ['columns_desktop', '6', '--tg-desktop', '6'], ['columns_tablet', '4', '--tg-tablet', '4'],
             ['columns_mobile', '1', '--tg-mobile', '1'], ['gap', '12', '--tg-gap', '12px'],
