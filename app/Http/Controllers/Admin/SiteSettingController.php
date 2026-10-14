@@ -31,6 +31,12 @@ class SiteSettingController extends Controller
             'preview_hero_description' => 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.',
             'preview_hero_button_label' => 'Zobacz portfolio',
             'preview_hero_button_url' => '#portfolio',
+            'preview_editorial_title' => 'Więcej niż zwykłe zdjęcia',
+            'preview_editorial_description' => 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.',
+            'preview_experience_title' => 'Od niemal 30 lat z aparatem przy stole',
+            'preview_experience_description' => 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.',
+            'preview_editorial_photo_id' => null,
+            'preview_experience_photo_id' => null,
         ];
 
         $settings = array_merge(
@@ -69,6 +75,12 @@ class SiteSettingController extends Controller
             'preview_hero_title' => ['required', 'string', 'max:160'],
             'preview_hero_description' => ['required', 'string', 'max:500'],
             'preview_hero_button_label' => ['required', 'string', 'max:80'],
+            'preview_editorial_title' => ['required', 'string', 'max:600'],
+            'preview_editorial_description' => ['required', 'string', 'max:600'],
+            'preview_experience_title' => ['required', 'string', 'max:600'],
+            'preview_experience_description' => ['required', 'string', 'max:600'],
+            'preview_editorial_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_experience_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'preview_hero_button_url' => ['required', 'string', 'max:255', 'regex:/^(\/[^\s]*|\#[a-zA-Z][a-zA-Z0-9_-]*)$/'],
         ]);
 
@@ -125,6 +137,10 @@ class SiteSettingController extends Controller
 
         foreach (['preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url'] as $key) {
             SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key]]);
+        }
+
+        foreach (['preview_editorial_title', 'preview_editorial_description', 'preview_experience_title', 'preview_experience_description', 'preview_editorial_photo_id', 'preview_experience_photo_id'] as $key) {
+            SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key] ?? null]);
         }
 
         if ($request->hasFile('preview_hero_image_file')) {
