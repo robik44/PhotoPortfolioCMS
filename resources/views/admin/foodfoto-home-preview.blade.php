@@ -636,9 +636,19 @@ document.addEventListener('DOMContentLoaded',function(){
  const form=document.getElementById('ff-text-form');
  const nodes=[...document.querySelectorAll('[data-canvas-text]')];
  let active=false;
+ // Clicking a text field inside a link edits its label rather than following its URL.
+ document.querySelectorAll('a:has([data-canvas-text])').forEach(link=>{
+  link.addEventListener('click',event=>{
+   if(!active)return;
+   event.preventDefault();
+   event.stopPropagation();
+   const span=link.querySelector('[data-canvas-text]');
+   if(span){span.focus();span.click();}
+  },true);
+ });
  btn.addEventListener('click',function(){
   active=!active;
-  nodes.forEach(el=>{el.contentEditable=active?'true':'false';el.style.outline=active?'1px dashed #42774a':''});
+  nodes.forEach(el=>{el.contentEditable=active?'true':'false';el.style.outline=active?'1px dashed #42774a':'';if(el.closest('a'))el.setAttribute('tabindex','0');});
   btn.textContent=active?'Zakończ edycję tekstów':'Edytuj teksty ✎';
  });
  form.addEventListener('submit',function(){
