@@ -68,6 +68,17 @@ class FoodfotoPreviewController extends Controller
 
     public function __invoke(): Response
     {
+        return $this->renderPage(false);
+    }
+
+    public function publicHome(): Response
+    {
+        abort_unless(SiteSetting::where('key', 'foodfoto_new_home_published')->value('value') === '1', 404);
+        return $this->renderPage(true);
+    }
+
+    private function renderPage(bool $public): Response
+    {
         $builder = PageBuilder::query()->whereNull('page_id')->where('type', 'home')->firstOrFail();
         $sections = array_values($builder->content['sections'] ?? []);
         abort_unless(count($sections) === 32
@@ -121,10 +132,12 @@ class FoodfotoPreviewController extends Controller
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public'
         ));
-        $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
-        $response->headers->set('Cache-Control', 'private, no-store');
+        if (!$public) {
+            $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
+            $response->headers->set('Cache-Control', 'private, no-store');
+        }
         return $response;
     }
 }
