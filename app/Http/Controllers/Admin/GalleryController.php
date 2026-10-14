@@ -41,13 +41,13 @@ class GalleryController extends Controller
         $data = $request->validate([
             'title' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'gallery_collection_id' => ['required', 'integer', 'exists:gallery_collections,id'],
+            'gallery_collection_id' => ['nullable', 'integer', 'exists:gallery_collections,id'],
         ] + GalleryTypography::rules() + \App\Support\Seo::rules() + [
             'slug' => ['nullable', 'string', 'max:255', 'regex:/^[a-z0-9]+(?:-[a-z0-9]+)*$/', 'not_regex:/^[0-9]+$/', \Illuminate\Validation\Rule::unique('galleries', 'slug')],
         ]);
 
         $sortOrder = (int) (
-            Gallery::where('gallery_collection_id', $data['gallery_collection_id'])->max('sort_order') ?? -1
+            Gallery::where('gallery_collection_id', ($data['gallery_collection_id'] ?? null))->max('sort_order') ?? -1
         );
 
         $slug = $data['slug'] ?? Str::slug($data['title']);
