@@ -327,4 +327,25 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         ])->assertStatus(422);
     }
 
+    public function test_layout_ajax_save_returns_confirmation_and_persists_positions(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create());
+        $layout=['hero-text'=>['x'=>32,'y'=>5,'w'=>0,'z'=>0]];
+        $this->postJson(route('foodfoto.canvas.layout'),[
+            'layout'=>json_encode($layout),
+        ])->assertOk()->assertJsonPath('positions.hero-text.x',32);
+        $this->assertSame($layout,json_decode(
+            SiteSetting::where('key','foodfoto_canvas_draft_positions')->value('value'),true
+        ));
+    }
+
+    public function test_builder_has_one_collapsible_tool_sidebar(): void
+    {
+        $template=file_get_contents(resource_path('views/admin/foodfoto-home-preview.blade.php'));
+        $this->assertStringContainsString("details.className='ff-tool-section'", $template);
+        $this->assertStringContainsString("panel.appendChild(holder)", $template);
+        $this->assertStringContainsString("ff-sidebar-toggle", $template);
+    }
+
 }
