@@ -95,6 +95,7 @@
             data-builder-index="{{ $loop->index }}"
             data-flow-mode="{{ ($element['flow_mode'] ?? 'free') === 'auto' ? 'auto' : 'free' }}"
             data-flow-baseline="{{ max(0, (float) ($element['flow_base_height'] ?? 0)) }}"
+            data-flow-anchor="{{ (float) ($element['flow_anchor'] ?? 0) }}"
             data-base-top="{{ $top }}"
         >
             @if($type === 'image')
@@ -301,7 +302,7 @@
             const baseTop = Number(element.dataset.baseTop) || 0;
             const shift = sources.reduce((sum, source) =>
                 sum + (baseTop >= source.bottom - 0.5 ? source.delta : 0), 0);
-            element.style.top = (baseTop + shift) + 'px';
+            element.style.top = (baseTop + shift - (Number(element.dataset.flowAnchor) || 0)) + 'px';
             const height = element.offsetHeight;
             if (element.dataset.flowMode === 'auto') {
                 const baseline = Number(element.dataset.flowBaseline) || height;
