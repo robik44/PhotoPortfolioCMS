@@ -117,6 +117,11 @@ letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!im
 @unless($public)
 <div class="preview-top"><strong>{{ $canvas ? 'EDYTOR NA PRAWDZIWYM UKŁADZIE — tylko wersja robocza' : 'WERSJA ROBOCZA — dostęp administratora' }}</strong><div>@if($canvas)<a href="{{ route('foodfoto.builder.edit') }}">Pełna typografia i elementy ↗</a>@else<a href="{{ route('foodfoto.canvas') }}">Edytuj rzeczywistą stronę ↗</a>@endif <a href="{{ route('home-builder.edit') }}">Stary builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
 @endunless
+@if($canvas && $canvasUsingFixture)
+<div role="status" style="background:#fff3ca;color:#423400;padding:14px 22px;font:14px Arial,sans-serif;position:relative;z-index:51">
+ <strong>Tryb testowy Codespaces:</strong> ta baza zawiera inny układ niż produkcyjny. Widzisz roboczą kompozycję z dostępnych zdjęć, nie dokładną kopię www.foodfoto.pl. Zapisy działają wyłącznie w szkicu i nie zmieniają publicznej strony.
+</div>
+@endif
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
 @unless($public)
 <div class="ff-ruler-top" aria-hidden="true"></div><div class="ff-ruler-left" aria-hidden="true"></div><div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
