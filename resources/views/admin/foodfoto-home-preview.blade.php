@@ -105,7 +105,7 @@
  </div>
 </section>
 <section class="editorial">
- @if($photo=$photos->get((int)($previewDecorations['preview_editorial_photo_id'] ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
+ @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
  <img class="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p>{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
@@ -135,7 +135,7 @@
 </section>
 <section class="about-experience" aria-labelledby="experience-heading">
  <div class="visual">
-  @if($aboutPhoto = $photos->get((int)($previewDecorations['preview_experience_photo_id'] ?: ($sections[6]['photo_id'] ?? 0))))
+  @if($aboutPhoto = $photos->get((int)(($previewDecorations['preview_experience_photo_id'] ?? null) ?: ($sections[6]['photo_id'] ?? 0))))
    <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
