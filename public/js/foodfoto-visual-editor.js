@@ -25,6 +25,7 @@
     const snapToggle = document.getElementById('ff-layout-snap');
     const clone = p => JSON.parse(JSON.stringify(p));
     const clamp = n => Math.max(-350, Math.min(350, Math.round(n)));
+    const canvasScale = () => root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1;
     function apply() {
         for (const [id, el] of nodes) {
             const p = positions[id] || {x:0,y:0};
@@ -113,7 +114,7 @@
     });
     root.addEventListener('pointermove', e => {
         if (!drag || e.pointerId !== drag.pointerId) return;
-        const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
+        const dx = (e.clientX - drag.startX)/canvasScale(), dy = (e.clientY - drag.startY)/canvasScale();
         for (const id of selected) {
             positions[id] = {...drag.initialPositions[id], x:clamp(drag.initialPositions[id].x+dx), y:clamp(drag.initialPositions[id].y+dy)};
         }
@@ -211,7 +212,7 @@
     function placeHandle(){
         if(!editing||selected.size!==1||drag||sizing){handle.style.display='none';return;}
         const id=Array.from(selected)[0],el=nodes.get(id),a=el.getBoundingClientRect(),b=root.getBoundingClientRect();
-        handle.style.display='block';handle.style.left=(a.right-b.left-8)+'px';handle.style.top=(a.bottom-b.top-8)+'px';
+        handle.style.display='block';handle.style.left=((a.right-b.left)/canvasScale()-8)+'px';handle.style.top=((a.bottom-b.top)/canvasScale()-8)+'px';
     }
     root.addEventListener('pointerup',()=>requestAnimationFrame(placeHandle));
     root.addEventListener('click',()=>requestAnimationFrame(placeHandle));
@@ -221,13 +222,13 @@
         e.preventDefault();e.stopPropagation();
         snapshot();
         const id=Array.from(selected)[0],el=nodes.get(id);
-        sizing={id,startX:e.clientX,startY:e.clientY,width:el.getBoundingClientRect().width,height:el.getBoundingClientRect().height,pointerId:e.pointerId};
+        sizing={id,startX:e.clientX,startY:e.clientY,width:el.getBoundingClientRect().width/canvasScale(),height:el.getBoundingClientRect().height/canvasScale(),pointerId:e.pointerId};
         handle.setPointerCapture(e.pointerId);
     });
     handle.addEventListener('pointermove',e=>{
         if(!sizing||sizing.pointerId!==e.pointerId)return;
-        positions[sizing.id].w=Math.max(40,Math.min(1200,Math.round(sizing.width+e.clientX-sizing.startX)));
-        positions[sizing.id].h=Math.max(30,Math.min(1200,Math.round(sizing.height+e.clientY-sizing.startY)));
+        positions[sizing.id].w=Math.max(40,Math.min(1200,Math.round(sizing.width+(e.clientX-sizing.startX)/canvasScale())));
+        positions[sizing.id].h=Math.max(30,Math.min(1200,Math.round(sizing.height+(e.clientY-sizing.startY)/canvasScale())));
         widthInput.value=positions[sizing.id].w;
         document.getElementById('ff-height').value=positions[sizing.id].h;
         apply();
