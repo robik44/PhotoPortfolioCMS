@@ -30,6 +30,16 @@
 /* Preserve the SEO/service heading for assistive technologies, without displaying it. */
 .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
 .services-section{padding-top:58px}
+/* Editorial three-stage process between the story and portfolio sections. */
+.process-section{position:relative;display:grid;grid-template-columns:30% 1fr;gap:54px;align-items:start;padding:90px 80px 102px;background:#fff}
+.process-intro h2{font-size:60px;font-weight:400;line-height:1.03;letter-spacing:-.04em;margin:0 0 22px}
+.process-intro p{max-width:300px;font:17px/1.65 Arial,sans-serif;color:#66675f}
+.process-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.process-step img{display:block;width:100%;height:195px;object-fit:cover;background:#f2f0eb}
+.process-step .number{font:31px/1.05 Georgia,'Times New Roman',serif;margin-top:14px}
+.process-step h3{font-size:21px;font-weight:400;line-height:1.15;margin:6px 0}
+.process-step p{font:13px/1.5 Arial,sans-serif;color:#71726b;margin:7px 0 0}
+.process-basil{position:absolute;left:28px;bottom:18px;width:60px;height:60px;transform:rotate(-17deg);pointer-events:none}
 </style>
 </head>
 <body>
@@ -80,6 +90,31 @@
 <section class="editorial">
  @if($photo=$photos->get((int)($sections[25]['photo_id']??0)))<img class="photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
  <img class="editorial-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy"><h2>Więcej niż<br>zwykłe zdjęcia</h2><p>Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+</section>
+<section class="process-section" aria-labelledby="foodfoto-process-heading">
+ <div class="process-intro">
+  <h2 id="foodfoto-process-heading">Od pomysłu<br>do kadru</h2>
+  <p>Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.</p>
+ </div>
+ <div class="process-steps">
+  @foreach([
+   ['01', 'Koncepcja', 'Pomysł, kompozycja i kierunek wizualny.', 95],
+   ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', 18],
+   ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', 45]
+  ] as $stage)
+  <article class="process-step">
+   @if($processPhoto = $photos->get($stage[3]))
+    <img loading="lazy" src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
+   @else
+    <div class="placeholder" style="height:195px">Fotografia</div>
+   @endif
+   <div class="number">{{ $stage[0] }}</div>
+   <h3>{{ $stage[1] }}</h3>
+   <p>{{ $stage[2] }}</p>
+  </article>
+  @endforeach
+ </div>
+ <img class="process-basil" src="{{ asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
 </section>
 <section class="section">
  <h2>Publikacje i realizacje</h2>
