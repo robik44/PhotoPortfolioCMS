@@ -40,6 +40,7 @@
     .site-header .logo .logo-text-stack > span:last-child { margin-top:var(--header-logo-subtitle-gap); }
     .site-header .logo-brand-image { display:block; width:var(--brand-image-width, 76px); height:auto; max-height:120px; object-fit:contain; }
     .site-header .logo-text-stack { display:flex; flex-direction:column; min-width:0; }
+    .site-header .logo-brand-divider { display:block; flex:0 0 1px; align-self:stretch; min-height:34px; background:#b0ada7; }
     .site-header .main-menu {
         display: flex;
         align-items: center;
@@ -140,6 +141,7 @@
           <span class="logo-brand-row" style="--brand-image-width: {{ $headerSettings['header_brand_image_width'] }}px;">
             @if(!empty($headerSettings['header_brand_image']))
               <img class="logo-brand-image" src="{{ asset('storage/'.$headerSettings['header_brand_image']) }}" alt="FoodFoto" width="{{ $headerSettings['header_brand_image_width'] }}">
+              <span class="logo-brand-divider" aria-hidden="true"></span>
             @endif
             <span class="logo-text-stack">
             <span style="font-family:{{ $headerFamilies[$headerSettings['header_logo_font_family']] }}; font-size:{{ $headerSettings['header_logo_font_size'] }}px; font-weight:{{ $headerSettings['header_logo_font_weight'] }}; letter-spacing:{{ $headerSettings['header_logo_letter_spacing'] }}em; color:{{ $headerSettings['header_logo_color'] }};">
