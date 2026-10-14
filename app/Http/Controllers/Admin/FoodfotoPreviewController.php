@@ -249,8 +249,14 @@ class FoodfotoPreviewController extends Controller
 
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
+        $photoPickerOptions = $canvas ? $photoOptions->map(fn ($photo) => [
+            'id' => $photo->id,
+            'url' => $photo->imageUrl(),
+            'title' => $photo->title ?: $photo->alt ?: 'Fotografia',
+        ])->values()->all() : [];
+
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'photoPickerOptions'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
