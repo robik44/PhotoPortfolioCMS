@@ -188,4 +188,23 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_image']);
     }
 
+    public function test_canvas_shows_single_contextual_builder_sidebar(): void
+    {
+        $sections = array_fill(0, 32, ['type' => 'text', 'content' => 'Test']);
+        $sections[3]['content'] = 'Co tworzę';
+        $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'selected', 'gallery_ids' => []];
+        $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        $sections[31] = ['type' => 'image', 'photo_id' => 96];
+        PageBuilder::create(['page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['version' => 1, 'settings' => [], 'sections' => $sections]]);
+        $this->actingAs(User::factory()->create())->withoutVite()
+            ->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('id="ff-unified-panel"', false)
+            ->assertSee('id="ff-unified-tools"', false)
+            ->assertSee('id="ff-type-panel"', false)
+            ->assertSee('id="ff-photo-panel"', false)
+            ->assertSee('id="ff-text-toolbar"', false);
+        $this->get('/')->assertOk()->assertDontSee('ff-unified-panel');
+    }
+
 }
