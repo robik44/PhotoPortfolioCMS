@@ -79,6 +79,16 @@
                         </div>
 
                         <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
+                            <h3 style="font-size:17px;font-weight:700;margin:0 0 10px;">FoodFoto — zdjęcie główne nowego podglądu</h3>
+                            <p style="font-size:13px;color:#555;margin:0 0 12px;">Oddzielne zdjęcie na baner „Apetyt na dobre kadry”. Wgraj fotografię marchewki w JPG, PNG lub WebP (maks. 10 MB). Nie zmienia to zdjęcia na aktualnej stronie głównej.</p>
+                            @if(!empty($settings['preview_hero_image']))
+                                <img src="{{ asset('storage/'.$settings['preview_hero_image']) }}" alt="Zdjęcie banera w podglądzie" style="max-width:320px;width:100%;height:auto;display:block;margin:10px 0;">
+                            @endif
+                            <label for="preview_hero_image_file" style="display:block;font-weight:600;margin-bottom:8px;">Nowe zdjęcie banera podglądu</label>
+                            <input type="file" id="preview_hero_image_file" name="preview_hero_image_file" accept="image/jpeg,image/png,image/webp,.jpg,.jpeg,.png,.webp" style="width:100%;">
+                        </div>
+
+                        <div style="padding:20px;border:1px solid #e5e7eb;border-radius:8px;background:#fafafa;">
                             <h3 style="font-size:17px;font-weight:700;margin:0 0 10px;">FoodFoto — listki bazylii w nowym podglądzie</h3>
                             <p style="font-size:13px;color:#555;margin-bottom:12px;">Możesz podmienić każdą dekorację osobno. PNG lub WebP z przezroczystym tłem, maksymalnie 5 MB. Zmiana dotyczy wyłącznie podglądu nowej strony głównej.</p>
                             @foreach(['hero' => 'Przy głównym banerze', 'editorial' => 'Więcej niż zwykłe zdjęcia', 'process' => 'Od pomysłu do kadru'] as $place => $label)
