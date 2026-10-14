@@ -625,6 +625,9 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 </script>
 <div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
+ <label for="ff-hero-button-label" style="display:block;margin-bottom:12px">Tekst przycisku głównego
+  <input id="ff-hero-button-label" type="text" maxlength="80" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:8px" value="{{ $canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}">
+ </label>
  <button type="button" id="ff-text-enable">Edytuj teksty ✎</button>
  <form action="{{ route('foodfoto.canvas.texts') }}" id="ff-text-form" method="POST" style="display:inline">@csrf<input type="hidden" name="texts" id="ff-text-json"><button type="submit">Zapisz teksty</button></form>
  <small style="display:block;margin-top:8px">Po kliknięciu „Edytuj teksty” możesz zmienić zawartość zaznaczonych nagłówków i opisów bezpośrednio na stronie. Ten zapis dotyczy tylko wersji roboczej.</small>
@@ -635,6 +638,12 @@ document.addEventListener('DOMContentLoaded',function(){
  const btn=document.getElementById('ff-text-enable');
  const form=document.getElementById('ff-text-form');
  const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ const heroButtonLabel=document.getElementById('ff-hero-button-label');
+ const heroButtonText=document.querySelector('[data-canvas-text="preview_hero_button_label"]');
+ if(heroButtonLabel&&heroButtonText){
+  heroButtonLabel.addEventListener('input',()=>{heroButtonText.textContent=heroButtonLabel.value;});
+  heroButtonText.addEventListener('input',()=>{heroButtonLabel.value=heroButtonText.textContent;});
+ }
  let active=false;
  // Clicking a text field inside a link edits its label rather than following its URL.
  document.querySelectorAll('a:has([data-canvas-text])').forEach(link=>{
@@ -653,6 +662,7 @@ document.addEventListener('DOMContentLoaded',function(){
  });
  form.addEventListener('submit',function(){
   const values={};nodes.forEach(el=>values[el.dataset.canvasText]=el.innerText);
+  if(heroButtonLabel)values.preview_hero_button_label=heroButtonLabel.value;
   document.getElementById('ff-text-json').value=JSON.stringify(values);
  });
 });
