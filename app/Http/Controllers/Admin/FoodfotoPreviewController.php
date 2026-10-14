@@ -119,6 +119,23 @@ class FoodfotoPreviewController extends Controller
         return redirect()->route('foodfoto.canvas')->with('foodfoto_layout_saved', true);
     }
 
+    public function saveCanvasTexts(Request $request)
+    {
+        $data = $request->validate(['texts' => ['required', 'string', 'max:40000']]);
+        $texts = json_decode($data['texts'], true);
+        abort_unless(is_array($texts) && count($texts) <= 100, 422);
+        $clean = [];
+        foreach ($texts as $id => $value) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id), 422);
+            abort_unless(is_string($value) && mb_strlen($value) <= 2000, 422);
+            $clean[$id] = trim(strip_tags($value));
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_texts'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        return redirect()->route('foodfoto.canvas')->with('foodfoto_texts_saved', true);
+    }
+
     public function __invoke(): Response
     {
         return $this->renderPage(false);
@@ -184,13 +201,16 @@ class FoodfotoPreviewController extends Controller
         $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
 
+        $canvasTexts = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_texts')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasTexts)) $canvasTexts = [];
+
         $editorPositions = json_decode(SiteSetting::where('key', $canvas ? 'foodfoto_canvas_draft_positions' : 'preview_editor_positions')->value('value') ?: '{}', true);
         if (!is_array($editorPositions)) $editorPositions = [];
 
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
