@@ -115,6 +115,8 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/foodfoto-preview', \App\Http\Controllers\Admin\FoodfotoPreviewController::class)->name('foodfoto.home.preview');
+
     Route::get('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'index'])->name('seo.redirects.index');
     Route::post('/admin/seo/redirects', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'store'])->name('seo.redirects.store');
     Route::put('/admin/seo/redirects/{redirect}', [\App\Http\Controllers\Admin\LegacyRedirectController::class, 'update'])->name('seo.redirects.update');
