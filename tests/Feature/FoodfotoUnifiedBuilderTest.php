@@ -69,4 +69,45 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertSame($home->content, $home->fresh()->content);
     }
 
+    public function test_saved_draft_reopens_with_same_drag_positions_and_typography(): void
+    {
+        $home = $this->homepage();
+        $original = $home->content;
+        $user = User::factory()->create();
+        $this->actingAs($user)->withoutVite();
+        $draft = [
+            'version' => 1,
+            'settings' => [],
+            'sections' => [[
+                'id' => 'moveable-headline',
+                'type' => 'heading',
+                'content' => 'Mój tekst po przesunięciu',
+                'position_x' => 24.5,
+                'position_y' => 37.25,
+                'element_width' => 64.5,
+                'style' => ['font_size' => 42.1, 'line_height' => 1.15],
+            ]],
+        ];
+        $this->postJson(route('foodfoto.builder.save'), ['content' => $draft])->assertOk();
+        $this->get(route('foodfoto.builder.edit'))->assertOk()
+            ->assertSee('Mój tekst po przesunięciu')
+            ->assertSee('24.5')
+            ->assertSee('42.1');
+        $saved = PageBuilder::where('type', 'foodfoto_draft')->firstOrFail();
+        $this->assertSame(24.5, $saved->content['sections'][0]['position_x']);
+        $this->assertSame(37.25, $saved->content['sections'][0]['position_y']);
+        $this->assertSame(64.5, $saved->content['sections'][0]['element_width']);
+        $this->assertSame(42.1, $saved->content['sections'][0]['style']['font_size']);
+        $this->assertSame($original, $home->fresh()->content);
+    }
+
+    public function test_draft_save_requires_login(): void
+    {
+        $this->homepage();
+        $this->postJson(route('foodfoto.builder.save'), ['content' => [
+            'version' => 1, 'settings' => [], 'sections' => [],
+        ]])->assertUnauthorized();
+        $this->assertDatabaseMissing('page_builders', ['type' => 'foodfoto_draft']);
+    }
+
 }
