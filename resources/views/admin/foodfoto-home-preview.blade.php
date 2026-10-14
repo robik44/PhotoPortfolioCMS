@@ -40,6 +40,14 @@
 .process-step h3{font-size:21px;font-weight:400;line-height:1.15;margin:6px 0}
 .process-step p{font:13px/1.5 Arial,sans-serif;color:#71726b;margin:7px 0 0}
 .process-basil{position:absolute;left:28px;bottom:18px;width:60px;height:60px;transform:rotate(-17deg);pointer-events:none}
+.about-experience{display:grid;grid-template-columns:1fr 1fr;min-height:440px;background:#f8f7f3;align-items:center}
+.about-experience .visual{height:440px;overflow:hidden;background:#eeece5}
+.about-experience .visual img{width:100%;height:100%;object-fit:cover;display:block}
+.about-experience .experience-copy{padding:54px 72px;position:relative}
+.about-experience .eyebrow{font:11px/1.7 Arial,sans-serif;letter-spacing:.28em;text-transform:uppercase;color:#8a887e}
+.about-experience h2{font:400 59px/1.08 Georgia,'Times New Roman',serif;letter-spacing:-.035em;margin:18px 0}
+.about-experience p{font:18px/1.7 Arial,sans-serif;color:#53554d;max-width:440px}
+.about-experience .about-basil{position:absolute;right:12px;bottom:12px;width:65px;height:65px;pointer-events:none}
 </style>
 </head>
 <body>
@@ -115,6 +123,20 @@
   @endforeach
  </div>
  <img class="process-basil" src="{{ !empty($previewDecorations['preview_basil_process']) ? asset('storage/'.$previewDecorations['preview_basil_process']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+</section>
+<section class="about-experience" aria-labelledby="experience-heading">
+ <div class="visual">
+  @if($aboutPhoto = $photos->get((int)($sections[25]['photo_id'] ?? 0)))
+   <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
+  @endif
+ </div>
+ <div class="experience-copy">
+  <div class="eyebrow">Doświadczenie, które widać</div>
+  <h2 id="experience-heading">Od niemal 30 lat<br>z aparatem przy stole</h2>
+  <p>Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.</p>
+  <a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a>
+  <img class="about-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
+ </div>
 </section>
 <section class="section">
  <h2>Publikacje i realizacje</h2>
