@@ -93,6 +93,9 @@
             "
             data-builder-id="{{ $element['id'] ?? '' }}"
             data-builder-index="{{ $loop->index }}"
+            data-flow-mode="{{ ($element['flow_mode'] ?? 'free') === 'auto' ? 'auto' : 'free' }}"
+            data-flow-baseline="{{ max(0, (float) ($element['flow_base_height'] ?? 0)) }}"
+            data-base-top="{{ $top }}"
         >
             @if($type === 'image')
                 @php
@@ -290,11 +293,25 @@
     if (!canvas) return;
 
     const fit = () => {
+        const entries = Array.from(canvas.querySelectorAll('.page-element'))
+            .sort((a, b) => Number(a.dataset.baseTop) - Number(b.dataset.baseTop));
+        const sources = [];
         let maxBottom = 900;
-        canvas.querySelectorAll('.page-element').forEach((element) => {
-            maxBottom = Math.max(maxBottom, element.offsetTop + element.offsetHeight + 40);
-        });
-        canvas.style.minHeight = Math.ceil(maxBottom) + 'px';
+        for (const element of entries) {
+            const baseTop = Number(element.dataset.baseTop) || 0;
+            const shift = sources.reduce((sum, source) =>
+                sum + (baseTop >= source.bottom - 0.5 ? source.delta : 0), 0);
+            element.style.top = (baseTop + shift) + 'px';
+            const height = element.offsetHeight;
+            if (element.dataset.flowMode === 'auto') {
+                const baseline = Number(element.dataset.flowBaseline) || height;
+                const delta = height - baseline;
+                if (Math.abs(delta) > 0.5) sources.push({bottom: baseTop + baseline, delta});
+            }
+            maxBottom = Math.max(maxBottom, element.offsetTop + height + 40);
+        }
+        const next = Math.ceil(maxBottom) + 'px';
+        if (canvas.style.minHeight !== next) canvas.style.minHeight = next;
     };
 
     const observer = new ResizeObserver(fit);
