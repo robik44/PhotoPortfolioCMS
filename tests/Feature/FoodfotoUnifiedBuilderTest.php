@@ -467,4 +467,18 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->assertStringContainsString("if(span)span.focus();", $template);
     }
 
+    public function test_hero_cta_has_dedicated_text_input_and_saves_edited_label(): void
+    {
+        $this->homepage();
+        $this->actingAs(User::factory()->create())->withoutVite();
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('id="ff-hero-button-label"', false);
+        $this->post(route('foodfoto.canvas.texts'),[
+            'texts'=>json_encode(['preview_hero_button_label'=>'Zobacz realizacje']),
+        ])->assertRedirect(route('foodfoto.canvas'));
+        $this->get(route('foodfoto.canvas'))->assertOk()
+            ->assertSee('value="Zobacz realizacje"', false)
+            ->assertSee('Zobacz realizacje');
+    }
+
 }
