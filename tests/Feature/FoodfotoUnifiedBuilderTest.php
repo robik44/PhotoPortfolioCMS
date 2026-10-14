@@ -156,4 +156,37 @@ class FoodfotoUnifiedBuilderTest extends TestCase
         $this->get(route('foodfoto.canvas'))->assertOk()->assertDontSee('<script>bad()</script>', false);
     }
 
+    public function test_canvas_typography_remains_private_and_uses_precise_values(): void
+    {
+        $this->get(route('foodfoto.canvas.typography'))->assertNotFound();
+        $this->post(route('foodfoto.canvas.typography'), ['typography' => '{}'])->assertRedirect('/login');
+        $this->actingAs(User::factory()->create());
+        $value = json_encode(['preview_hero_title' => [
+            'font_size' => 62.1, 'line_height' => 1.15, 'letter_spacing' => -0.12,
+        ]]);
+        $this->post(route('foodfoto.canvas.typography'), ['typography' => $value])
+            ->assertRedirect(route('foodfoto.canvas'));
+        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_typography', 'value' => $value]);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_heading_size']);
+        $this->post(route('foodfoto.canvas.typography'), ['typography' => json_encode([
+            'preview_hero_title' => ['font_size' => 999, 'line_height' => 1, 'letter_spacing' => 0],
+        ])])->assertStatus(422);
+    }
+
+    public function test_canvas_photo_picker_only_saves_valid_private_choices(): void
+    {
+        $this->post(route('foodfoto.canvas.photos'), ['photos' => '{}'])->assertRedirect('/login');
+        $this->actingAs(User::factory()->create());
+        $this->post(route('foodfoto.canvas.photos'), ['photos' => json_encode([
+            'hero-photo' => 9999999,
+        ])])->assertStatus(422);
+        $this->post(route('foodfoto.canvas.photos'), ['photos' => json_encode([
+            'invalid_slot' => 1,
+        ])])->assertStatus(422);
+        $this->post(route('foodfoto.canvas.photos'), ['photos' => '{}'])
+            ->assertRedirect(route('foodfoto.canvas'));
+        $this->assertDatabaseHas('site_settings', ['key' => 'foodfoto_canvas_draft_photos', 'value' => '{}']);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'preview_hero_image']);
+    }
+
 }
