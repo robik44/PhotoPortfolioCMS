@@ -296,6 +296,12 @@ document.addEventListener('DOMContentLoaded',()=>{
  form.addEventListener('submit',()=>document.getElementById('ff-type-json').value=JSON.stringify(values));
 });
 </script>
+<aside id="ff-unified-panel" aria-label="Narzędzia buildera FoodFoto" style="position:fixed;right:18px;top:55px;bottom:18px;width:340px;max-width:calc(100vw - 36px);z-index:110;background:#fff;box-shadow:0 6px 30px #0003;border:1px solid #b7b7b7;padding:14px;overflow:auto;font:13px Arial,sans-serif">
+ <h2 style="font:22px Georgia,serif;margin:0 0 10px">Builder FoodFoto</h2>
+ <p id="ff-unified-selection" role="status">Kliknij tekst lub zdjęcie na stronie, aby je edytować.</p>
+ <div id="ff-unified-tools"></div>
+ <p style="color:#666;font-size:11px">Wersja robocza — każdą część zapisuj odpowiednim przyciskiem. Strona publiczna nie zmienia się.</p>
+</aside>
 <div id="ff-photo-panel" style="position:fixed;left:18px;top:55px;z-index:102;background:white;border:1px solid #aaa;padding:12px;font:13px Arial;max-width:330px">
  <button type="button" id="ff-photo-open">Biblioteka zdjęć <span aria-hidden="true">▦</span></button>
  <form id="ff-photo-form" action="{{ route('foodfoto.canvas.photos') }}" method="POST" style="display:inline">@csrf<input type="hidden" name="photos" id="ff-photo-json"><button type="submit">Zapisz zdjęcia</button></form>
@@ -361,6 +367,38 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 @endif
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const tools=document.getElementById('ff-unified-tools');
+ const label=document.getElementById('ff-unified-selection');
+ if(!tools)return;
+ const typography=document.getElementById('ff-type-panel');
+ const photo=document.getElementById('ff-photo-panel');
+ const text=document.getElementById('ff-text-toolbar');
+ [text,typography,photo].forEach(panel=>{
+  if(!panel)return;
+  tools.append(panel);
+  panel.style.position='static';panel.style.width='100%';panel.style.maxWidth='none';
+  panel.style.border='0';panel.style.borderTop='1px solid #ddd';
+  panel.style.padding='12px 0';panel.style.boxShadow='none';
+ });
+ const all=[...document.querySelectorAll('[data-canvas-text],img[data-canvas-photo]')];
+ function select(el){
+  const isPhoto=el.matches('img[data-canvas-photo]');
+  label.textContent=(isPhoto?'Zdjęcie: ':'Tekst: ')+(isPhoto?(el.alt||el.dataset.canvasPhoto):(el.innerText||'').slice(0,65));
+  typography.hidden=isPhoto;
+  text.hidden=isPhoto;
+  photo.hidden=!isPhoto;
+  if(isPhoto){
+    // Activate the existing photo-selection flow when the user clicks an image.
+    const picker=document.getElementById('ff-photo-open');
+    if(!photo.dataset.choosing)picker.click();
+  }
+ }
+ all.forEach(el=>el.addEventListener('click',()=>select(el)));
+ photo.hidden=true;
+});
+</script>
 <div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
  <button id="ff-layout-toggle" type="button" aria-pressed="false">Przesuwaj elementy ↔</button>
  <div id="ff-layout-controls" hidden>
