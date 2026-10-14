@@ -110,6 +110,34 @@ class FoodfotoUnifiedBuilderController extends Controller
                 if ($type === 'button') $section['url'] = $block['url'] ?? '#kontakt';
                 $sections[] = $section;
             }
+            // Carry across the offsets and widths saved with the editorial drag editor.
+            // Its positions use pixel deltas; the original builder uses percentage X
+            // and a 900px design canvas for percentage Y.
+            $savedPositions = json_decode($settings['preview_editor_positions'] ?? '{}', true);
+            if (!is_array($savedPositions)) $savedPositions = [];
+            $positionIds = [
+                'hero-text' => ['hero-heading', 'hero-text'],
+                'hero-photo' => ['hero-image'],
+                'editorial-copy' => ['foodfoto-editorial_title', 'foodfoto-editorial_description'],
+                'editorial-photo' => ['foodfoto-editorial_photo_id'],
+                'process-intro' => ['foodfoto-process_title', 'foodfoto-process_description'],
+                'experience-copy' => ['foodfoto-experience_title', 'foodfoto-experience_description'],
+                'experience-photo' => ['foodfoto-experience_photo_id'],
+            ];
+            foreach ($positionIds as $source => $ids) {
+                $position = $savedPositions[$source] ?? null;
+                if (!is_array($position)) continue;
+                $dx = max(-350, min(350, (float) ($position['x'] ?? 0)));
+                $dy = max(-350, min(350, (float) ($position['y'] ?? 0)));
+                $width = max(0, min(1200, (float) ($position['w'] ?? 0)));
+                foreach ($sections as &$section) {
+                    if (!in_array($section['id'] ?? null, $ids, true)) continue;
+                    $section['position_x'] = round(max(0, min(100, (float)($section['position_x'] ?? 0) + ($dx / 14))), 2);
+                    $section['position_y'] = round(max(0, (float)($section['position_y'] ?? 0) + ($dy / 9)), 2);
+                    if ($width > 0) $section['element_width'] = round($width / 14, 2);
+                }
+                unset($section);
+            }
             // The older visual canvas uses photo_url for its inline preview.
             // Resolve it from the same photo IDs used by the public website.
             $photoIds = collect($sections)->where('type', 'image')
