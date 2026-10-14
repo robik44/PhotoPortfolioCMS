@@ -2278,7 +2278,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-    function addElement(type) {
+    function addElement(type, options = {}) {
 
         const id =
             "fve-" +
@@ -2351,10 +2351,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         data.sections.push(item);
 
-        selected = item.id;
-
-        render();
-        showProperties(item);
+        if (!options.silent) {
+            selected = item.id;
+            render();
+            showProperties(item);
+        }
+        return item;
     }
 
     document
@@ -2383,10 +2385,10 @@ document.addEventListener("DOMContentLoaded", function () {
         const created = [];
 
         function insert(type, options) {
-            addElement(type);
-            const item = data.sections[data.sections.length - 1];
+            const item = addElement(type, { silent: true });
+            const originalStyle = { ...item.style };
             Object.assign(item, options);
-            if (options.style) item.style = { ...item.style, ...options.style };
+            if (options.style) item.style = { ...originalStyle, ...options.style };
             created.push(item.id);
             return item;
         }
