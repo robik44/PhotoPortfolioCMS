@@ -234,6 +234,38 @@ class FoodfotoPreviewController extends Controller
         return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_typography_saved', true);
     }
 
+    public function saveCanvasPhotoActions(Request $request)
+    {
+        $data = $request->validate([
+            'actions' => ['required', 'string', 'max:16000'],
+        ]);
+        $items = json_decode($data['actions'], true);
+        abort_unless(is_array($items) && count($items) <= 80, 422);
+        $clean = [];
+        foreach ($items as $slot => $entry) {
+            abort_unless(is_string($slot)
+                && preg_match('/^(hero-photo|editorial-photo|experience-photo|service-[0-9]{1,2}|process-photo-[0-9]|custom-[0-9]{1,2})$/', $slot)
+                && is_array($entry), 422);
+            $mode = $entry['mode'] ?? '';
+            abort_unless(in_array($mode, ['none', 'lightbox', 'link'], true), 422);
+            $target = trim((string) ($entry['url'] ?? ''));
+            if ($mode === 'link') {
+                abort_unless(strlen($target) <= 500
+                    && preg_match('#^/(?!/)[a-zA-Z0-9/_\\-?=&%.#]*$#', $target), 422);
+            } else {
+                $target = '';
+            }
+            $clean[$slot] = ['mode' => $mode, 'url' => $target];
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_photo_actions'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'actions' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false));
+    }
+
     public function saveCanvasPhotos(Request $request)
     {
         $data = $request->validate(['photos' => ['required', 'string', 'max:20000']]);
@@ -338,6 +370,9 @@ class FoodfotoPreviewController extends Controller
         $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
 
+        $canvasPhotoActions = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photo_actions')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasPhotoActions)) $canvasPhotoActions = [];
+
         $canvasPhotos = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photos')->value('value') ?: '{}', true) : [];
         if (!is_array($canvasPhotos)) $canvasPhotos = [];
         $canvasTypography = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value') ?: '{}', true) : [];
@@ -357,7 +392,7 @@ class FoodfotoPreviewController extends Controller
         ])->values()->all() : [];
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'photoPickerOptions', 'canvasUsingFixture'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
