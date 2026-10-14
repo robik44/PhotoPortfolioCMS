@@ -440,6 +440,57 @@ document.addEventListener('DOMContentLoaded',()=>{
  });
 });
 </script>
+<style>
+ body.ff-canvas-compact #ff-unified-panel{right:0!important;top:0!important;bottom:0!important;max-height:100vh!important;width:345px!important;max-width:min(345px,90vw)!important;padding:14px!important;box-sizing:border-box!important;z-index:115!important;overflow-y:auto!important}
+ #ff-unified-panel .ff-tool-section{border:1px solid #d5ddd7;border-radius:7px;margin:10px 0;background:#fff}
+ #ff-unified-panel .ff-tool-section>summary{cursor:pointer;font:bold 14px Arial;padding:12px;background:#f3f6f3}
+ #ff-unified-panel .ff-tool-section>div{padding:12px;max-width:100%;box-sizing:border-box}
+ #ff-unified-panel .ff-tool-section input,#ff-unified-panel .ff-tool-section select{max-width:100%;box-sizing:border-box}
+ body.ff-canvas-compact #ff-layout-toolbar,body.ff-canvas-compact #ff-type-panel,body.ff-canvas-compact #ff-text-toolbar,body.ff-canvas-compact #ff-photo-panel,body.ff-canvas-compact #ff-photo-actions-panel{position:static!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:auto!important;display:block!important;width:100%!important;max-width:100%!important;max-height:none!important;box-shadow:none!important;border:none!important;padding:0!important;margin:0!important;box-sizing:border-box!important;background:transparent!important;transform:none!important}
+ body.ff-canvas-compact #ff-layout-toolbar{flex-direction:column;align-items:stretch}
+ body.ff-canvas-compact #ff-layout-controls{flex-direction:column;align-items:stretch}
+ body.ff-canvas-compact #ff-unified-panel.ff-hidden{transform:translateX(101%)!important;overflow:visible!important}
+ #ff-sidebar-toggle{position:fixed;right:355px;top:12px;z-index:160;background:#244e36;color:white;border:0;border-radius:6px 0 0 6px;padding:12px;cursor:pointer;font:13px Arial}
+ body.ff-canvas-compact #ff-unified-panel.ff-hidden~#ff-sidebar-toggle{right:0}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const panel=document.getElementById('ff-unified-panel');
+ if(!panel)return;
+ document.body.classList.add('ff-canvas-compact');
+ const groups=[
+  ['ff-layout-toolbar','Układ i prowadnice'],
+  ['ff-type-panel','Typografia'],
+  ['ff-text-toolbar','Treść i teksty'],
+  ['ff-photo-panel','Biblioteka fotografii'],
+  ['ff-photo-actions-panel','Kliknięcie zdjęcia'],
+ ];
+ // Move the original functional controls, keeping IDs, state and event handlers.
+ const holder=document.createElement('div');
+ holder.id='ff-organized-tools';
+ for(const [id,title] of groups){
+  const existing=document.getElementById(id);
+  if(!existing)continue;
+  const details=document.createElement('details');
+  details.className='ff-tool-section';
+  const summary=document.createElement('summary');
+  summary.textContent=title;
+  const inside=document.createElement('div');
+  inside.appendChild(existing);
+  details.append(summary,inside);
+  holder.appendChild(details);
+ }
+ panel.appendChild(holder);
+ const toggle=document.createElement('button');
+ toggle.id='ff-sidebar-toggle';toggle.type='button';toggle.textContent='Ukryj narzędzia ◀';
+ panel.after(toggle);
+ toggle.addEventListener('click',()=>{
+  const hidden=panel.classList.toggle('ff-hidden');
+  toggle.textContent=hidden?'Pokaż narzędzia ▶':'Ukryj narzędzia ◀';
+  toggle.style.right=hidden?'0':'min(345px,90vw)';
+ });
+});
+</script>
 <div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
  <button type="button" id="ff-photo-close">Zamknij ×</button>
  <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
