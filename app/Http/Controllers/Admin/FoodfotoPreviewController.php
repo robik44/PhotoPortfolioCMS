@@ -251,7 +251,7 @@ class FoodfotoPreviewController extends Controller
             $target = trim((string) ($entry['url'] ?? ''));
             if ($mode === 'link') {
                 abort_unless(strlen($target) <= 500
-                    && preg_match('#^/(?!/)[a-zA-Z0-9/_\\-?=&%.#]*$#', $target), 422);
+                    && preg_match('~^/(?!/)[a-zA-Z0-9/_?=&%.#-]*$~', $target), 422);
             } else {
                 $target = '';
             }
