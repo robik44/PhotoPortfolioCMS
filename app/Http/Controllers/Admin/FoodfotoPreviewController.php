@@ -24,6 +24,15 @@ class FoodfotoPreviewController extends Controller
             'preview_editorial_description' => ['required', 'string', 'max:600'],
             'preview_experience_title' => ['required', 'string', 'max:600'],
             'preview_experience_description' => ['required', 'string', 'max:600'],
+            'preview_process_title' => ['required', 'string', 'max:160'],
+            'preview_process_description' => ['required', 'string', 'max:600'],
+            'preview_process_1_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_process_2_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_process_3_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_editorial_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_experience_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+            'preview_hero_heading_size' => ['required', 'integer', 'between:44,120'],
+            'preview_hero_copy_x' => ['required', 'integer', 'between:30,220'],
         ]);
 
         foreach ($validated as $key => $value) {
@@ -74,15 +83,17 @@ class FoodfotoPreviewController extends Controller
         $thumbs = collect($sections[30]['photo_ids'] ?? [])
             ->map(fn ($id) => $photos->get((int) $id))->filter()->values();
 
-        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process', 'preview_hero_image', 'preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url', 'preview_editorial_title', 'preview_editorial_description', 'preview_editorial_photo_id', 'preview_experience_title', 'preview_experience_description', 'preview_experience_photo_id'])->pluck('value', 'key')->all();
+        $previewDecorations = SiteSetting::whereIn('key', ['preview_basil_hero', 'preview_basil_editorial', 'preview_basil_process', 'preview_hero_image', 'preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url', 'preview_editorial_title', 'preview_editorial_description', 'preview_editorial_photo_id', 'preview_experience_title', 'preview_experience_description', 'preview_experience_photo_id', 'preview_process_title', 'preview_process_description', 'preview_process_1_photo_id', 'preview_process_2_photo_id', 'preview_process_3_photo_id', 'preview_hero_heading_size', 'preview_hero_copy_x'])->pluck('value', 'key')->all();
 
-        $extraPhotoIds = collect(['preview_editorial_photo_id', 'preview_experience_photo_id'])
+        $extraPhotoIds = collect(['preview_editorial_photo_id', 'preview_experience_photo_id', 'preview_process_1_photo_id', 'preview_process_2_photo_id', 'preview_process_3_photo_id'])
             ->map(fn ($key) => $previewDecorations[$key] ?? null)
             ->filter(fn ($id) => is_numeric($id))->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->merge(Photo::whereIn('id', $extraPhotoIds)->get()->keyBy('id'));
 
+        $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
+
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions'
         ));
         $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
         $response->headers->set('Cache-Control', 'private, no-store');
