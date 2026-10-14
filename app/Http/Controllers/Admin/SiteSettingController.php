@@ -72,16 +72,16 @@ class SiteSettingController extends Controller
             'preview_basil_editorial_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_basil_process_file' => ['nullable', 'image', 'mimes:png,webp', 'max:5120'],
             'preview_hero_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
-            'preview_hero_title' => ['required', 'string', 'max:160'],
-            'preview_hero_description' => ['required', 'string', 'max:500'],
-            'preview_hero_button_label' => ['required', 'string', 'max:80'],
-            'preview_editorial_title' => ['required', 'string', 'max:600'],
-            'preview_editorial_description' => ['required', 'string', 'max:600'],
-            'preview_experience_title' => ['required', 'string', 'max:600'],
-            'preview_experience_description' => ['required', 'string', 'max:600'],
+            'preview_hero_title' => ['sometimes', 'required', 'string', 'max:160'],
+            'preview_hero_description' => ['sometimes', 'required', 'string', 'max:500'],
+            'preview_hero_button_label' => ['sometimes', 'required', 'string', 'max:80'],
+            'preview_editorial_title' => ['sometimes', 'required', 'string', 'max:600'],
+            'preview_editorial_description' => ['sometimes', 'required', 'string', 'max:600'],
+            'preview_experience_title' => ['sometimes', 'required', 'string', 'max:600'],
+            'preview_experience_description' => ['sometimes', 'required', 'string', 'max:600'],
             'preview_editorial_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
             'preview_experience_photo_id' => ['nullable', 'integer', 'exists:photos,id'],
-            'preview_hero_button_url' => ['required', 'string', 'max:255', 'regex:/^(\/[^\s]*|\#[a-zA-Z][a-zA-Z0-9_-]*)$/'],
+            'preview_hero_button_url' => ['sometimes', 'required', 'string', 'max:255', 'regex:/^(\/[^\s]*|\#[a-zA-Z][a-zA-Z0-9_-]*)$/'],
         ]);
 
         foreach ([
@@ -136,11 +136,15 @@ class SiteSettingController extends Controller
         }
 
         foreach (['preview_hero_title', 'preview_hero_description', 'preview_hero_button_label', 'preview_hero_button_url'] as $key) {
-            SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key]]);
+            if (array_key_exists($key, $data)) {
+                SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key]]);
+            }
         }
 
         foreach (['preview_editorial_title', 'preview_editorial_description', 'preview_experience_title', 'preview_experience_description', 'preview_editorial_photo_id', 'preview_experience_photo_id'] as $key) {
-            SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key] ?? null]);
+            if (array_key_exists($key, $data)) {
+                SiteSetting::updateOrCreate(['key' => $key], ['value' => $data[$key]]);
+            }
         }
 
         if ($request->hasFile('preview_hero_image_file')) {
