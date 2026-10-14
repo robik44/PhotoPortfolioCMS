@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 <aside id="ff-unified-panel" aria-label="Narzędzia buildera FoodFoto" style="position:fixed;right:18px;top:55px;bottom:18px;width:340px;max-width:calc(100vw - 36px);z-index:110;background:#fff;box-shadow:0 6px 30px #0003;border:1px solid #b7b7b7;padding:14px;overflow:auto;font:13px Arial,sans-serif">
  <h2 style="font:22px Georgia,serif;margin:0 0 10px">Builder FoodFoto</h2>
  <p id="ff-unified-selection" role="status">Kliknij tekst lub zdjęcie na stronie, aby je edytować.</p>
- <form id="ff-save-all-form" method="POST" action="{{ route('foodfoto.canvas.save-all') }}" style="margin:12px 0;border:1px solid #c9d9ce;padding:10px">
+ <form id="ff-save-all-form" method="POST" action="{{ route('foodfoto.canvas.save-all', [], false) }}" style="margin:12px 0;border:1px solid #c9d9ce;padding:10px">
  @csrf
  <input name="layout" id="ff-all-layout" type="hidden">
  <input name="texts" id="ff-all-texts" type="hidden">
