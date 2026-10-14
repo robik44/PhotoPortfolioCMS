@@ -95,6 +95,30 @@ class FoodfotoPreviewController extends Controller
         return redirect()->route('foodfoto.home.preview')->with('foodfoto_blocks_saved', true);
     }
 
+    public function canvas(): Response
+    {
+        return $this->renderPage(false, true);
+    }
+
+    public function saveCanvasLayout(Request $request)
+    {
+        $data = $request->validate(['layout' => ['required', 'string', 'max:60000']]);
+        $positions = json_decode($data['layout'], true);
+        abort_unless(is_array($positions) && count($positions) <= 120, 422);
+        $clean = [];
+        foreach ($positions as $id => $position) {
+            abort_unless(is_string($id) && preg_match('/^[a-z0-9_-]{1,80}$/', $id), 422);
+            abort_unless(is_array($position), 422);
+            foreach (['x', 'y'] as $axis) abort_unless(isset($position[$axis]) && is_numeric($position[$axis]), 422);
+            $x = (int) $position['x']; $y = (int) $position['y'];
+            $w = (int) ($position['w'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $z >= -5 && $z <= 25, 422);
+            $clean[$id] = compact('x', 'y', 'w', 'z');
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_positions'], ['value' => json_encode($clean)]);
+        return redirect()->route('foodfoto.canvas')->with('foodfoto_layout_saved', true);
+    }
+
     public function __invoke(): Response
     {
         return $this->renderPage(false);
@@ -106,7 +130,7 @@ class FoodfotoPreviewController extends Controller
         return $this->renderPage(true);
     }
 
-    private function renderPage(bool $public): Response
+    private function renderPage(bool $public, bool $canvas = false): Response
     {
         $builder = PageBuilder::query()->whereNull('page_id')->where('type', 'home')->firstOrFail();
         $sections = array_values($builder->content['sections'] ?? []);
@@ -160,13 +184,13 @@ class FoodfotoPreviewController extends Controller
         $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
 
-        $editorPositions = json_decode(SiteSetting::where('key', 'preview_editor_positions')->value('value') ?: '{}', true);
+        $editorPositions = json_decode(SiteSetting::where('key', $canvas ? 'foodfoto_canvas_draft_positions' : 'preview_editor_positions')->value('value') ?: '{}', true);
         if (!is_array($editorPositions)) $editorPositions = [];
 
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');
