@@ -201,6 +201,13 @@ final class GalleryVisualLayout
 
         $individual = $data['individual_photos'] ?? [];
         if (!is_array($individual) || count($individual) > 1500) $invalid('Niepoprawny układ pojedynczych fotografii.');
+        // Compatibility with drafts posted by the older editor: a PHP []
+        // was interpreted as a sparse JS array indexed by photo ID. JSON then
+        // contained many null slots. They are not photos and may be ignored.
+        // All non-null positions are still validated strictly below.
+        if (array_is_list($individual)) {
+            $individual = array_filter($individual, static fn ($position) => $position !== null);
+        }
         foreach ($individual as $id => &$position) {
             if (!ctype_digit((string) $id) || !is_array($position)) $invalid('Niepoprawna pozycja zdjęcia.');
             foreach (['x' => [0, 95], 'y' => [0, 30000], 'w' => [4, 100], 'h' => [60, 1200]] as $k => [$min, $max]) {
