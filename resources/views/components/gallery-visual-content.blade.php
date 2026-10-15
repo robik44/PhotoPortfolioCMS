@@ -42,7 +42,8 @@
 @endphp
 
 <style>
-    .gv-public-canvas{position:relative;max-width:1200px;width:100%;margin:auto;box-sizing:border-box}
+    /* One desktop-only design on every device, matching the legacy FoodFoto viewport. */
+    .gv-public-canvas{position:relative;width:1200px;min-width:1200px;max-width:none;margin:auto;box-sizing:border-box}
     .gv-public-canvas .gv-block{position:absolute;box-sizing:border-box;min-width:0}
     .gv-public-canvas .gv-block h1,.gv-public-canvas .gv-block p{margin:0;white-space:pre-line}
     .gv-public-canvas .gv-text{white-space:pre-line;overflow-wrap:break-word}
@@ -56,31 +57,6 @@
     .gv-public-canvas .gallery-item{min-width:0;cursor:zoom-in}
     .gv-public-canvas .gv-button{display:inline-block;border:1px solid currentColor;padding:12px 18px;text-decoration:none}
     .gv-public-canvas .gv-divider{height:2px;width:100%}
-    @foreach(array_merge($b, collect($visualLayout['extras'])->keyBy('id')->all()) as $id => $item)
-        @if(isset($item['font']))
-            @media (max-width:900px) and (min-width:601px){
-                .gv-public-canvas .gv-block[data-gv-id="{{ $id }}"] .gv-text,
-                .gv-public-canvas .gv-block[data-gv-id="{{ $id }}"] .gv-type {font-size:{{ $item['tablet'] }}px!important}
-            }
-            @media(max-width:600px){
-                .gv-public-canvas .gv-block[data-gv-id="{{ $id }}"] .gv-text,
-                .gv-public-canvas .gv-block[data-gv-id="{{ $id }}"] .gv-type {font-size:{{ $item['mobile'] }}px!important}
-            }
-        @endif
-    @endforeach
-    @media(max-width:900px){
-        .gv-public-canvas{height:auto!important;padding:38px 5% 60px;display:flex;flex-direction:column;gap:20px}
-        .gv-public-canvas>.gv-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important;order:var(--gv-order,500)}
-        .gv-public-canvas .gv-grid{grid-template-columns:repeat({{ (int) $visualLayout['columns_tablet'] }},minmax(0,1fr));}
-        .gv-public-canvas .gv-free-photo{max-width:100%;height:auto!important}
-        .gv-public-canvas .gv-free-photo .gallery-item img{height:auto;max-height:600px}
-    }
-    @media(max-width:600px){
-        .gv-public-canvas{padding:28px 20px 50px;gap:16px}
-        .gv-public-canvas .gv-grid{grid-template-columns:repeat({{ (int) $visualLayout['columns_mobile'] }},minmax(0,1fr));gap:12px}
-        .gv-public-canvas .gv-grid .gallery-item img{height:auto;max-height:500px;object-fit:contain}
-        .gv-public-canvas .gv-links{gap:10px}
-    }
 </style>
 
 <main class="gv-public-canvas" style="height:{{ $pageHeight }}px">
