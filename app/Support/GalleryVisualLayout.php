@@ -173,6 +173,7 @@ final class GalleryVisualLayout
             self::validateBlock($extra, $limit, $invalid, true);
             $extra['text'] = mb_substr((string) ($extra['text'] ?? ''), 0, 2000);
             $extra['photo_id'] = isset($extra['photo_id']) && ctype_digit((string) $extra['photo_id']) ? (int) $extra['photo_id'] : null;
+            if ($extra['type'] === 'image') $extra['h'] = $limit($extra['h'] ?? 240, 60, 1200);
             $extra['url'] = mb_substr((string) ($extra['url'] ?? ''), 0, 500);
             if ($extra['url'] !== '' && !preg_match('~^(https?://|mailto:|tel:|/|#)~i', $extra['url'])) $invalid('Niepoprawny adres przycisku.');
             $cleanExtras[$extra['id']] = $extra;
@@ -209,6 +210,12 @@ final class GalleryVisualLayout
                   'leading' => [.7, 4], 'spacing' => [-10, 25], 'weight' => [100, 900]] as $k => [$min, $max]) {
             $block[$k] = $limit($block[$k] ?? 16, $min, $max);
         }
+        $block['align'] = $block['align'] ?? 'left';
+        $block['italic'] = $block['italic'] ?? false;
+        $block['uppercase'] = $block['uppercase'] ?? false;
+        $block['opacity'] = $limit($block['opacity'] ?? 100, 0, 100);
+        if (!in_array($block['align'], ['left','center','right','justify'], true)) $invalid('Niepoprawne wyrównanie tekstu.');
+        if (!is_bool($block['italic']) || !is_bool($block['uppercase'])) $invalid('Niepoprawny styl tekstu.');
         if (!in_array($block['font'] ?? '', ['serif','bodoni','sans','inter'], true)) $invalid('Niepoprawna czcionka.');
         if (!preg_match('/^#[0-9a-f]{6}$/i', (string) ($block['color'] ?? ''))) $invalid('Niepoprawny kolor tekstu.');
     }
