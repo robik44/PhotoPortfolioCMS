@@ -15,11 +15,11 @@ class FoodfotoHomeSeo extends Command
 {
     protected $signature = 'foodfoto:home-seo
         {--apply : Zapisz SEO strony głównej po utworzeniu kopii zapasowej}
-        {--fix-overlap : Dodatkowo rozróżnij stare, identycznie ukierunkowane SEO podstrony food-styling}';
+        {--fix-overlap : Dodatkowo rozróżnij konkurencyjne tytuły stron O mnie, food-styling i galerii stylizacja}';
 
     protected $description = 'Audyt produkcyjnej strony głównej: nagłówki, teksty, frazy, alty, meta i konkurencja podstron. Bez zmian domyślnie.';
 
-    private const HOME_TITLE = 'Stylistka żywności i fotografia kulinarna | Magda Gugała';
+    private const HOME_TITLE = 'Fotografia żywności i stylistka żywności | Magda Gugała';
 
     private const HOME_DESCRIPTION = 'Magda Gugała — stylistka żywności (food stylistka) i fotografka kulinarna. Food styling, stylizacja potraw i zdjęcia reklamowe jedzenia oraz produktów.';
 
@@ -68,6 +68,21 @@ class FoodfotoHomeSeo extends Command
         $this->table(['Y', 'Typ', 'Tag', 'Treść'], $headingRows->all());
         $h1 = $headingRows->where('Tag', 'h1')->count();
         if ($h1 !== 1) $this->warn('H1: '.$h1.'. Rekomendowany dokładnie jeden główny nagłówek opisujący usługę.');
+        $firstH2 = $headingRows->first(fn ($row) => $row['Tag'] === 'h2');
+        $firstH3 = $headingRows->first(fn ($row) => $row['Tag'] === 'h3');
+        if ($firstH3 && (!$firstH2 || $firstH3['Y'] < $firstH2['Y'])) {
+            $this->warn('Hierarchia H1 → H3 bez H2. Znajdź widoczny nagłówek sekcji usług i ustaw semantykę H2.');
+        }
+        $this->info('TEKSTY Z CMS: początek strony, sekcja usług i okolice nagłówka „Więcej niż zwykłe zdjęcia”');
+        $bodyRows = $sections->filter(fn ($row) => in_array(($row['type'] ?? ''), ['text','heading'], true))
+            ->sortBy(fn ($row) => (float) ($row['position_y'] ?? 0))
+            ->filter(fn ($row) => (float) ($row['position_y'] ?? 0) < 345)
+            ->map(fn ($row) => [
+                'ID' => $row['id'] ?? '-',
+                'Y' => round((float) ($row['position_y'] ?? 0), 1),
+                'Tekst' => mb_substr(preg_replace('/\\s+/u', ' ', trim((string) ($row['content'] ?? ''))), 0, 160),
+            ])->values();
+        $this->table(['ID','Y','Tekst'], $bodyRows->take(28)->all());
 
         $texts = $sections->filter(fn ($row) => in_array(($row['type'] ?? ''), ['heading','text','section'], true))
             ->pluck('content')->filter()->implode("\n");
@@ -173,11 +188,41 @@ class FoodfotoHomeSeo extends Command
             'home_seo_title' => self::HOME_TITLE,
             'home_seo_description' => self::HOME_DESCRIPTION,
         ];
-        $overlap = null;
+        // Only change exact, previously audited SEO titles. Never overwrite
+        // a title the editor has since customized.
+        $overlap = collect();
         if ($this->option('fix-overlap')) {
-            $page = Page::query()->where('slug', 'food-styling')->first();
-            if ($page && $page->seo_title === 'Foodstylista – food styling i stylizacja żywności | Magda Gugała') {
-                $overlap = $page;
+            $targets = [
+                'pages' => [
+                    'food-styling' => [
+                        'old' => 'Foodstylista – food styling i stylizacja żywności | Magda Gugała',
+                        'new' => 'Food styling – przygotowanie potraw do sesji | Magda Gugała',
+                        'description' => 'Przygotowanie i aranżacja potraw do fotografii kulinarnej, zdjęć reklamowych i produktowych. Poznaj proces stylizacji planu zdjęciowego.',
+                    ],
+                    'o-mnie' => [
+                        'old' => 'Fotograf żywności i foodstylista | O mnie | Magda Gugała',
+                        'new' => 'O mnie – doświadczenie fotograficzne | Magda Gugała',
+                        'description' => 'Poznaj Magdę Gugałę i jej doświadczenie w fotografii żywności, aranżacji potraw i realizowaniu zdjęć reklamowych dla marek.',
+                    ],
+                ],
+                'galleries' => [
+                    'stylizacja' => [
+                        'old' => 'Food stylistka i food styling – stylizacja żywności | Magda Gugała',
+                        'new' => 'Stylizacja potraw – portfolio realizacji | Magda Gugała',
+                        'description' => 'Galeria wykonanych stylizacji potraw, kompozycji i aranżacji dań do zdjęć. Zobacz przykłady realizacji fotografii jedzenia.',
+                    ],
+                ],
+            ];
+            foreach ($targets as $model => $definitions) {
+                foreach ($definitions as $slug => $item) {
+                    $entity = ($model === 'pages' ? Page::query() : Gallery::query())
+                        ->where('slug', $slug)->first();
+                    if ($entity && $entity->seo_title === $item['old']) {
+                        $overlap->push(['entity' => $entity, 'target' => $item, 'type' => $model]);
+                    } else {
+                        $this->warn('Bez zmian: '.$model.'/'.$slug.' — tytuł w bazie różni się od audytowanego.');
+                    }
+                }
             }
         }
 
@@ -189,7 +234,11 @@ class FoodfotoHomeSeo extends Command
         $backupPath = $dir.'/home-seo-before-'.date('Ymd-His').'.json';
         $backupData = [
             'site_settings' => $settings,
-            'page_food_styling' => $overlap?->only(['id','slug','seo_title','seo_description']),
+            'overlap_records' => $overlap->map(fn ($row) => [
+                'type' => $row['type'],
+                'old' => $row['entity']->only(['id','slug','seo_title','seo_description']),
+                'new' => $row['target'],
+            ])->all(),
             'home_builder_id' => $builder->id,
             'home_builder_content' => $builder->content,
         ];
@@ -203,14 +252,15 @@ class FoodfotoHomeSeo extends Command
             foreach ($updates as $key => $value) {
                 SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
             }
-            if ($overlap) {
-                $overlap->seo_title = 'Stylizacja potraw do sesji reklamowych i zdjęć | Magda Gugała';
-                $overlap->seo_description = 'Przygotowanie i aranżacja potraw do reklam, sesji kulinarnych i fotografii produktów. Zobacz, jak wygląda współpraca przy stylizacji planu zdjęciowego.';
-                $overlap->save();
+            foreach ($overlap as $row) {
+                $entity = $row['entity'];
+                $entity->seo_title = $row['target']['new'];
+                $entity->seo_description = $row['target']['description'];
+                $entity->save();
             }
         });
         $this->info('ZAPISANO nowe TITLE i DESCRIPTION strony głównej. Układ, teksty, zdjęcia i ALT bez zmian.');
-        if ($overlap) $this->info('Rozróżniono również SEO podstrony food-styling, bez usuwania jej z indeksu.');
+        if ($overlap->isNotEmpty()) $this->info('Rozróżniono '.count($overlap).' tytuły SEO podstron/galerii. Nie zmieniono ich indeksowania ani adresów.');
         $this->line('Kopia zapasowa: '.$backupPath);
         return self::SUCCESS;
     }
