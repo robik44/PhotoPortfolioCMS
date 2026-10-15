@@ -191,6 +191,10 @@ class GalleryController extends Controller
             $settings, \App\Support\GalleryVisualLayout::key('global', 'published')
         ) !== null;
         $hasSharedDraftChanges = \App\Support\GalleryVisualLayout::hasUnpublishedSharedChanges($settings);
+        $sharedTemplate = \App\Support\GalleryVisualLayout::sharedDraft($settings);
+        $localOverrides = $scope === 'gallery'
+            ? \App\Support\GalleryVisualLayout::diff($sharedTemplate, $layout)
+            : [];
         $galleryChoices = Gallery::query()->orderBy('title')->get(['id', 'title', 'slug']);
         $relatedServices = [
             'zywnosc' => ['Fotografia żywności', 'Fotografia kulinarna'],
@@ -200,7 +204,8 @@ class GalleryController extends Controller
         ][$gallery->slug] ?? [];
         return view('admin.galleries.visual-builder',
             compact('gallery', 'scope', 'layout', 'hasPublished', 'hasSharedPublished',
-                'hasSharedDraftChanges', 'galleryChoices', 'relatedServices'));
+                'hasSharedDraftChanges', 'sharedTemplate', 'localOverrides',
+                'galleryChoices', 'relatedServices'));
     }
 
     public function saveVisualBuilder(\Illuminate\Http\Request $request, Gallery $gallery)
