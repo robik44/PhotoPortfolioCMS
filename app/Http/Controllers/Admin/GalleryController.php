@@ -201,13 +201,21 @@ class GalleryController extends Controller
     {
         $input = $request->validate([
             'scope' => ['required', \Illuminate\Validation\Rule::in(['global', 'gallery'])],
-            'action' => ['required', \Illuminate\Validation\Rule::in(['save', 'publish', 'reset'])],
-            'layout' => ['required_unless:action,reset', 'nullable', 'string', 'max:800000'],
+            'action' => ['required', \Illuminate\Validation\Rule::in(['save', 'publish', 'reset', 'unpublish'])],
+            'layout' => ['required_unless:action,reset,unpublish', 'nullable', 'string', 'max:800000'],
         ]);
         $scope = $input['scope'];
         $action = $input['action'];
         $id = $gallery->id;
         $settings = SiteSetting::pluck('value', 'key')->all();
+
+        if ($action === 'unpublish') {
+            \App\Support\GalleryVisualLayout::remove($scope, 'published', $id);
+            return redirect()->route('galleries.builder', ['gallery' => $id, 'scope' => $scope])
+                ->with('success', $scope === 'global'
+                    ? 'Wyłączono wspólny szablon. Galerie bez indywidualnego projektu znów korzystają z poprzedniego wyglądu.'
+                    : 'Wyłączono indywidualny projekt tej galerii. Dziedziczy teraz wspólny szablon lub stary wygląd.');
+        }
 
         if ($action === 'reset') {
             \App\Support\GalleryVisualLayout::remove($scope, 'draft', $id);
