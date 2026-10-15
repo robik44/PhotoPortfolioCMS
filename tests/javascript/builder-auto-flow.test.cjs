@@ -79,3 +79,31 @@ test('height change and photo-row grouping use stable shared displacement', () =
     assert.equal(top(cards,'card1'),264);
     assert.equal(top(cards,'card2'),264);
 });
+
+test('production-like older process and large photo: one-pixel drag does not swap text/photo order', () => {
+    const rows = [
+        {id:'olderIntro',mode:'auto',x:36,y:1329,width:532,height:29,baseline:29,anchor:26.7},
+        {id:'intro2',mode:'auto',x:34,y:1358,width:532,height:29,baseline:29,anchor:41.38},
+        {id:'gallery',mode:'free',x:0,y:1368,width:1398,height:287.5},
+        {id:'process',mode:'auto',x:0,y:1891,width:1393,height:487,baseline:487,anchor:191.68},
+        {id:'widePhoto',mode:'free',x:0,y:1990,width:1400,height:257.37,anchor:196.43},
+        {id:'text',mode:'auto',x:61,y:2094,width:1170,height:131,baseline:131},
+        {id:'photo1',mode:'free',x:86,y:2357,width:374,height:524},
+        {id:'photo2',mode:'free',x:491,y:2357,width:374,height:524},
+        {id:'photo3',mode:'free',x:901,y:2357,width:374,height:524},
+    ];
+    let previous = null;
+    for (let delta = -20; delta <= 20; delta += 1) {
+        rows.find(row => row.id === 'text').y = 2094 + delta;
+        const positions = Object.fromEntries(layout(rows).placements.map(item => [item.id, item.top]));
+        assert.ok(positions.widePhoto >= positions.text + 131 + 13.5,
+          'the automatic text must not overlap the older wide image');
+        assert.equal(positions.photo1, positions.photo2);
+        assert.equal(positions.photo2, positions.photo3);
+        if (previous) {
+          assert.ok(Math.abs(positions.widePhoto - previous.widePhoto) <= 2,
+            'small drag cannot make the image jump hundreds of pixels');
+        }
+        previous = positions;
+    }
+});
