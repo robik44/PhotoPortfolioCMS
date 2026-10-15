@@ -21,6 +21,15 @@
 
     const $ = sel => root.querySelector(sel);
     const canvas = $('#gv-canvas');
+    const stage = $('#gv-stage');
+    const scrollArea = $('#gv-scroll');
+    const zoomSelect = $('#gv-zoom');
+    const zoomReadout = $('#gv-zoom-current');
+    const focusButton = $('#gv-fullscreen');
+    let zoomMode = 'fit';
+    let currentScale = 1;
+    let zoomFrame = 0;
+    const previousBodyOverflow = document.body.style.overflow;
     const inspector = $('#gv-inspector');
     const listing = $('#gv-layers');
     const status = $('#gv-status');
@@ -43,6 +52,32 @@
     const idFor = item => item.id || item;
     const fmt = n => Math.round(Number(n) * 10) / 10;
     const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+    // The 1200px design canvas stays at its native coordinates. Only the
+    // preview is scaled, so saving never changes element positions or fonts.
+    function fitCanvas() {
+        const naturalWidth = canvas.offsetWidth || 1200;
+        const naturalHeight = canvas.offsetHeight || 900;
+        const available = Math.max(100, scrollArea.clientWidth - 32);
+        const requested = zoomMode === 'fit' ? Math.min(1, available / naturalWidth) : Number(zoomMode);
+        const scale = clamp(Number.isFinite(requested) ? requested : 1, .15, 1.5);
+        currentScale = scale;
+        canvas.style.transform = 'scale(' + scale + ')';
+        stage.style.width = Math.ceil(naturalWidth * scale) + 'px';
+        stage.style.height = Math.ceil(naturalHeight * scale) + 'px';
+        zoomReadout.textContent = Math.round(scale * 100) + '%';
+    }
+    function scheduleFit() {
+        if (zoomFrame) cancelAnimationFrame(zoomFrame);
+        zoomFrame = requestAnimationFrame(() => { zoomFrame = 0; fitCanvas(); });
+    }
+    function setFocus(activate) {
+        root.classList.toggle('gv-focus', activate);
+        document.body.style.overflow = activate ? 'hidden' : previousBodyOverflow;
+        focusButton.textContent = activate ? '↙ Zamknij pełny ekran' : '⛶ Pełny ekran';
+        focusButton.setAttribute('aria-pressed', activate ? 'true' : 'false');
+        scrollArea.scrollLeft = 0;
+        scheduleFit();
+    }
     const progress = () => {
         dirty = true;
         status.textContent = 'Niezapisane zmiany';
@@ -213,6 +248,7 @@
             item.type='button';item.addEventListener('click',()=>select(id));listing.appendChild(item);
         });
         updateInspector();
+        scheduleFit();
     }
     function select(id) {selected=id;render();}
     const addLabel=(parent,text) => parent.appendChild(html('label','gv-field-label',text));
@@ -321,6 +357,9 @@
     }
     function beginDrag(event,id){
         if(event.button!==0)return;
+        // Tablet/mobile previews are stacked responsively, not pixel-positioned.
+        // Move geometry on desktop; mobile typography remains independently editable.
+        if(device!=='desktop'){select(id);return;}
         if(event.target.closest('.gv-thumb'))return;
         const selectedInfo=id.startsWith('photo-')?
             {obj:photoPosition(Number(id.slice(6)),orderedPhotos().findIndex(p=>p.id===Number(id.slice(6))))}
@@ -336,7 +375,8 @@
     }
     canvas.addEventListener('pointermove',event=>{
         if(!drag)return;
-        const dx=(event.clientX-drag.x0)/drag.rectWidth*100,dy=(event.clientY-drag.y0);
+        const dx=(event.clientX-drag.x0)/drag.rectWidth*100;
+        const dy=(event.clientY-drag.y0)/currentScale;
         const round=v=>snap?Math.round(v/5)*5:fmt(v);
         if(drag.resize)drag.obj.w=clamp(round(drag.initialW+dx),4,100);
         else{
@@ -366,6 +406,20 @@
         root.querySelectorAll('[data-gv-device]').forEach(b=>b.classList.toggle('active',b===button));render();
     }));
     $('#gv-snap').addEventListener('change',e=>{snap=e.target.checked;});
+    zoomSelect.addEventListener('change',e=>{
+        zoomMode=e.target.value;
+        scrollArea.scrollLeft=0;
+        scheduleFit();
+    });
+    focusButton.addEventListener('click',()=>setFocus(!root.classList.contains('gv-focus')));
+    document.addEventListener('keydown',event=>{
+        if(event.key==='Escape'&&root.classList.contains('gv-focus'))setFocus(false);
+    });
+    if(typeof ResizeObserver!=='undefined'){
+        const observer = new ResizeObserver(scheduleFit);
+        observer.observe(scrollArea);
+        observer.observe(canvas);
+    } else window.addEventListener('resize',scheduleFit);
     $('#gv-canvas-height').addEventListener('change',e=>{
         layout.canvas_height=clamp(Number(e.target.value)||900,450,30000);
         e.target.value=String(layout.canvas_height);
@@ -401,4 +455,6 @@
         if(!e.defaultPrevented)dirty=false;
     });
     render();
+    // Open wide by default on desktop. Close with Esc or the toolbar button.
+    setFocus(window.innerWidth >= 1200);
 })();
