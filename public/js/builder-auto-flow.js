@@ -10,6 +10,7 @@
     const rows = items.map((v, index) => ({
       id: String(v.id), index,
       type: String(v.type || ''),
+      group: typeof v.flowGroup === 'string' && v.flowGroup ? v.flowGroup : null,
       x: n(v.x), y: n(v.y),
       width: Math.max(0, n(v.width)), height: Math.max(0, n(v.height)),
       baseline: Math.max(0, n(v.baseline)),
@@ -21,7 +22,29 @@
     const overlapsX = (a, b) =>
       Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x) > 1;
     const events = [];
+    // A preset is one logical flow row made of independently editable
+    // images, headings, paragraphs and buttons. Its union reserves room.
+    // All members are excluded from their own displacement.
+    const groups = new Map();
+    for (const row of rows) {
+      if (!row.group) continue;
+      if (!groups.has(row.group)) groups.set(row.group, []);
+      groups.get(row.group).push(row);
+    }
+    for (const [group, members] of groups) {
+      if (!members.some(item => item.mode === 'auto')) continue;
+      const at = Math.min(...members.map(item => item.y));
+      const bottom = Math.max(...members.map(item => item.y + item.height));
+      if (bottom <= at) continue;
+      events.push({
+        at, delta: bottom - at + gap, sourceId: 'group:' + group,
+        groupId: group, kind: 'insertion', targets: [],
+        sources: [{id:'group:' + group,targets:[]}]
+      });
+    }
+
     for (const source of rows) {
+      if (source.group) continue; // the group event handles all its members
       if (source.mode !== 'auto' || source.height <= 0) continue;
       const baseline = source.baseline > 0 ? source.baseline : source.height;
       const bottom = source.y + source.height;
@@ -73,6 +96,7 @@
       const contributions = {};
       for (const event of grouped) {
         if (row.y < event.at - .1 ||
+          (event.kind === 'insertion' && row.group === event.groupId) ||
           (event.kind === 'collision' &&
             event.sources.some(source => source.id === row.id)) ||
           (event.kind !== 'collision' && row.id === event.sourceId)) continue;
