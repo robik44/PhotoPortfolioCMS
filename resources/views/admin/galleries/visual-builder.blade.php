@@ -64,6 +64,16 @@
                 Edytujesz <strong>wyłącznie {{ $gallery->title }}</strong>. Zmienione właściwości nadpisują wspólny szablon; pozostałe nadal dziedziczą jego ustawienia.
             @endif
             <strong>Zapis szkicu nie zmienia publicznej strony.</strong>
+            <span class="gv-public-status">
+                Aktualnie publicznie:
+                @if($scope === 'gallery' && $hasPublished)
+                    <strong>indywidualny opublikowany projekt tej galerii</strong>
+                @elseif($hasSharedPublished)
+                    <strong>opublikowany wspólny szablon</strong>
+                @else
+                    <strong>dotychczasowy wygląd galerii</strong>
+                @endif.
+            </span>
             @if($hasPublished) Ten zakres ma już opublikowany układ. @endif
             @if($scope === 'gallery')
                 @if($hasSharedDraftChanges)
@@ -167,6 +177,7 @@
         .gv-toolbar{margin:0 0 14px}
         .gv-toolbar select{min-width:210px;max-width:290px;padding:9px 12px;border:1px solid #bec8d5;border-radius:5px;background:white;font-size:13px}
         .gv-inheritance-info{display:block;margin-top:5px;color:#34516e}
+        .gv-public-status{display:block;margin-top:5px;color:#334155}
         .gv-publish:disabled{cursor:not-allowed;opacity:.42}
         .gv-toolbar .gv-tool-strong{background:#eaf0ff;border-color:#b9c9e6;font-weight:700}
         .gv-zoom-label,.gv-zoom-current{white-space:nowrap}
