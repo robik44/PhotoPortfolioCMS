@@ -104,6 +104,9 @@
             <button type="button" id="gv-reset-layout" class="gv-tool">Odrzuć niezapisane zmiany</button>
             <button type="submit" name="action" value="save" class="gv-tool">Zapisz szkic</button>
             <button type="submit" name="action" value="publish" class="gv-publish">Opublikuj układ</button>
+            @if($hasPublished)
+                <button type="submit" name="action" value="unpublish" class="gv-danger">Wyłącz opublikowany układ</button>
+            @endif
         </form>
         <p class="gv-help gv-note">Bezpieczny start: dopóki nie klikniesz „Opublikuj układ”, publiczne galerie korzystają z dotychczasowego wyglądu. Builder nie zmienia SEO, adresów, zdjęć ani ich ALT.</p>
     </div>
@@ -166,11 +169,12 @@
         .gv-canvas.gv-tablet{width:760px}
         .gv-canvas.gv-tablet .gv-element{width:92%!important;left:4%!important;position:relative!important;top:auto!important;
             margin:20px 0;cursor:pointer}
-        .gv-canvas.gv-tablet .gv-element .gv-photos-grid{grid-template-columns:repeat(2, minmax(0,1fr))!important}
+        .gv-canvas.gv-tablet,.gv-canvas.gv-mobile{height:auto;display:flex;flex-direction:column;gap:12px;padding:24px;box-sizing:border-box}
+        .gv-canvas.gv-tablet .gv-element .gv-photos-grid{grid-template-columns:repeat(var(--gv-cols-tablet,2), minmax(0,1fr))!important}
         .gv-canvas.gv-mobile{width:375px}
         .gv-canvas.gv-mobile .gv-element{width:92%!important;left:4%!important;position:relative!important;top:auto!important;
             margin:14px 0;cursor:pointer}
-        .gv-canvas.gv-mobile .gv-element .gv-photos-grid{grid-template-columns:repeat(1,minmax(0,1fr))!important}
+        .gv-canvas.gv-mobile .gv-element .gv-photos-grid{grid-template-columns:repeat(var(--gv-cols-mobile,1),minmax(0,1fr))!important}
         .gv-canvas.gv-mobile .gv-element .gv-free-img{max-width:100%}
         .gv-canvas.gv-mobile .gv-element .gv-free-img img{height:auto!important}
         @media(max-width:1200px){.gv-main{grid-template-columns:170px minmax(0,1fr) 220px}}
