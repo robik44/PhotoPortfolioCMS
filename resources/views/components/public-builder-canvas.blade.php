@@ -122,7 +122,23 @@
             data-flow-contributions="{{ isset($element['flow_anchor_contributions']) ? json_encode((object) $element['flow_anchor_contributions']) : '' }}"
             data-base-top="{{ $top }}"
         >
-            @if($type === 'color_panel')
+            @if($type === 'icon')
+                @php
+                    $phoneSize = max(16, min(120, (float) ($element['icon_size'] ?? 38)));
+                    $phoneColor = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($element['icon_color'] ?? ''))
+                        ? $element['icon_color'] : '#222222';
+                @endphp
+                <svg xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    width="{{ $phoneSize }}" height="{{ $phoneSize }}"
+                    role="img" aria-label="Telefon"
+                    fill="none" stroke="{{ $phoneColor }}" stroke-width="1.65"
+                    stroke-linecap="round" stroke-linejoin="round"
+                    style="display:block;max-width:none">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.12.96.34 1.9.66 2.8a2 2 0 0 1-.45 2.11L8.5 11.41a16 16 0 0 0 4.09 4.09l1.78-1.79a2 2 0 0 1 2.11-.45c.9.32 1.84.54 2.8.66A2 2 0 0 1 22 16.92z"/>
+                </svg>
+
+            @elseif($type === 'color_panel')
                 @php
                     $panelHex = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($element['panel_color'] ?? ''))
                         ? $element['panel_color'] : '#ffffff';
