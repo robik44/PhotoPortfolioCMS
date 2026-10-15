@@ -221,6 +221,13 @@ class GalleryController extends Controller
             return back()->withErrors(['layout' => 'Niepoprawny format projektu galerii.']);
         }
         $layout = \App\Support\GalleryVisualLayout::validate($decoded);
+        // Text edits remain drafts until explicitly published. Publishing updates
+        // the canonical Gallery fields, never separate SEO metadata.
+        $textChanges = null;
+        if ($scope === 'gallery' && isset($layout['content'])) {
+            $textChanges = $layout['content'];
+        }
+        if ($scope === 'global') unset($layout['content']);
 
         // Only photos already assigned to this gallery can be referenced by extra
         // image blocks or order. The global template may be edited from any gallery,
@@ -249,10 +256,24 @@ class GalleryController extends Controller
             $stored['version'] = 1;
         }
 
-        \App\Support\GalleryVisualLayout::save($scope, 'draft', $id, $stored);
-        if ($action === 'publish') {
-            \App\Support\GalleryVisualLayout::save($scope, 'published', $id, $stored);
+        if ($action === 'publish' && $textChanges !== null) {
+            // Content belongs to the Gallery model (single source of truth).
+            // The published layout stores only its geometry and styles.
+            unset($stored['content']);
         }
+
+        DB::transaction(function () use ($scope, $id, $stored, $action, $gallery, $textChanges) {
+            \App\Support\GalleryVisualLayout::save($scope, 'draft', $id, $stored);
+            if ($action === 'publish') {
+                if ($textChanges !== null) {
+                    $gallery->update([
+                        'title' => $textChanges['title'],
+                        'description' => $textChanges['description'],
+                    ]);
+                }
+                \App\Support\GalleryVisualLayout::save($scope, 'published', $id, $stored);
+            }
+        });
         return redirect()->route('galleries.builder', ['gallery' => $id, 'scope' => $scope])
             ->with('success', $action === 'publish'
                 ? 'Opublikowano układ. Zdjęcia, alty, teksty SEO i oryginalna kolejność w bazie nie zostały zmienione.'
