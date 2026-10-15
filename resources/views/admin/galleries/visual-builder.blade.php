@@ -36,6 +36,7 @@
             <a class="gv-tool" href="{{ route('galleries.edit', $gallery) }}">Edytuj treść i SEO</a>
             <a class="gv-tool" href="{{ route('portfolio.gallery', $gallery) }}" target="_blank" rel="noopener noreferrer">Strona publiczna ↗</a>
             <span style="flex:1"></span>
+            <button type="button" id="gv-fullscreen" class="gv-tool gv-tool-strong" aria-pressed="false" title="Zwiększ obszar roboczy i ukryj boczne menu CMS">⛶ Pełny ekran</button>
             <a class="gv-tool {{ $scope === 'global' ? 'active' : '' }}" href="{{ route('galleries.builder', ['gallery' => $gallery->id, 'scope' => 'global']) }}">Wspólny szablon</a>
             <a class="gv-tool {{ $scope === 'gallery' ? 'active' : '' }}" href="{{ route('galleries.builder', ['gallery' => $gallery->id, 'scope' => 'gallery']) }}">Ta galeria</a>
         </div>
@@ -78,6 +79,15 @@
                     <button type="button" class="gv-tool" data-gv-device="tablet">Tablet</button>
                     <button type="button" class="gv-tool" data-gv-device="mobile">Telefon</button>
                     <label><input type="checkbox" id="gv-snap" checked> Przyciąganie do siatki</label>
+                    <label for="gv-zoom" class="gv-zoom-label">Powiększenie</label>
+                    <select id="gv-zoom" aria-label="Powiększenie podglądu">
+                        <option value="fit">Dopasuj</option>
+                        <option value="0.5">50%</option>
+                        <option value="0.75">75%</option>
+                        <option value="1">100%</option>
+                        <option value="1.25">125%</option>
+                    </select>
+                    <output id="gv-zoom-current" class="gv-zoom-current" aria-live="polite">Dopasuj</output>
                 </div>
                 <div class="gv-preview-top">
                     <label for="gv-mode">Układ fotografii</label>
@@ -93,8 +103,10 @@
                            style="width:105px;padding:8px;border:1px solid #ccc;border-radius:4px">
                     <span class="gv-muted">Zdjęcia i ALT pozostają w bibliotece CMS.</span>
                 </div>
-                <div class="gv-scroll">
-                    <div id="gv-canvas" class="gv-canvas"></div>
+                <div class="gv-scroll" id="gv-scroll">
+                    <div class="gv-stage" id="gv-stage">
+                        <div id="gv-canvas" class="gv-canvas"></div>
+                    </div>
                 </div>
             </section>
 
@@ -123,6 +135,9 @@
         .gv-shell{margin:24px auto 70px;max-width:1900px;padding:0 16px;color:#222;font-family:Arial,sans-serif}
         .gv-toolbar,.gv-preview-top,.gv-save{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
         .gv-toolbar{margin:0 0 14px}
+        .gv-toolbar .gv-tool-strong{background:#eaf0ff;border-color:#b9c9e6;font-weight:700}
+        .gv-zoom-label,.gv-zoom-current{white-space:nowrap}
+        .gv-zoom-current{color:#555;min-width:38px;font-variant-numeric:tabular-nums;font-weight:700}
         .gv-tool,.gv-add,.gv-publish{display:inline-block;border:1px solid #d1d5db;border-radius:5px;background:#fff;
             color:#222;padding:10px 13px;text-decoration:none;font-size:13px;cursor:pointer}
         .gv-tool.active{border-color:#111;background:#222;color:#fff}
@@ -145,7 +160,9 @@
         .gv-preview-top{padding:11px 13px;border-bottom:1px solid #ececec;font-size:12px}
         .gv-preview-top strong{margin-right:auto}
         .gv-preview-top select{padding:8px;border:1px solid #ccc}
-        .gv-scroll{overflow:auto;background:#e9eae9;padding:22px;max-height:78vh}
+        .gv-scroll{overflow:auto;background:#e9eae9;padding:16px;max-height:78vh;min-width:0}
+        .gv-stage{position:relative;margin:0 auto;flex:none;min-width:0}
+        .gv-stage>.gv-canvas{position:absolute;top:0;left:0;transform-origin:0 0}
         .gv-canvas{width:1200px;height:900px;position:relative;background:#f9f9f7;border:1px solid #dadada;
             background-image:linear-gradient(to right,rgba(0,0,0,.025) 1px,transparent 1px),
                 linear-gradient(to bottom,rgba(0,0,0,.025) 1px,transparent 1px);
@@ -185,8 +202,27 @@
         .gv-canvas.gv-mobile .gv-element .gv-photos-grid{grid-template-columns:repeat(var(--gv-cols-mobile,1),minmax(0,1fr))!important}
         .gv-canvas.gv-mobile .gv-element .gv-free-img{max-width:100%}
         .gv-canvas.gv-mobile .gv-element .gv-free-img img{height:auto!important}
-        @media(max-width:1200px){.gv-main{grid-template-columns:170px minmax(0,1fr) 220px}}
-        @media(max-width:850px){.gv-main{grid-template-columns:1fr}.gv-side{position:static;max-height:none}}
+        /* Dedicated editing workspace: hides the CMS sidebar and gives the canvas real width. */
+        .gv-shell.gv-focus{position:fixed!important;inset:0!important;z-index:99999!important;max-width:none!important;width:100%!important;
+            height:100dvh!important;overflow:hidden!important;margin:0!important;padding:12px 16px!important;
+            background:#f4f5f7;display:flex;flex-direction:column;box-sizing:border-box}
+        .gv-focus .gv-toolbar,.gv-focus .gv-info,.gv-focus .gv-save{flex-shrink:0}
+        .gv-focus .gv-toolbar{margin-bottom:8px}
+        .gv-focus .gv-info{margin:0 0 9px;padding:9px 12px}
+        .gv-focus .gv-main{flex:1;min-height:0;grid-template-columns:205px minmax(0,1fr) 275px;align-items:stretch}
+        .gv-focus .gv-side{position:static;max-height:none;height:100%;overflow-y:auto}
+        .gv-focus .gv-preview{min-height:0;height:100%;display:flex;flex-direction:column}
+        .gv-focus .gv-preview-top{flex-shrink:0}
+        .gv-focus .gv-scroll{flex:1;max-height:none;min-height:0}
+        .gv-focus .gv-save{position:static;margin-top:9px;padding:10px 13px}
+        .gv-focus .gv-note{display:none}
+        .gv-focus .gv-control{margin:9px 0}
+        @media(max-width:1200px){.gv-main{grid-template-columns:170px minmax(0,1fr) 220px}
+          .gv-focus .gv-main{grid-template-columns:160px minmax(0,1fr) 220px}}
+        @media(max-width:850px){.gv-main{grid-template-columns:1fr}.gv-side{position:static;max-height:none}
+           .gv-focus{overflow:auto!important}.gv-focus .gv-main{display:block!important;overflow-y:auto}
+           .gv-focus .gv-side{max-height:none;height:auto}.gv-focus .gv-preview{height:70vh}}
+        @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=1"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=2"></script>
 </x-app-layout>
