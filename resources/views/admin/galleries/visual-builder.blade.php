@@ -69,7 +69,7 @@
                     <button type="button" class="gv-add" data-gv-add="image">+ Zdjęcie z galerii</button>
                 @endif
                 <a class="gv-tool gv-add" href="{{ route('galleries.library', $gallery) }}">+ Biblioteka zdjęć ↗</a>
-                <p class="gv-help">Złap element na podglądzie i przesuń. Niebieskim uchwytem w narożniku zmienisz jego szerokość.</p>
+                <p class="gv-help">Przeciągaj płynnie. Zielone linie pokazują wyrównanie krawędzi i środków elementów. Strzałki przesuwają zaznaczony element o 1 px, Shift + strzałka o 10 px. Niebieski uchwyt zmienia szerokość.</p>
             </aside>
 
             <section class="gv-preview">
@@ -78,7 +78,8 @@
                     <button type="button" class="gv-tool active" data-gv-device="desktop">Komputer</button>
                     <button type="button" class="gv-tool" data-gv-device="tablet">Tablet</button>
                     <button type="button" class="gv-tool" data-gv-device="mobile">Telefon</button>
-                    <label><input type="checkbox" id="gv-snap" checked> Przyciąganie do siatki</label>
+                    <label title="Przyciąganie do krawędzi i środków sąsiednich elementów"><input type="checkbox" id="gv-snap" checked> Przyciągaj do elementów</label>
+                    <label title="Linie pokazują wspólną krawędź lub środek innych zdjęć i napisów"><input type="checkbox" id="gv-guides" checked> Linie pomocnicze</label>
                     <label for="gv-zoom" class="gv-zoom-label">Powiększenie</label>
                     <select id="gv-zoom" aria-label="Powiększenie podglądu">
                         <option value="fit">Dopasuj</option>
@@ -180,6 +181,13 @@
         .gv-thumb img{display:block;width:100%;max-width:100%}
         .gv-free-img img{display:block;width:100%;object-fit:contain}
         .gv-divider{height:2px;width:100%;margin-top:12px}
+        .gv-align-guide{position:absolute;pointer-events:none;z-index:5000;background:#0baf8d;
+            box-shadow:0 0 0 1px rgba(255,255,255,.45)}
+        .gv-align-vertical{top:0;bottom:0;width:1px;border-left:1px dashed #0baf8d;background:transparent}
+        .gv-align-horizontal{left:0;right:0;height:1px;border-top:1px dashed #0baf8d;background:transparent}
+        .gv-photo-inspector-preview{margin:10px 0 15px;padding:9px;background:#f7f8f9;border:1px solid #e4e7ec;border-radius:5px}
+        .gv-photo-inspector-preview img{display:block;width:100%;height:140px;object-fit:contain}
+        .gv-photo-inspector-preview .gv-hint{color:#596475;font-size:12px;line-height:1.5;margin:10px 0 0}
         .gv-button{display:inline-block;padding:12px 20px;border:1px solid currentColor;cursor:move}
         .gv-control{margin:13px 0}
         .gv-field-label{display:block;font-size:12px;margin-bottom:5px;color:#545454}
@@ -224,5 +232,6 @@
            .gv-focus .gv-side{max-height:none;height:auto}.gv-focus .gv-preview{height:70vh}}
         @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=2"></script>
+    <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=1"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=3"></script>
 </x-app-layout>
