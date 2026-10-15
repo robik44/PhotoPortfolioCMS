@@ -10,7 +10,11 @@
             'alt' => $photo->alt ?: '',
             'url' => $photo->thumbnailUrl(),
         ])->values();
+        $catalog = app(\App\Services\SiteFontLibrary::class)->catalog();
         $payload = [
+            'fonts' => collect($catalog['choices'])->map(fn ($choice) => [
+                'id' => $choice['value'], 'label' => $choice['label'], 'css' => $choice['css'],
+            ])->values(),
             'layout' => $layout,
             'gallery' => [
                 'id' => $gallery->id,
