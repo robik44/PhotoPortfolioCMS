@@ -941,7 +941,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return { x, y, width, height, right: x + width, bottom: y + height, cx: x + width / 2, cy: y + height / 2 };
     }
 
-    function snapGroup(groupIds, proposedDxPx, proposedDyPx, starts) {
+    function snapGroup(groupIds, proposedDxPx, proposedDyPx, starts, fixedTargets = null) {
         const threshold = 7;
         const moving = groupIds.map(id => {
             const start = starts.get(id);
@@ -963,14 +963,16 @@ document.addEventListener("DOMContentLoaded", function () {
         bounds.cx = (bounds.x + bounds.right) / 2;
         bounds.cy = (bounds.y + bounds.bottom) / 2;
 
-        const xTargets = [0, 700, 1400];
-        const yTargets = [0];
-        data.sections.forEach(other => {
-            if (groupIds.includes(other.id)) return;
-            const g = elementGeometry(other);
-            xTargets.push(g.x, g.cx, g.right);
-            yTargets.push(g.y, g.cy, g.bottom);
-        });
+        const xTargets = fixedTargets?.x || [0, 700, 1400];
+        const yTargets = fixedTargets?.y || [0];
+        if (!fixedTargets) {
+            data.sections.forEach(other => {
+                if (groupIds.includes(other.id)) return;
+                const g = elementGeometry(other);
+                xTargets.push(g.x, g.cx, g.right);
+                yTargets.push(g.y, g.cy, g.bottom);
+            });
+        }
 
         let bestX = null;
         let bestY = null;
@@ -1683,6 +1685,7 @@ document.addEventListener("DOMContentLoaded", function () {
             let startY = 0;
             let dragIds = [];
             let dragStarts = new Map();
+            let dragSnapTargets = null;
 
             element.addEventListener("mousedown", function (event) {
                 if (
@@ -1733,6 +1736,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (node) node.style.cursor = "grabbing";
                 });
 
+                // Freeze ruler/snap references before automatic reflow moves
+                // any neighboring content during a drag.
+                dragSnapTargets = {x: [0, 700, 1400], y: [0]};
+                data.sections.forEach(other => {
+                    if (dragIds.includes(other.id)) return;
+                    const g = elementGeometry(other);
+                    dragSnapTargets.x.push(g.x, g.cx, g.right);
+                    dragSnapTargets.y.push(g.y, g.cy, g.bottom);
+                });
+
                 event.preventDefault();
                 event.stopPropagation();
                 render();
@@ -1746,7 +1759,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 const rawDyPx = (event.clientY - startY) / zoom;
                 if (Math.abs(rawDxPx) > 1 || Math.abs(rawDyPx) > 1) dragMoved = true;
 
-                const snapped = snapGroup(dragIds, rawDxPx, rawDyPx, dragStarts);
+                const snapped = snapGroup(dragIds, rawDxPx, rawDyPx, dragStarts, dragSnapTargets);
 
                 // Keep the whole group inside the left/right edge and above the top edge.
                 let minX = Infinity;
@@ -1780,6 +1793,21 @@ document.addEventListener("DOMContentLoaded", function () {
                         node.style.top = ((Number(movingItem.position_y) || 0) / 100 * 900) + "px";
                     }
                 });
+
+                // Show the pushed gallery/image row WHILE dragging. Previously
+                // only the text moved, then all blocks jumped after mouseup.
+                if (dragIds.some(id => data.sections.some(section => section.id === id && section.flow_mode === 'auto'))) {
+                    dragIds.forEach(id => {
+                        const movingItem = data.sections.find(section => section.id === id);
+                        if (!movingItem) return;
+                        movingItem.flow_anchor_contributions =
+                            inheritedFlowContributions((Number(movingItem.position_y) || 0) * 9, id);
+                        movingItem.flow_anchor = 0;
+                    });
+                    const maxBottom = reflowElements();
+                    content.style.height = maxBottom + "px";
+                    content.style.minHeight = maxBottom + "px";
+                }
             });
 
             document.addEventListener("mouseup", function () {
