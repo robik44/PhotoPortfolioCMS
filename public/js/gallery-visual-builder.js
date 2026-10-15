@@ -111,6 +111,8 @@
     function render() {
         canvas.replaceChildren();
         canvas.className='gv-canvas gv-'+device;
+        canvas.style.setProperty('--gv-cols-tablet',String(layout.columns_tablet));
+        canvas.style.setProperty('--gv-cols-mobile',String(layout.columns_mobile));
         const blocks=layout.blocks;
         let bottom=Number(layout.canvas_height)||900;
         const title=textElement('title',blocks.title,gallery.title,'h1');
@@ -362,6 +364,9 @@
     });
     root.querySelector('form').addEventListener('submit',e=>{
         $('#gv-payload').value=JSON.stringify(layout);
+        if(e.submitter?.value==='unpublish'&&!confirm(
+            'Wyłączyć opublikowany układ? Strona wróci do wcześniejszego szablonu albo do szablonu wspólnego.'
+        ))e.preventDefault();
         if(e.submitter?.value==='publish'&&!confirm(
             scope==='global'?'Opublikować wspólny projekt na wszystkich galeriach bez nadpisań?':'Opublikować zmiany tylko w tej galerii?'
         ))e.preventDefault();
