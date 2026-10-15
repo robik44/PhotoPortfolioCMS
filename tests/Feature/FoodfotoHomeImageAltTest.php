@@ -13,19 +13,19 @@ class FoodfotoHomeImageAltTest extends TestCase
     private function photos(): array
     {
         return [
-            Photo::create([
+            Photo::query()->forceCreate([
                 'id' => 112,
                 'filename' => 'photos/original-carrots.jpg',
                 'webp' => 'photos/eDKV5eavwa8h830JcyzIaH2eekFta7hScTfofiix-web.webp',
                 'title' => null, 'alt' => null,
             ]),
-            Photo::create([
+            Photo::query()->forceCreate([
                 'id' => 117,
                 'filename' => 'photos/original-dessert.jpg',
                 'webp' => 'photos/C1GXfqAvAklI81MFyYRdlssNFhB74iBF01HNLYvV-web.webp',
                 'title' => null, 'alt' => null,
             ]),
-            Photo::create([
+            Photo::query()->forceCreate([
                 'id' => 113,
                 'filename' => 'photos/original-basil.jpg',
                 'webp' => 'photos/BVHDZh5IWgODm79Lc4dSqU7E5gHlvPwm0TuPaI0p-web.webp',
