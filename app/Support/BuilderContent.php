@@ -34,6 +34,36 @@ class BuilderContent
 
                 Validator::make($element, $rules)->validate();
             }
+            if (($element['type'] ?? null) === 'process_steps') {
+                $families = array_keys(app(\App\Services\SiteFontLibrary::class)->catalog()['families']);
+                $rules = [
+                    'process_kicker' => ['required', 'string', 'max:120'],
+                    'process_title' => ['required', 'string', 'max:240'],
+                    'process_intro' => ['required', 'string', 'max:1200'],
+                    'process_steps' => ['required', 'array', 'size:3'],
+                    'process_steps.*.title' => ['required', 'string', 'max:240'],
+                    'process_steps.*.description' => ['required', 'string', 'max:1200'],
+                    'process_steps.*.icon' => ['required', 'in:message,bowl,image,camera,lightbulb,check'],
+                    'process_design' => ['required', 'array'],
+                    'process_design.heading_font' => ['sometimes', 'string', \Illuminate\Validation\Rule::in($families)],
+                    'process_design.body_font' => ['sometimes', 'string', \Illuminate\Validation\Rule::in($families)],
+                    'process_design.show_arrows' => ['sometimes', 'boolean'],
+                ];
+                foreach (['background', 'text', 'muted', 'accent', 'icon_background', 'icon_color'] as $key) {
+                    $rules['process_design.'.$key] = ['sometimes', 'regex:/^#[0-9a-fA-F]{6}$/'];
+                }
+                foreach ([
+                    'pad_x' => [0,160], 'pad_y' => [0,160],
+                    'head_gap' => [0,140], 'section_gap' => [0,150],
+                    'steps_gap' => [0,120], 'icon_size' => [36,150],
+                    'title_size' => [20,100], 'title_weight' => [100,900],
+                    'lead_size' => [10,36], 'step_title_size' => [12,40],
+                    'step_description_size' => [10,30],
+                ] as $key => [$min, $max]) {
+                    $rules['process_design.'.$key] = ['sometimes', 'numeric', 'between:'.$min.','.$max];
+                }
+                Validator::make($element, $rules)->validate();
+            }
             if (($element['type'] ?? null) === 'thumbnail_gallery') {
                 Validator::make($element, [
                     'photo_ids' => ['present', 'array', 'list', 'max:2000'],
