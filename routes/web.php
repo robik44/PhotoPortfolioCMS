@@ -167,6 +167,11 @@ Route::middleware(["auth"])->group(function () {
     Route::put('/gallery-collections/{galleryCollection}', [GalleryCollectionController::class, 'update'])->name('gallery-collections.update');
     Route::delete('/gallery-collections/{galleryCollection}', [GalleryCollectionController::class, 'destroy'])->name('gallery-collections.destroy');
 
+    Route::get('/galleries/{gallery}/builder', [GalleryController::class, 'visualBuilder'])
+        ->name('galleries.builder');
+    Route::post('/galleries/{gallery}/builder', [GalleryController::class, 'saveVisualBuilder'])
+        ->name('galleries.builder.save');
+
     Route::resource("galleries", GalleryController::class);
 
     Route::post("/galleries/reorder", [GalleryController::class, "reorder"])
