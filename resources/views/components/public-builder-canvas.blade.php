@@ -107,6 +107,7 @@
             data-builder-id="{{ $element['id'] ?? '' }}"
             data-builder-index="{{ $loop->index }}"
             data-flow-mode="{{ ($element['flow_mode'] ?? 'free') === 'auto' ? 'auto' : 'free' }}"
+            data-flow-group="{{ $element['flow_group'] ?? '' }}"
             data-flow-baseline="{{ max(0, (float) ($element['flow_base_height'] ?? 0)) }}"
             data-flow-anchor="{{ (float) ($element['flow_anchor'] ?? 0) }}"
             data-flow-contributions="{{ isset($element['flow_anchor_contributions']) ? json_encode((object) $element['flow_anchor_contributions']) : '' }}"
@@ -325,6 +326,7 @@
         const model = nodes.map(node => ({
             id: node.dataset.builderIndex,
             type: node.className.match(/page-element-(\w+)/)?.[1] || '',
+            flowGroup: node.dataset.flowGroup || null,
             anchorContributions: node.dataset.flowContributions
                 ? JSON.parse(node.dataset.flowContributions) : null,
             x: node.offsetLeft,
