@@ -16,6 +16,8 @@
                 'id' => $choice['value'], 'label' => $choice['label'], 'css' => $choice['css'],
             ])->values(),
             'layout' => $layout,
+            'sharedTemplate' => $sharedTemplate,
+            'localOverrides' => $localOverrides,
             'gallery' => [
                 'id' => $gallery->id,
                 'title' => $gallery->title,
@@ -73,6 +75,10 @@
                     <span class="gv-inheritance-info">Podgląd dziedziczy <strong>opublikowany wspólny szablon</strong> oraz indywidualne zmiany.</span>
                 @else
                     <span class="gv-inheritance-info">Wspólny szablon nie jest jeszcze opublikowany. Indywidualny projekt działa tylko w podglądzie i szkicu.</span>
+                @endif
+                @if(count($localOverrides) > 1 || !empty($localOverrides['blocks']))
+                    <span class="gv-inheritance-info">Ta galeria ma <strong>indywidualne nadpisania</strong> po wcześniejszych testach.
+                        Wybierz element i użyj „Przywróć styl wspólny”, aby usunąć jego nadpisanie.</span>
                 @endif
             @else
                 <span class="gv-inheritance-info">To jest <strong>wspólny podgląd roboczy</strong>. Wybierz inną galerię powyżej, by sprawdzić ten sam projekt z innymi zdjęciami i tekstami.</span>
@@ -221,6 +227,8 @@
         .gv-photo-inspector-preview{margin:10px 0 15px;padding:9px;background:#f7f8f9;border:1px solid #e4e7ec;border-radius:5px}
         .gv-photo-inspector-preview img{display:block;width:100%;height:140px;object-fit:contain}
         .gv-photo-inspector-preview .gv-hint{color:#596475;font-size:12px;line-height:1.5;margin:10px 0 0}
+        .gv-override-label{padding:9px 11px;background:#fff8e6;border-left:3px solid #ba8b2d;color:#5d461a;font-size:12px;line-height:1.45;margin:12px 0 8px}
+        .gv-reset-inheritance{border:1px solid #8a9ab5;border-radius:4px;background:#eff4fa;color:#1f3d63;padding:9px 11px;margin:8px 0;width:100%;cursor:pointer;text-align:left;font-size:12px}
         .gv-button{display:inline-block;padding:12px 20px;border:1px solid currentColor;cursor:move}
         .gv-control{margin:13px 0}
         .gv-field-label{display:block;font-size:12px;margin-bottom:5px;color:#545454}
@@ -266,5 +274,5 @@
         @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
     <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=2"></script>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=5"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=6"></script>
 </x-app-layout>
