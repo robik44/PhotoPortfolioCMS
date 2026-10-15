@@ -277,6 +277,24 @@ class GalleryController extends Controller
             unset($stored['content']);
         }
 
+        if ($action === 'publish') {
+            $directory = storage_path('app/backups');
+            if (!is_dir($directory) && !mkdir($directory, 0700, true) && !is_dir($directory)) {
+                return back()->withErrors(['layout' => 'Brak katalogu kopii zapasowej. Niczego nie opublikowano.']);
+            }
+            $backup = $directory.'/gallery-builder-'.$scope.'-'.$id.'-'.date('Ymd-His').'-'.substr(uniqid(), -6).'.json';
+            $previous = [
+                'gallery_id' => $id, 'scope' => $scope,
+                'gallery' => $gallery->only(['id', 'title', 'description', 'slug', 'seo_title', 'seo_description']),
+                'published_layout' => $settings[\App\Support\GalleryVisualLayout::key($scope, 'published', $id)] ?? null,
+                'draft_layout' => $settings[\App\Support\GalleryVisualLayout::key($scope, 'draft', $id)] ?? null,
+            ];
+            $json = json_encode($previous, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+            if ($json === false || file_put_contents($backup, $json, LOCK_EX) === false) {
+                return back()->withErrors(['layout' => 'Nie można zapisać kopii zapasowej. Publikacja anulowana.']);
+            }
+        }
+
         DB::transaction(function () use ($scope, $id, $stored, $action, $gallery, $textChanges) {
             \App\Support\GalleryVisualLayout::save($scope, 'draft', $id, $stored);
             if ($action === 'publish') {
