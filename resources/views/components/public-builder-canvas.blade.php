@@ -17,6 +17,7 @@
         : null;
     $layerMap = [
         'image' => 10,
+        'color_panel' => 2,
         'separator' => 20,
         'gallery' => 30,
         'thumbnail_gallery' => 30,
@@ -47,6 +48,11 @@
             $height = max(0, (float) ($element['element_height'] ?? 0));
             $top = ($y / 100) * $designHeight;
             $zIndex = $layerMap[$type] ?? 100;
+            if ($type === 'color_panel') {
+                $zIndex = max(0, min(50, (int) ($element['panel_layer'] ?? 2)));
+            } elseif ($type === 'image' && isset($element['image_layer'])) {
+                $zIndex = max(0, min(50, (int) $element['image_layer']));
+            }
 
             $fontFamily = \App\Services\SiteFontLibrary::css($style['font_family'] ?? null, $fontCatalog);
             $fontSize = (float) ($style['font_size'] ?? ($type === 'heading' ? 42 : 18));
@@ -116,7 +122,21 @@
             data-flow-contributions="{{ isset($element['flow_anchor_contributions']) ? json_encode((object) $element['flow_anchor_contributions']) : '' }}"
             data-base-top="{{ $top }}"
         >
-            @if($type === 'image')
+            @if($type === 'color_panel')
+                @php
+                    $panelHex = preg_match('/^#[0-9a-fA-F]{6}$/', (string) ($element['panel_color'] ?? ''))
+                        ? $element['panel_color'] : '#ffffff';
+                    $panelOpacity = max(0, min(100, (float) ($element['panel_opacity'] ?? 100))) / 100;
+                    $panelRgb = implode(',', [
+                        hexdec(substr($panelHex, 1, 2)),
+                        hexdec(substr($panelHex, 3, 2)),
+                        hexdec(substr($panelHex, 5, 2))
+                    ]);
+                    $panelHeight = max(1, min(1500, (float) ($element['element_height'] ?? 200)));
+                @endphp
+                <div aria-hidden="true" style="width:100%;height:{{ $panelHeight }}px;background:rgba({{ $panelRgb }},{{ $panelOpacity }});"></div>
+
+            @elseif($type === 'image')
                 @php
                     $photoRecord = \App\Models\Photo::find($element['photo_id'] ?? null);
                     $photoUrl = $photoRecord?->imageUrl() ?: ($element['photo_url'] ?? null);
