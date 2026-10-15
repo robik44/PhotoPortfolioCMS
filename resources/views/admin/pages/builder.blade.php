@@ -1357,6 +1357,8 @@ document.addEventListener("DOMContentLoaded", function () {
             const node = nodes.get(item.id);
             return {
                 id: item.id,
+                type: item.type,
+                anchorContributions: item.flow_anchor_contributions ?? null,
                 x: (Number(item.position_x) || 0) * 14,
                 y: item.id === overrideId ? overrideYPx : (Number(item.position_y) || 0) * 9,
                 width: node.offsetWidth,
@@ -1368,19 +1370,45 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    function inheritedFlowShift(yPx, movingId = null) {
+    // Save per-source flow displacement at the moment an element is manually
+    // positioned. A later inserted element has a new ID and can still push it.
+    function inheritedFlowContributions(yPx, movingId = null) {
         const measured = flowMeasurements(movingId, yPx);
         const plan = window.BuilderAutoFlow.calculate(measured);
-        if (movingId) return plan.placements.find(entry => entry.id === movingId)?.shift || 0;
-        return plan.shifts.reduce((total, event) =>
-            total + (yPx >= event.at - 0.1 ? event.delta : 0), 0);
+        if (movingId) {
+            return plan.placements.find(entry => entry.id === movingId)?.contributions || {};
+        }
+        const sources = {};
+        for (const event of plan.shifts) {
+            if (yPx >= event.at - .1) {
+                sources[event.sourceId] = (sources[event.sourceId] || 0) + event.delta;
+            }
+        }
+        return sources;
     }
 
     function reflowElements() {
         const measured = flowMeasurements();
-        const plan = window.BuilderAutoFlow.calculate(measured);
+        let plan = window.BuilderAutoFlow.calculate(measured);
         const nodes = new Map(Array.from(content.querySelectorAll(".fve-element"))
             .map(node => [node.dataset.id, node]));
+
+        // Legacy anchors were single numbers. Migrate while preserving their
+        // visible positions, so newly added blocks no longer cancel their shifts.
+        let migrated = false;
+        for (const item of data.sections) {
+            if (item.flow_anchor_contributions !== undefined || !Number(item.flow_anchor)) continue;
+            const placement = plan.placements.find(row => row.id === item.id);
+            const entries = Object.entries(placement?.contributions || {});
+            const total = entries.reduce((sum, [, value]) => sum + value, 0);
+            const oldAnchor = Number(item.flow_anchor);
+            item.flow_anchor_contributions = total
+                ? Object.fromEntries(entries.map(([id, value]) => [id, value * oldAnchor / total]))
+                : {__legacy: oldAnchor};
+            item.flow_anchor = 0;
+            migrated = true;
+        }
+        if (migrated) plan = window.BuilderAutoFlow.calculate(flowMeasurements());
         for (const entry of plan.placements) {
             const node = nodes.get(entry.id);
             if (node) node.style.top = entry.top + "px";
@@ -1722,7 +1750,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         if (!movingItem) return;
                         // position_y already stores the visual drop position from mousemove.
                         // Compensate the current upstream growth; future changes still flow.
-                        movingItem.flow_anchor = inheritedFlowShift((Number(movingItem.position_y) || 0) * 9, id);
+                        movingItem.flow_anchor_contributions = inheritedFlowContributions((Number(movingItem.position_y) || 0) * 9, id);
+                        movingItem.flow_anchor = 0;
                     });
                 }
 
@@ -2155,7 +2184,8 @@ document.addEventListener("DOMContentLoaded", function () {
             item.position_y,
             function (value) {
                 item.position_y = Math.max(0, Number(value) || 0);
-                item.flow_anchor = inheritedFlowShift(item.position_y * 9, item.id);
+                item.flow_anchor_contributions = inheritedFlowContributions(item.position_y * 9, item.id);
+                item.flow_anchor = 0;
             },
             { min: 0, step: 0.1 }
         );
@@ -2484,7 +2514,8 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!options.silent && nextInsertionPoint) {
             item.position_x = Math.min(nextInsertionPoint.x, Math.max(0, 100 - item.element_width));
             item.position_y = nextInsertionPoint.y;
-            item.flow_anchor = inheritedFlowShift(item.position_y * 9);
+            item.flow_anchor_contributions = inheritedFlowContributions(item.position_y * 9);
+            item.flow_anchor = 0;
             nextInsertionPoint = null;
         }
 
