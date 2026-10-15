@@ -1091,7 +1091,8 @@ document.addEventListener("DOMContentLoaded", function () {
             button: "Przycisk",
             separator: "Separator",
             process_steps: "Proces współpracy — 3 etapy",
-            color_panel: "Tło / panel kolorowy"
+            color_panel: "Tło / panel kolorowy",
+            icon: "Ikona"
         };
 
         return labels[type] || "Element";
@@ -1200,6 +1201,27 @@ document.addEventListener("DOMContentLoaded", function () {
                         "<div style='padding:100px 20px;text-align:center;background:#f3f3f3;color:#999;'>Wybierz zdjęcie</div>";
                 }
             }
+
+        } else if (item.type === "icon") {
+            // Vector icon, not a font glyph: crisp on retina and resizeable.
+            const ns = 'http://www.w3.org/2000/svg';
+            const svg = document.createElementNS(ns, 'svg');
+            svg.setAttribute('viewBox', '0 0 24 24');
+            svg.setAttribute('role', 'img');
+            svg.setAttribute('aria-label', 'Telefon');
+            svg.setAttribute('fill', 'none');
+            svg.setAttribute('stroke', 'currentColor');
+            svg.setAttribute('stroke-width', '1.65');
+            svg.setAttribute('stroke-linecap', 'round');
+            svg.setAttribute('stroke-linejoin', 'round');
+            svg.style.display = 'block';
+            svg.style.width = Math.max(16, Math.min(120, Number(item.icon_size) || 38)) + 'px';
+            svg.style.height = svg.style.width;
+            svg.style.color = /^#[0-9a-f]{6}$/i.test(item.icon_color || '') ? item.icon_color : '#222222';
+            const path = document.createElementNS(ns, 'path');
+            path.setAttribute('d', 'M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.12.96.34 1.9.66 2.8a2 2 0 0 1-.45 2.11L8.5 11.41a16 16 0 0 0 4.09 4.09l1.78-1.79a2 2 0 0 1 2.11-.45c.9.32 1.84.54 2.8.66A2 2 0 0 1 22 16.92z');
+            svg.appendChild(path);
+            box.appendChild(svg);
 
         } else if (item.type === "color_panel") {
 
@@ -2101,6 +2123,13 @@ document.addEventListener("DOMContentLoaded", function () {
         if (item.type !== 'color_panel') window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
+        if (item.type === 'icon') {
+            field('Rozmiar ikony (px)', 'number', item.icon_size ?? 38,
+                value => { item.icon_size = Math.max(16, Math.min(120, Number(value) || 38)); },
+                { min: 16, max: 120, step: 1 });
+            field('Kolor ikony', 'color', item.icon_color || '#222222',
+                value => { item.icon_color = value; });
+        }
         if (item.type === 'color_panel') {
             const backgroundField = document.createElement('label');
             backgroundField.className = 'fve-field';
