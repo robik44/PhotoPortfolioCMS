@@ -1,0 +1,124 @@
+/* FoodFoto process section: self-contained and fluid height, both editor and public page. */
+.ff-process {
+    container-type: inline-size;
+    box-sizing: border-box;
+    width: 100%;
+    background: var(--ff-process-background, #fff);
+    color: var(--ff-process-text, #24241f);
+    padding: var(--ff-process-pad-y, 66px) var(--ff-process-pad-x, 54px);
+    font-family: var(--ff-process-body-font, Arial, sans-serif);
+    overflow-wrap: anywhere;
+}
+.ff-process *, .ff-process *::before, .ff-process *::after { box-sizing: border-box; }
+.ff-process .ff-process-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, .85fr);
+    gap: var(--ff-process-head-gap, 56px);
+    align-items: end;
+    margin-bottom: var(--ff-process-section-gap, 46px);
+}
+.ff-process .ff-process-eyebrow {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    color: var(--ff-process-accent, #899575);
+    font: 600 11px/1.5 var(--ff-process-body-font, Arial, sans-serif);
+    text-transform: uppercase;
+    letter-spacing: .19em;
+    margin: 0 0 18px;
+}
+.ff-process .ff-process-eyebrow::after {
+    content: '';
+    width: 68px;
+    height: 1px;
+    background: currentColor;
+    opacity: .5;
+}
+.ff-process h2.ff-process-title {
+    font-family: var(--ff-process-heading-font, Georgia, serif);
+    font-size: var(--ff-process-title-size, 58px);
+    font-weight: var(--ff-process-title-weight, 400);
+    line-height: 1.08;
+    letter-spacing: -.025em;
+    color: var(--ff-process-text, #24241f);
+    margin: 0;
+}
+.ff-process .ff-process-lead {
+    margin: 0;
+    font-size: var(--ff-process-lead-size, 18px);
+    line-height: 1.62;
+    color: var(--ff-process-muted, #65675e);
+    white-space: pre-line;
+}
+.ff-process .ff-process-steps {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: var(--ff-process-steps-gap, 24px);
+    row-gap: 26px;
+    align-items: start;
+}
+.ff-process .ff-process-step {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: var(--ff-process-icon-size, 82px) minmax(0, 1fr);
+    gap: 17px;
+    align-items: start;
+    padding-right: 32px;
+    position: relative;
+}
+.ff-process .ff-process-step:last-child { padding-right: 0; }
+.ff-process .ff-process-bubble {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ff-process-icon-size, 82px);
+    height: var(--ff-process-icon-size, 82px);
+    border-radius: 50%;
+    background: var(--ff-process-icon-background, #f1f5e9);
+    color: var(--ff-process-icon-color, #8a9284);
+    flex: 0 0 auto;
+}
+.ff-process .ff-process-icon {
+    width: 52%;
+    height: 52%;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+.ff-process h3.ff-process-step-title {
+    margin: 4px 0 9px;
+    font-family: var(--ff-process-heading-font, Georgia, serif);
+    font-size: var(--ff-process-step-title-size, 23px);
+    font-weight: 400;
+    line-height: 1.18;
+    color: var(--ff-process-text, #24241f);
+}
+.ff-process .ff-process-step-description {
+    font-size: var(--ff-process-step-description-size, 16px);
+    line-height: 1.55;
+    margin: 0;
+    color: var(--ff-process-muted, #65675e);
+    white-space: pre-line;
+}
+.ff-process .ff-process-step:not(:last-child)::after {
+    content: '→';
+    position: absolute;
+    right: -12px;
+    top: 20px;
+    color: var(--ff-process-accent, #899575);
+    font: 300 35px/1 Arial, sans-serif;
+}
+@container (max-width: 980px) {
+    .ff-process .ff-process-intro { grid-template-columns: 1fr; gap: 15px; }
+    .ff-process .ff-process-steps { grid-template-columns: 1fr; gap: 28px; }
+    .ff-process .ff-process-step { padding-right: 0; }
+    .ff-process .ff-process-step:not(:last-child)::after { content: '↓'; top: auto; right: 50%; bottom: -27px; font-size: 21px; }
+}
+@container (max-width: 520px) {
+    .ff-process { padding: 28px 22px; }
+    .ff-process h2.ff-process-title { font-size: min(var(--ff-process-title-size, 58px), 38px); }
+    .ff-process .ff-process-step { grid-template-columns: 64px minmax(0, 1fr); }
+    .ff-process .ff-process-bubble { width: 64px; height: 64px; }
+}
