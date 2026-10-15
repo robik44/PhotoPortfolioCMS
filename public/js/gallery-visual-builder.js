@@ -17,12 +17,8 @@
     // Keeping it as a JS array causes positions assigned under photo IDs
     // (e.g. 90) to serialize as [null, null, ...] and fail PHP validation.
     // Always use an ID-keyed object for free-position photo coordinates.
-    const normalizePositions = positions => {
-        if (!positions || typeof positions !== 'object') return {};
-        return Object.fromEntries(Object.entries(positions).filter(([id, value]) =>
-            /^[1-9][0-9]*$/.test(id) && value && typeof value === 'object' &&
-            !Array.isArray(value)));
-    };
+    const normalizePositions = positions =>
+        window.FoodFotoGalleryGuides?.normalizePositions(positions) ?? {};
     layout.individual_photos = normalizePositions(layout.individual_photos);
     let selected = 'title';
     let device = 'desktop';
@@ -263,6 +259,7 @@
             item.type='button';item.addEventListener('click',()=>select(id));listing.appendChild(item);
         });
         updateInspector();
+        renderSelectionGuides();
         scheduleFit();
     }
     function select(id) {selected=id;render();}
@@ -388,15 +385,39 @@
                 x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight,
             }));
     }
-    function guideLines(match) {
+    function guideLines(match, rect) {
         canvas.querySelectorAll('.gv-align-guide').forEach(node => node.remove());
-        if (!guides || !match) return;
-        for (const [direction,value] of [['vertical',match.vertical],['horizontal',match.horizontal]]) {
-            if (value === null || !Number.isFinite(value)) continue;
-            const line = html('div','gv-align-guide gv-align-'+direction);
-            line.style[direction === 'vertical' ? 'left' : 'top'] = value + 'px';
+        if (!guides || device!=='desktop') return;
+        // Two reference rulers remain visible while an item is selected.
+        // Green guides appear when an edge or center matches another item.
+        const lines = [];
+        if (rect) {
+            lines.push(['vertical',rect.x,'gv-reference','X '+Math.round(rect.x)+' px']);
+            lines.push(['horizontal',rect.y,'gv-reference','Y '+Math.round(rect.y)+' px']);
+        }
+        if (match) {
+            if (Number.isFinite(match.vertical)) lines.push(['vertical',match.vertical,'gv-match','Wyrównanie']);
+            if (Number.isFinite(match.horizontal)) lines.push(['horizontal',match.horizontal,'gv-match','Wyrównanie']);
+        }
+        for (const [direction,value,style,label] of lines) {
+            if (!Number.isFinite(value)) continue;
+            const line = html('div','gv-align-guide gv-align-'+direction+' '+style);
+            line.style[direction==='vertical'?'left':'top']=value+'px';
+            if (style==='gv-reference') {
+                const chip=html('span','gv-guide-label',label);
+                line.appendChild(chip);
+            }
             canvas.appendChild(line);
         }
+    }
+    function renderSelectionGuides() {
+        if (!guides || device!=='desktop') {guideLines(null);return;}
+        const element=[...canvas.querySelectorAll('.gv-element')].find(el=>el.dataset.id===selected);
+        if (!element) {guideLines(null);return;}
+        const rect={x:element.offsetLeft,y:element.offsetTop,w:element.offsetWidth,h:element.offsetHeight};
+        const engine=window.FoodFotoGalleryGuides;
+        const match=engine?.align(rect,otherRects(selected),{threshold:9,snap:false,guides:true}) ?? null;
+        guideLines(match,rect);
     }
     function precise(value) { return Math.round(value * 10000) / 10000; }
     function alignRect(id, rect) {
@@ -455,7 +476,10 @@
             };
             const match=alignRect(drag.id,rect);
             setPrecisePosition(drag.obj,match.x,match.y);
-            guideLines(match);
+            guideLines(match,{
+                x:Number(drag.obj.x)*canvas.offsetWidth/100,
+                y:Number(drag.obj.y),w:drag.width,h:drag.height,
+            });
         }
         drag.element.style.left=drag.obj.x+'%';
         drag.element.style.top=drag.obj.y+'px';
@@ -465,7 +489,6 @@
     const finish=()=>{
         if(!drag)return;
         drag=null;
-        guideLines(null);
         render();
     };
     canvas.addEventListener('pointerup',finish);
@@ -488,7 +511,7 @@
     $('#gv-snap').addEventListener('change',e=>{snap=e.target.checked;});
     $('#gv-guides').addEventListener('change',e=>{
         guides=e.target.checked;
-        if(!guides)guideLines(null);
+        renderSelectionGuides();
     });
     zoomSelect.addEventListener('change',e=>{
         zoomMode=e.target.value;
@@ -519,7 +542,7 @@
         // Show alignment lines (without moving the element) while fine tuning.
         const after=pointFromModel(ref.obj);
         const engine=window.FoodFotoGalleryGuides;
-        if(engine && guides)guideLines(engine.align(after,otherRects(selected),{threshold:2,snap:false,guides:true}));
+        if(engine && guides)renderSelectionGuides();
     });
     if(typeof ResizeObserver!=='undefined'){
         const observer = new ResizeObserver(scheduleFit);
@@ -533,6 +556,11 @@
     });
     $('#gv-mode').addEventListener('change',e=>{
         layout.photo_mode=e.target.value;
+        if(layout.photo_mode==='grid' && selected.startsWith('photo-')) selected='photos';
+        if(layout.photo_mode==='free' && selected==='photos') {
+            const first=orderedPhotos()[0];
+            if(first)selected='photo-'+first.id;
+        }
         if(layout.photo_mode==='free'&&scope==='global'){
             alert('Swobodny układ zdjęć ustawiaj indywidualnie dla galerii.');
             layout.photo_mode='grid';e.target.value='grid';return;
