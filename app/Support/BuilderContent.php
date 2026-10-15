@@ -9,6 +9,13 @@ class BuilderContent
     public static function validate(array $content): void
     {
         foreach ($content['sections'] ?? [] as $index => $element) {
+            if (($element['type'] ?? null) === 'icon') {
+                Validator::make($element, [
+                    'icon_name' => ['required', 'in:phone'],
+                    'icon_size' => ['required', 'numeric', 'between:16,120'],
+                    'icon_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+                ])->validate();
+            }
             if (($element['type'] ?? null) === 'color_panel') {
                 Validator::make($element, [
                     'panel_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
