@@ -113,9 +113,7 @@
             <section class="gv-preview">
                 <div class="gv-preview-top">
                     <strong>Podgląd {{ $gallery->title }}</strong>
-                    <button type="button" class="gv-tool active" data-gv-device="desktop">Komputer</button>
-                    <button type="button" class="gv-tool" data-gv-device="tablet">Tablet</button>
-                    <button type="button" class="gv-tool" data-gv-device="mobile">Telefon</button>
+                    <span class="gv-desktop-only" title="Na telefonach i tabletach strona pokazuje tę samą kompozycję, tylko pomniejszoną">Jeden układ komputerowy dla wszystkich ekranów</span>
                     <label title="Przyciąganie do krawędzi i środków sąsiednich elementów"><input type="checkbox" id="gv-snap" checked> Przyciągaj do elementów</label>
                     <label title="Linie pokazują wspólną krawędź lub środek innych zdjęć i napisów"><input type="checkbox" id="gv-guides" checked> Linie pomocnicze</label>
                     <label for="gv-zoom" class="gv-zoom-label">Powiększenie</label>
@@ -177,6 +175,7 @@
         .gv-toolbar{margin:0 0 14px}
         .gv-toolbar select{min-width:210px;max-width:290px;padding:9px 12px;border:1px solid #bec8d5;border-radius:5px;background:white;font-size:13px}
         .gv-inheritance-info{display:block;margin-top:5px;color:#34516e}
+        .gv-desktop-only{font-size:12px;font-weight:600;color:#245879;background:#edf6ff;border:1px solid #cde5fa;border-radius:4px;padding:7px 10px}
         .gv-public-status{display:block;margin-top:5px;color:#334155}
         .gv-publish:disabled{cursor:not-allowed;opacity:.42}
         .gv-toolbar .gv-tool-strong{background:#eaf0ff;border-color:#b9c9e6;font-weight:700}
@@ -285,5 +284,5 @@
         @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
     <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=2"></script>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=6"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=7"></script>
 </x-app-layout>
