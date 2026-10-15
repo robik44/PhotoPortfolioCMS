@@ -108,6 +108,9 @@
             data-builder-index="{{ $loop->index }}"
             data-flow-mode="{{ ($element['flow_mode'] ?? 'free') === 'auto' ? 'auto' : 'free' }}"
             data-flow-group="{{ $element['flow_group'] ?? '' }}"
+            data-insertion-targets="{{ isset($element['flow_insertion_targets']) ? json_encode($element['flow_insertion_targets']) : '' }}"
+            data-insertion-existing="{{ isset($element['flow_insertion_existing']) ? json_encode($element['flow_insertion_existing']) : '' }}"
+            data-insertion-target-top="{{ isset($element['flow_insertion_target_top']) ? $element['flow_insertion_target_top'] : '' }}"
             data-flow-baseline="{{ max(0, (float) ($element['flow_base_height'] ?? 0)) }}"
             data-flow-anchor="{{ (float) ($element['flow_anchor'] ?? 0) }}"
             data-flow-contributions="{{ isset($element['flow_anchor_contributions']) ? json_encode((object) $element['flow_anchor_contributions']) : '' }}"
@@ -324,9 +327,15 @@
     const fit = () => {
         const nodes = Array.from(canvas.querySelectorAll('.page-element'));
         const model = nodes.map(node => ({
-            id: node.dataset.builderIndex,
+            id: node.dataset.builderId,
             type: node.className.match(/page-element-(\w+)/)?.[1] || '',
             flowGroup: node.dataset.flowGroup || null,
+            insertionTargets: node.dataset.insertionTargets
+                ? JSON.parse(node.dataset.insertionTargets) : null,
+            insertionExisting: node.dataset.insertionExisting
+                ? JSON.parse(node.dataset.insertionExisting) : null,
+            insertionTargetTop: node.dataset.insertionTargetTop
+                ? Number(node.dataset.insertionTargetTop) : null,
             anchorContributions: node.dataset.flowContributions
                 ? JSON.parse(node.dataset.flowContributions) : null,
             x: node.offsetLeft,
@@ -341,7 +350,7 @@
         const positions = new Map(plan.placements.map(entry => [entry.id, entry.top]));
         let maxBottom = 900;
         nodes.forEach(node => {
-            const top = positions.get(node.dataset.builderIndex);
+            const top = positions.get(node.dataset.builderId);
             if (top !== undefined) node.style.top = top + 'px';
             maxBottom = Math.max(maxBottom, node.offsetTop + node.offsetHeight + 40);
         });
