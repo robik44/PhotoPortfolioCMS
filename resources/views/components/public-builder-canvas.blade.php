@@ -27,6 +27,10 @@
     ];
 @endphp
 
+@if($sections->contains(fn ($item) => ($item['type'] ?? '') === 'process_steps'))
+    <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
+@endif
+
 <div id="{{ $canvasId }}" class="builder-public-canvas" style="background:{{ $canvasBackground }};">
     @foreach($sections as $element)
         @php
@@ -208,6 +212,9 @@
                     @if($buttonHref && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
                     style="{{ $typographyCss }}{{ \App\Support\BuilderButton::css($element) }}"
                 >{{ $content }}</a>
+
+            @elseif($type === 'process_steps')
+                @include('components.builder-process-steps', ['element' => $element, 'fontCatalog' => $fontCatalog])
 
             @elseif($type === 'separator')
                 <div style="height:1px;width:100%;background:{{ $color }};"></div>
