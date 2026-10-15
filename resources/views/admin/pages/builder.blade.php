@@ -41,6 +41,7 @@
             defaults: @json($siteFonts['defaults']),
             textTypes: @json(\App\Services\SiteFontLibrary::TEXT_BLOCKS)
         });
+        window.FoodfotoProcess.attachTypography(window.builderTypography);
     </script>
     @if (!empty($preparedStaticContent))
         <p class="cms-alert">To propozycja układu na podstawie dotychczasowej treści. Publiczna strona zmieni się dopiero po zapisaniu buildera.</p>
@@ -1318,7 +1319,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         } else if (item.type === "process_steps") {
 
-            box.appendChild(window.FoodfotoProcess.render(item));
+            box.appendChild(window.FoodfotoProcess.render(item, function (part) {
+                selectOnly(item.id);
+                window.FoodfotoProcess.activate(item,part);
+                showProperties(item);
+                render();
+            }));
 
         } else if (item.type === "text") {
 
