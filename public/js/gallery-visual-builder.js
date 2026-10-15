@@ -12,6 +12,7 @@
         gallery.description=initial.layout.content.description;
     }
     const scope = initial.scope;
+    const sharedTemplate = initial.sharedTemplate || null;
     let layout = initial.layout;
     // The Laravel default is an empty PHP array, serialized as [].
     // Keeping it as a JS array causes positions assigned under photo IDs
@@ -283,6 +284,26 @@
         if(!ref){inspector.appendChild(html('p','','Wybierz element na podglądzie.'));return;}
         const {obj,type,id}=ref;
         inspector.appendChild(html('h3','',type==='freephoto' ? 'Zdjęcie '+(ref.photoId || id.slice(6)) : blockName(id)));
+        if (scope==='gallery' && sharedTemplate && layout.blocks[id] && sharedTemplate.blocks?.[id]) {
+            const inherited=sharedTemplate.blocks[id];
+            const current=layout.blocks[id];
+            const overridden=Object.keys(inherited).some(key =>
+                JSON.stringify(current[key])!==JSON.stringify(inherited[key])
+                && !(typeof current[key]==='number' && Number(current[key])===Number(inherited[key])));
+            if(overridden){
+                inspector.appendChild(html('p','gv-override-label','Ten element ma indywidualne ustawienia. Niektóre zmiany ze wspólnego szablonu mogą być tu niewidoczne.'));
+                const reset=html('button','gv-reset-inheritance','↶ Przywróć styl wspólny tego elementu');
+                reset.type='button';
+                reset.addEventListener('click',()=>{
+                    if(!confirm('Przywrócić wspólne ustawienia tego elementu w szkicu?'))return;
+                    layout.blocks[id] = JSON.parse(JSON.stringify(inherited));
+                    progress();render();
+                });
+                inspector.appendChild(reset);
+            }else{
+                inspector.appendChild(html('p','gv-inheritance-status','Ten element dziedziczy styl ze wspólnego szablonu.'));
+            }
+        }
         if(type==='freephoto'){
             const selectedPhoto=photoById.get(Number(ref.photoId));
             if(selectedPhoto){
