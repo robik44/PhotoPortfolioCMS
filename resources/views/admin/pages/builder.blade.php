@@ -1957,6 +1957,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(actions);
 
+        // New content may grow vertically without disturbing the existing page.
+        const flowWrap = document.createElement('label');
+        flowWrap.className = 'fve-field';
+        flowWrap.style.display = 'flex';
+        flowWrap.style.gap = '10px';
+        flowWrap.style.alignItems = 'center';
+        const flowInput = document.createElement('input');
+        flowInput.type = 'checkbox';
+        flowInput.checked = item.flow_mode === 'auto';
+        flowInput.addEventListener('change', () => {
+            if (flowInput.checked) {
+                const node = Array.from(content.querySelectorAll('.fve-element')).find(n => n.dataset.id === item.id);
+                item.flow_base_height = node?.offsetHeight || Number(item.element_height) || 50;
+                item.flow_mode = 'auto';
+            } else {
+                item.flow_mode = 'free';
+            }
+            render();
+        });
+        flowWrap.appendChild(flowInput);
+        flowWrap.appendChild(document.createTextNode('Automatyczny układ — odsuwaj elementy poniżej'));
+        properties.appendChild(flowWrap);
+        const flowTip = document.createElement('small');
+        flowTip.style.cssText = 'display:block;margin:2px 0 14px;color:#666;line-height:1.45';
+        flowTip.textContent = 'Włączone: nowe lub powiększone pole robi miejsce w kolejnych rzędach. Wyłączone: swobodne nakładanie elementów.';
+        properties.appendChild(flowTip);
+
+
         window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
@@ -2144,29 +2172,6 @@ document.addEventListener("DOMContentLoaded", function () {
             );
 
         }
-
-        // New content may grow vertically without disturbing the existing page.
-        const flowWrap = document.createElement('label');
-        flowWrap.className = 'fve-field';
-        flowWrap.style.display = 'flex';
-        flowWrap.style.gap = '10px';
-        flowWrap.style.alignItems = 'center';
-        const flowInput = document.createElement('input');
-        flowInput.type = 'checkbox';
-        flowInput.checked = item.flow_mode === 'auto';
-        flowInput.addEventListener('change', () => {
-            if (flowInput.checked) {
-                const node = Array.from(content.querySelectorAll('.fve-element')).find(n => n.dataset.id === item.id);
-                item.flow_base_height = node?.offsetHeight || Number(item.element_height) || 50;
-                item.flow_mode = 'auto';
-            } else {
-                item.flow_mode = 'free';
-            }
-            render();
-        });
-        flowWrap.appendChild(flowInput);
-        flowWrap.appendChild(document.createTextNode('Automatyczny układ — odsuwaj elementy poniżej przy zmianie wysokości'));
-        properties.appendChild(flowWrap);
 
         field(
             "Pozycja X (%)",
