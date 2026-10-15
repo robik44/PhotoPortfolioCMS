@@ -345,9 +345,7 @@
         }
         if(type==='photos'||type==='freephoto'){
             if(type==='photos'){
-                input(inspector,'Kolumny — komputer',layout.columns,v=>layout.columns=Number(v),{values:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6'],[7,'7'],[8,'8']]});
-                input(inspector,'Kolumny — tablet',layout.columns_tablet,v=>layout.columns_tablet=Number(v),{values:[[1,'1'],[2,'2'],[3,'3'],[4,'4']]});
-                input(inspector,'Kolumny — telefon',layout.columns_mobile,v=>layout.columns_mobile=Number(v),{values:[[1,'1'],[2,'2']]});
+                input(inspector,'Kolumny',layout.columns,v=>layout.columns=Number(v),{values:[[1,'1'],[2,'2'],[3,'3'],[4,'4'],[5,'5'],[6,'6'],[7,'7'],[8,'8']]});
                 input(inspector,'Odstęp (px)',layout.gap,v=>layout.gap=clamp(Number(v),0,90));
                 input(inspector,'Wysokość miniaturek (px)',layout.photo_height,v=>layout.photo_height=clamp(Number(v),80,900));
             }
@@ -369,9 +367,7 @@
             }
             if(type!=='image'){
                 input(inspector,'Czcionka',obj.font,v=>obj.font=v,{values:fontChoices});
-                input(inspector,'Rozmiar — komputer (px)',obj.size,v=>obj.size=clamp(Number(v),8,160),{min:8,max:160});
-                input(inspector,'Rozmiar — tablet (px)',obj.tablet,v=>obj.tablet=clamp(Number(v),8,160),{min:8,max:160});
-                input(inspector,'Rozmiar — telefon (px)',obj.mobile,v=>obj.mobile=clamp(Number(v),8,160),{min:8,max:160});
+                input(inspector,'Rozmiar tekstu (px)',obj.size,v=>obj.size=clamp(Number(v),8,160),{min:8,max:160});
                 input(inspector,'Grubość',obj.weight,v=>obj.weight=Number(v),{values:
                     [100,200,300,400,500,600,700,800,900].map(v=>[v,String(v)])});
                 input(inspector,'Kolor',obj.color,v=>obj.color=v,{type:'color'});
