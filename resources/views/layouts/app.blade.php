@@ -231,5 +231,57 @@
 
 </div>
 
+{{-- Unified HEX entry next to native color pickers in all CMS panels. --}}
+<style>
+    .cms-hex-pair {
+        display: inline-flex;
+        align-items: center;
+        flex-wrap: nowrap;
+        gap: 8px;
+        max-width: 100%;
+        width: fit-content;
+        vertical-align: middle;
+        box-sizing: border-box;
+    }
+    .cms-hex-pair > input[type="color"] {
+        width: 46px !important;
+        min-width: 46px !important;
+        height: 36px !important;
+        flex: 0 0 46px !important;
+        padding: 2px !important;
+        margin: 0 !important;
+        border: 1px solid #bfc5cc;
+        border-radius: 5px;
+        background: #fff;
+        cursor: pointer;
+        box-sizing: border-box;
+    }
+    .cms-hex-pair > .cms-hex-value {
+        width: 113px !important;
+        min-width: 105px !important;
+        max-width: 125px !important;
+        height: 36px !important;
+        flex: 0 1 113px !important;
+        padding: 7px 9px !important;
+        margin: 0 !important;
+        border: 1px solid #c7cdd6 !important;
+        border-radius: 5px !important;
+        background: #fff !important;
+        color: #1f2937 !important;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace !important;
+        font-size: 13px !important;
+        letter-spacing: .2px;
+        box-sizing: border-box;
+    }
+    .cms-hex-pair > .cms-hex-value:focus {
+        outline: 2px solid #2563eb;
+        outline-offset: 1px;
+    }
+    .cms-hex-pair > .cms-hex-value.cms-hex-invalid {
+        border-color: #ce3838 !important;
+        background: #fff6f6 !important;
+    }
+</style>
+<script defer src="{{ asset('js/cms-color-hex.js') }}?v=1"></script>
 </body>
 </html>
