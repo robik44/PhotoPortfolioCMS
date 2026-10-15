@@ -332,7 +332,7 @@
             const link = event.target.closest('a[href]');
             if (!link || link.target === '_blank') return;
             const destination = new URL(link.href, window.location.href);
-            const normalizedPath = path => path.replace(/\\/+$/, '') || '/';
+            const normalizedPath = path => path === '/' ? path : path.replace(/\/+$/, '') || '/';
             if (destination.origin !== window.location.origin
                 || normalizedPath(destination.pathname) !== normalizedPath(window.location.pathname)
                 || destination.hash !== '#portfolio') return;
