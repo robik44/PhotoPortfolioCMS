@@ -1404,6 +1404,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return {
                 id: item.id,
                 type: item.type,
+                flowGroup: item.flow_group || null,
                 anchorContributions: item.flow_anchor_contributions ?? null,
                 x: (Number(item.position_x) || 0) * 14,
                 y: item.id === overrideId ? overrideYPx : (Number(item.position_y) || 0) * 9,
@@ -2640,14 +2641,30 @@ document.addEventListener("DOMContentLoaded", function () {
             )) / 9;
             return Math.max(max, top + height);
         }, 0);
-        const startY = Math.max(5, lastBottom + 8);
+        // A canvas click defines the vertical start of the next layout.
+        // The normal preset keeps its designed horizontal alignment.
+        const clickedPoint = nextInsertionPoint;
+        const startY = clickedPoint ? clickedPoint.y : Math.max(5, lastBottom + 8);
         const created = [];
+        const flowGroup = 'layout-' + Date.now() + '-' + Math.random().toString(36).slice(2);
+        const useGroupFlow = preset !== 'foodfoto-home';
+        const priorContributions = useGroupFlow
+            ? inheritedFlowContributions(startY * 9) : {};
 
         function insert(type, options) {
             const item = addElement(type, { silent: true });
             const originalStyle = { ...item.style };
             Object.assign(item, options);
             if (options.style) item.style = { ...originalStyle, ...options.style };
+            if (useGroupFlow) {
+                item.flow_group = flowGroup;
+                item.flow_mode = 'auto';
+                item.flow_base_height = 0;
+                // Keep the visual insertion at the clicked point even if
+                // earlier flow sources are already moving downstream rows.
+                item.flow_anchor_contributions = {...priorContributions};
+                item.flow_anchor = 0;
+            }
             created.push(item.id);
             return item;
         }
@@ -2794,20 +2811,10 @@ document.addEventListener("DOMContentLoaded", function () {
             // A single flexible section; all texts, icons and colors edit separately.
             // Its height is natural, allowing automatic flow without fragile overlays.
             const item = insert('process_steps', {
-                position_x: 5,
-                position_y: nextInsertionPoint ? nextInsertionPoint.y : startY,
-                element_width: 90,
-                flow_mode: 'auto',
-                flow_base_height: 0,
-                flow_anchor: 0
+                position_x: 5, position_y: startY,
+                element_width: 90, flow_mode: 'auto', flow_base_height: 0
             });
             window.FoodfotoProcess.initialize(item);
-            if (nextInsertionPoint) {
-                item.position_x = Math.min(nextInsertionPoint.x, 100 - item.element_width);
-                item.flow_anchor_contributions = inheritedFlowContributions(item.position_y * 9);
-                item.flow_anchor = 0;
-                nextInsertionPoint = null;
-            }
         } else if (preset === 'three-steps') {
             insert('heading', {
                 content: 'Od pomysłu do kadru',
@@ -2869,6 +2876,8 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // A click is consumed by the complete preset, not by a single child.
+        if (clickedPoint) nextInsertionPoint = null;
         selectedIds.clear();
         created.forEach(id => selectedIds.add(id));
         selected = created[0] || null;
