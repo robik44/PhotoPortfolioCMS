@@ -102,7 +102,7 @@
                     <input id="gv-canvas-height" type="number" step="10" min="450" max="30000"
                            value="{{ (int) $layout['canvas_height'] }}"
                            style="width:105px;padding:8px;border:1px solid #ccc;border-radius:4px">
-                    <span class="gv-muted">Zdjęcia i ALT pozostają w bibliotece CMS.</span>
+                    <span class="gv-muted" id="gv-mode-help">Siatka: zdjęcia ustawiają się automatycznie. Aby przesuwać pojedyncze fotografie, wybierz „Swobodny”.</span>
                 </div>
                 <div class="gv-scroll" id="gv-scroll">
                     <div class="gv-stage" id="gv-stage">
@@ -185,6 +185,13 @@
             box-shadow:0 0 0 1px rgba(255,255,255,.45)}
         .gv-align-vertical{top:0;bottom:0;width:1px;border-left:1px dashed #0baf8d;background:transparent}
         .gv-align-horizontal{left:0;right:0;height:1px;border-top:1px dashed #0baf8d;background:transparent}
+        .gv-align-guide.gv-reference{border-color:#377ad9;background:transparent;box-shadow:none;opacity:.85}
+        .gv-align-guide.gv-match{border-color:#0aab76;border-width:2px;box-shadow:0 0 0 1px rgba(10,171,118,.15)}
+        .gv-guide-label{position:absolute;display:block;background:#2466b4;color:#fff;
+            font-size:11px;font-weight:700;line-height:16px;padding:2px 5px;
+            white-space:nowrap;border-radius:2px;pointer-events:none}
+        .gv-align-vertical .gv-guide-label{top:0;left:4px}
+        .gv-align-horizontal .gv-guide-label{top:4px;left:0}
         .gv-photo-inspector-preview{margin:10px 0 15px;padding:9px;background:#f7f8f9;border:1px solid #e4e7ec;border-radius:5px}
         .gv-photo-inspector-preview img{display:block;width:100%;height:140px;object-fit:contain}
         .gv-photo-inspector-preview .gv-hint{color:#596475;font-size:12px;line-height:1.5;margin:10px 0 0}
@@ -232,6 +239,6 @@
            .gv-focus .gv-side{max-height:none;height:auto}.gv-focus .gv-preview{height:70vh}}
         @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
-    <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=1"></script>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=3"></script>
+    <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=2"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=4"></script>
 </x-app-layout>
