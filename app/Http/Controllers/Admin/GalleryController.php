@@ -177,6 +177,88 @@ class GalleryController extends Controller
             ->with('success', 'Podgaleria została zaktualizowana.');
     }
 
+
+    public function visualBuilder(\Illuminate\Http\Request $request, Gallery $gallery)
+    {
+        $gallery->load('photos');
+        $scope = $request->query('scope') === 'global' ? 'global' : 'gallery';
+        $settings = SiteSetting::pluck('value', 'key')->all();
+        $layout = \App\Support\GalleryVisualLayout::draft($settings, $scope, $gallery->id);
+        $hasPublished = \App\Support\GalleryVisualLayout::read(
+            $settings, \App\Support\GalleryVisualLayout::key($scope, 'published', $gallery->id)
+        ) !== null;
+        $relatedServices = [
+            'zywnosc' => ['Fotografia żywności', 'Fotografia kulinarna'],
+            'stylizacja' => ['Food styling i stylizacja żywności'],
+            'opakowania' => ['Zdjęcia na opakowania', 'Fotografia produktowa żywności'],
+            'czasopisma' => ['Fotografia kulinarna'],
+        ][$gallery->slug] ?? [];
+        return view('admin.galleries.visual-builder',
+            compact('gallery', 'scope', 'layout', 'hasPublished', 'relatedServices'));
+    }
+
+    public function saveVisualBuilder(\Illuminate\Http\Request $request, Gallery $gallery)
+    {
+        $input = $request->validate([
+            'scope' => ['required', \Illuminate\Validation\Rule::in(['global', 'gallery'])],
+            'action' => ['required', \Illuminate\Validation\Rule::in(['save', 'publish', 'reset'])],
+            'layout' => ['required_unless:action,reset', 'nullable', 'string', 'max:800000'],
+        ]);
+        $scope = $input['scope'];
+        $action = $input['action'];
+        $id = $gallery->id;
+        $settings = SiteSetting::pluck('value', 'key')->all();
+
+        if ($action === 'reset') {
+            \App\Support\GalleryVisualLayout::remove($scope, 'draft', $id);
+            // Never unpublish with an ordinary reset. This only discards the draft.
+            return redirect()->route('galleries.builder', ['gallery' => $id, 'scope' => $scope])
+                ->with('success', 'Odrzucono szkic. Opublikowana strona pozostała bez zmian.');
+        }
+
+        $decoded = json_decode((string) $input['layout'], true);
+        if (!is_array($decoded)) {
+            return back()->withErrors(['layout' => 'Niepoprawny format projektu galerii.']);
+        }
+        $layout = \App\Support\GalleryVisualLayout::validate($decoded);
+
+        // Only photos already assigned to this gallery can be referenced by extra
+        // image blocks or order. The global template may be edited from any gallery,
+        // so globally photos are by design content-independent.
+        if ($scope === 'global') {
+            $layout['photo_order'] = [];
+            $layout['individual_photos'] = [];
+            $layout['extras'] = array_values(array_filter($layout['extras'], fn ($extra) =>
+                ($extra['type'] ?? '') !== 'image'
+            ));
+            $stored = $layout;
+        } else {
+            $knownPhotos = $gallery->photos()->pluck('photos.id')->map(fn ($id) => (int) $id)->all();
+            $valid = array_flip($knownPhotos);
+            $layout['photo_order'] = array_values(array_filter($layout['photo_order'],
+                fn ($id) => isset($valid[$id])));
+            $layout['individual_photos'] = array_intersect_key($layout['individual_photos'],
+                array_flip(array_map('strval', $knownPhotos)));
+            foreach ($layout['extras'] as $extra) {
+                if ($extra['type'] === 'image' && !isset($valid[$extra['photo_id'] ?? -1])) {
+                    return back()->withErrors(['layout' => 'Element obrazu wskazuje zdjęcie spoza tej galerii.']);
+                }
+            }
+            $base = \App\Support\GalleryVisualLayout::draft($settings, 'global', $id);
+            $stored = \App\Support\GalleryVisualLayout::diff($base, $layout);
+            $stored['version'] = 1;
+        }
+
+        \App\Support\GalleryVisualLayout::save($scope, 'draft', $id, $stored);
+        if ($action === 'publish') {
+            \App\Support\GalleryVisualLayout::save($scope, 'published', $id, $stored);
+        }
+        return redirect()->route('galleries.builder', ['gallery' => $id, 'scope' => $scope])
+            ->with('success', $action === 'publish'
+                ? 'Opublikowano układ. Zdjęcia, alty, teksty SEO i oryginalna kolejność w bazie nie zostały zmienione.'
+                : 'Zapisano szkic. Publiczna galeria nie została zmieniona.');
+    }
+
     public function library(Gallery $gallery)
     {
         $gallery->load('photos');
