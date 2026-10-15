@@ -83,6 +83,10 @@
                             <option value="free" @selected($layout['photo_mode'] === 'free')>Swobodny — osobno każde zdjęcie</option>
                         @endif
                     </select>
+                    <label for="gv-canvas-height">Wysokość płótna (px)</label>
+                    <input id="gv-canvas-height" type="number" step="10" min="450" max="30000"
+                           value="{{ (int) $layout['canvas_height'] }}"
+                           style="width:105px;padding:8px;border:1px solid #ccc;border-radius:4px">
                     <span class="gv-muted">Zdjęcia i ALT pozostają w bibliotece CMS.</span>
                 </div>
                 <div class="gv-scroll">
