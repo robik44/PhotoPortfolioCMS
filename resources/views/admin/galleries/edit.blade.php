@@ -10,6 +10,12 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
+                    <div style="padding:14px 17px;background:#f3f5f7;border:1px solid #d4dae3;border-radius:7px;margin-bottom:22px;">
+                        <strong style="display:block;margin-bottom:6px;">Wizualny builder galerii</strong>
+                        <p style="font-size:13px;color:#555;margin-bottom:10px;">Projektuj wygląd tytułu, opisu i fotografii bezpośrednio na podglądzie. Możesz użyć wspólnego szablonu dla wszystkich galerii lub zmieniać tylko tę jedną.</p>
+                        <a href="{{ route('galleries.builder', ['gallery' => $gallery->id, 'scope' => 'gallery']) }}" style="display:inline-block;background:#171717;color:#fff;padding:11px 15px;text-decoration:none;border-radius:5px;">Otwórz builder galerii →</a>
+                    </div>
+
                     <form method="POST" action="{{ route('galleries.update', $gallery) }}">
                         @csrf
                         @method('PUT')
