@@ -228,7 +228,8 @@ final class GalleryVisualLayout
         $block['opacity'] = $limit($block['opacity'] ?? 100, 0, 100);
         if (!in_array($block['align'], ['left','center','right','justify'], true)) $invalid('Niepoprawne wyrównanie tekstu.');
         if (!is_bool($block['italic']) || !is_bool($block['uppercase'])) $invalid('Niepoprawny styl tekstu.');
-        $catalogFonts = array_keys(app(\App\Services\SiteFontLibrary::class)->catalog()['families']);
+        static $catalogFonts = null;
+        $catalogFonts ??= array_keys(app(\App\Services\SiteFontLibrary::class)->catalog()['families']);
         if (!in_array($block['font'] ?? '', ['serif','bodoni','sans','inter'], true)
             && !in_array($block['font'] ?? '', $catalogFonts, true)) $invalid('Niepoprawna czcionka.');
         if (!preg_match('/^#[0-9a-f]{6}$/i', (string) ($block['color'] ?? ''))) $invalid('Niepoprawny kolor tekstu.');
@@ -236,12 +237,13 @@ final class GalleryVisualLayout
 
     public static function font(string $choice): string
     {
+        static $catalog = null;
+        $catalog ??= app(\App\Services\SiteFontLibrary::class)->catalog();
         return match ($choice) {
             'serif' => 'Georgia, serif',
             'bodoni' => '"Bodoni Moda", Georgia, serif',
             'inter' => '"Inter", Arial, sans-serif',
-            default => \App\Services\SiteFontLibrary::css($choice,
-                app(\App\Services\SiteFontLibrary::class)->catalog()),
+            default => \App\Services\SiteFontLibrary::css($choice, $catalog),
         };
     }
 
