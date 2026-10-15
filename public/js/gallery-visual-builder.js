@@ -7,6 +7,10 @@
     const initial = JSON.parse(root.querySelector('#gv-initial').textContent);
     const photos = initial.photos;
     const gallery = initial.gallery;
+    if (initial.layout?.content && initial.scope==='gallery') {
+        gallery.title=initial.layout.content.title;
+        gallery.description=initial.layout.content.description;
+    }
     const scope = initial.scope;
     let layout = initial.layout;
     let selected = 'title';
@@ -140,11 +144,11 @@
                 const img=wrapper.querySelector('img');
                 img.style.height=layout.photo_height+'px';
                 img.style.objectFit=layout.photo_fit;
-                wrapper.draggable=true;
-                wrapper.addEventListener('dragstart',e=>{e.stopPropagation();e.dataTransfer.setData('text/plain',String(photo.id));});
+                wrapper.draggable=scope==='gallery';
+                wrapper.addEventListener('dragstart',e=>{if(scope!=='gallery'){e.preventDefault();return;}e.stopPropagation();e.dataTransfer.setData('text/plain',String(photo.id));});
                 wrapper.addEventListener('dragover',e=>e.preventDefault());
                 wrapper.addEventListener('drop',e=>{
-                    e.preventDefault();e.stopPropagation();
+                    e.preventDefault();e.stopPropagation();if(scope!=='gallery')return;
                     const from=Number(e.dataTransfer.getData('text/plain'));
                     const ids=orderedPhotos().map(p=>p.id);
                     const i=ids.indexOf(from),j=ids.indexOf(photo.id);
@@ -186,7 +190,7 @@
             canvas.appendChild(makeElement(item.id,item,body,item.type));
             bottom=Math.max(bottom,item.y+(item.type==='image'?item.h||240:80)+50);
         });
-        canvas.style.height=Math.max(550,bottom)+'px';
+        canvas.style.height=device==='desktop'?Math.max(550,bottom)+'px':'auto';
         listing.replaceChildren();
         const ids=['title','description','services','back',layout.photo_mode==='grid'?'photos':null,
             ...((layout.photo_mode==='free')?ordered.map(p=>'photo-'+p.id):[]),
@@ -216,6 +220,30 @@
         if(!ref){inspector.appendChild(html('p','','Wybierz element na podglądzie.'));return;}
         const {obj,type,id}=ref;
         inspector.appendChild(html('h3','',id.startsWith('photo-')?'Zdjęcie '+id.slice(6):blockName(id)));
+        if ((id==='title'||id==='description') && scope==='gallery') {
+            const field=html('div','gv-control');
+            addLabel(field,id==='title'?'Treść tytułu':'Treść opisu');
+            const control=html(id==='description'?'textarea':'input');
+            if(id==='description')control.rows=6;
+            else control.type='text';
+            control.value=id==='title'?gallery.title:gallery.description;
+            control.style.width='100%';
+            control.style.padding='9px';
+            control.style.border='1px solid #ddd';
+            control.addEventListener('change',()=>{
+                if(id==='title'&& !control.value.trim()){
+                    alert('Tytuł galerii nie może być pusty.');
+                    control.value=gallery.title;
+                    return;
+                }
+                if(!layout.content)layout.content={title:gallery.title,description:gallery.description};
+                layout.content[id]=control.value;
+                gallery[id]=control.value;
+                progress();render();
+            });
+            field.appendChild(control);
+            inspector.appendChild(field);
+        }
         input(inspector,'Pozycja X (%)',obj.x,v=>obj.x=clamp(Number(v),0,95),{min:0,max:95});
         input(inspector,'Pozycja Y (px)',obj.y,v=>obj.y=clamp(Number(v),0,30000),{min:0,max:30000});
         input(inspector,'Szerokość (%)',obj.w,v=>obj.w=clamp(Number(v),4,100),{min:4,max:100});
