@@ -2726,7 +2726,8 @@ document.addEventListener("DOMContentLoaded", function () {
             window.FoodfotoProcess.initialize(item);
             if (nextInsertionPoint) {
                 item.position_x = Math.min(nextInsertionPoint.x, 100 - item.element_width);
-                item.flow_anchor = inheritedFlowShift(item.position_y * 9);
+                item.flow_anchor_contributions = inheritedFlowContributions(item.position_y * 9);
+                item.flow_anchor = 0;
                 nextInsertionPoint = null;
             }
         } else if (preset === 'three-steps') {
