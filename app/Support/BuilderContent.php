@@ -63,6 +63,24 @@ class BuilderContent
                     $rules['process_design.'.$key] = ['sometimes', 'numeric', 'between:'.$min.','.$max];
                 }
                 Validator::make($element, $rules)->validate();
+
+                if (isset($element['process_typography'])) {
+                    Validator::make($element, [
+                        'process_typography' => ['array'],
+                        'process_typography.*' => ['array'],
+                    ])->validate();
+                    foreach (\App\Support\ProcessTypography::PARTS as $partKey => $_partType) {
+                        $storedPart = $element['process_typography'][$partKey] ?? null;
+                        if ($storedPart !== null && !is_array($storedPart)) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'process_typography.'.$partKey => 'Nieprawidłowe ustawienia czcionki.',
+                            ]);
+                        }
+                    }
+                }
+                foreach (\App\Support\ProcessTypography::parts($element) as $textPart) {
+                    \App\Support\BuilderTypography::validate($textPart, $index);
+                }
             }
             if (($element['type'] ?? null) === 'thumbnail_gallery') {
                 Validator::make($element, [
