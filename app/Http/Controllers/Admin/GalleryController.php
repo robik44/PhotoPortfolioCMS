@@ -259,7 +259,14 @@ class GalleryController extends Controller
                     return back()->withErrors(['layout' => 'Element obrazu wskazuje zdjęcie spoza tej galerii.']);
                 }
             }
-            $base = \App\Support\GalleryVisualLayout::draft($settings, 'global', $id);
+            // Compute overrides against the published global design, never
+            // against a not-yet-published global draft.
+            $base = \App\Support\GalleryVisualLayout::merge(
+                \App\Support\GalleryVisualLayout::defaults(),
+                \App\Support\GalleryVisualLayout::read(
+                    $settings, \App\Support\GalleryVisualLayout::key('global', 'published')
+                ) ?? []
+            );
             $stored = \App\Support\GalleryVisualLayout::diff($base, $layout);
             $stored['version'] = 1;
         }
