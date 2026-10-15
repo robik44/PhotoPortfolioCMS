@@ -217,16 +217,6 @@
       return input;
     };
     const sectionTitle=text=>{const h=tag('h4','',text);h.style.cssText='margin:24px 0 6px;font-weight:700;border-top:1px solid #ddd;padding-top:12px;';container.appendChild(h);};
-    sectionTitle('Nagłówek sekcji');
-    field(container,'Etykieta',item.process_kicker,'text',v=>item.process_kicker=v);
-    field(container,'Duży nagłówek',item.process_title,'textarea',v=>item.process_title=v);
-    field(container,'Opis po prawej',item.process_intro,'textarea',v=>item.process_intro=v);
-    item.process_steps.forEach((step,index)=>{
-      sectionTitle('Etap '+(index+1));
-      field(container,'Ikona',step.icon,'select',v=>step.icon=v,{choices:iconLabels});
-      field(container,'Tytuł',step.title,'textarea',v=>step.title=v);
-      field(container,'Opis',step.description,'textarea',v=>step.description=v);
-    });
     const d=item.process_design;
     sectionTitle('Pełna typografia — pojedyncze napisy');
     const picker = field(container,'Wybierz napis do edycji',currentPart(item),'select',key=>{
@@ -243,6 +233,16 @@
       const part=typographyItem(item,currentPart(item));
       typographyEditor.panel(container,part,rerender,'fve-field');
     }
+    sectionTitle('Nagłówek sekcji');
+    field(container,'Etykieta',item.process_kicker,'text',v=>item.process_kicker=v);
+    field(container,'Duży nagłówek',item.process_title,'textarea',v=>item.process_title=v);
+    field(container,'Opis po prawej',item.process_intro,'textarea',v=>item.process_intro=v);
+    item.process_steps.forEach((step,index)=>{
+      sectionTitle('Etap '+(index+1));
+      field(container,'Ikona',step.icon,'select',v=>step.icon=v,{choices:iconLabels});
+      field(container,'Tytuł',step.title,'textarea',v=>step.title=v);
+      field(container,'Opis',step.description,'textarea',v=>step.description=v);
+    });
     sectionTitle('Kolory');
     for(const [key,label] of [
       ['background','Tło'],['text','Nagłówki'],['muted','Teksty opisów'],
