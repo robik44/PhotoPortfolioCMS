@@ -56,6 +56,14 @@ class FoodfotoHomeSeo extends Command
         })->filter(fn ($row) => in_array($row['Tag'], ['h1', 'h2', 'h3'], true))
             ->sortBy('Y')->values();
         $this->newLine();
+        $processHeadings = $sections->filter(fn ($section) => ($section['type'] ?? '') === 'process_steps')
+            ->map(fn ($section) => [
+                'Y' => round((float) ($section['position_y'] ?? 0), 1),
+                'Typ' => 'process_steps',
+                'Tag' => 'h2',
+                'Treść' => mb_substr(trim((string) ($section['process_title'] ?? '')), 0, 115),
+            ]);
+        $headingRows = $headingRows->concat($processHeadings)->sortBy('Y')->values();
         $this->info('NAGŁÓWKI — '.count($headingRows).' z buildera');
         $this->table(['Y', 'Typ', 'Tag', 'Treść'], $headingRows->all());
         $h1 = $headingRows->where('Tag', 'h1')->count();
@@ -94,9 +102,48 @@ class FoodfotoHomeSeo extends Command
                 'Stan' => $alt === '' ? 'BRAK ALT' : ($photo && !trim((string) $photo->alt) ? 'tylko fallback' : 'OK'),
             ];
         }
+        // Images in the homepage thumbnail grids and portfolio cover cards
+        // are visible to Google as well; audit those in addition to standalone photos.
+        foreach ($sections->filter(fn ($row) => ($row['type'] ?? '') === 'thumbnail_gallery') as $row) {
+            foreach (collect($row['photo_ids'] ?? [])->filter(fn ($id) => is_numeric($id))->unique() as $id) {
+                $photo = Photo::find((int) $id);
+                if (!$photo) continue;
+                $alt = trim((string) ($photo->alt ?: $photo->title ?: ''));
+                $imageRows[] = [
+                    'ID elementu' => 'miniatury:'.($row['id'] ?? ''),
+                    'Photo ID' => $photo->id,
+                    'ALT na stronie' => mb_substr($alt, 0, 100),
+                    'Stan' => $alt === '' ? 'BRAK ALT' : (!trim((string) $photo->alt) ? 'tylko fallback' : 'OK'),
+                ];
+            }
+        }
+        foreach ($sections->filter(fn ($row) => ($row['type'] ?? '') === 'gallery') as $row) {
+            $query = Gallery::with('photos')->where('published', true);
+            if (($row['gallery_mode'] ?? 'all') === 'single') {
+                $query->whereKey($row['gallery_id'] ?? 0);
+            } elseif (($row['gallery_mode'] ?? 'all') === 'selected') {
+                $query->whereIn('id', $row['gallery_ids'] ?? []);
+            }
+            if (is_numeric($row['gallery_collection_id'] ?? null)) {
+                $query->where('gallery_collection_id', (int) $row['gallery_collection_id']);
+            }
+            foreach ($query->get() as $gallery) {
+                $cover = $gallery->photos->first(fn ($photo) => (bool) $photo->pivot->is_cover)
+                    ?: $gallery->photos->first();
+                if (!$cover) continue;
+                $alt = trim((string) ($cover->alt ?: $gallery->title));
+                $imageRows[] = [
+                    'ID elementu' => 'okładka:'.$gallery->slug,
+                    'Photo ID' => $cover->id,
+                    'ALT na stronie' => mb_substr($alt, 0, 100),
+                    'Stan' => $alt === '' ? 'BRAK ALT' : (!trim((string) $cover->alt) ? 'tylko fallback' : 'OK'),
+                ];
+            }
+        }
         $this->newLine();
-        $this->info('ZDJĘCIA WSTAWIONE BEZPOŚREDNIO W BUILDERZE — '.count($imageRows));
-        $this->table(['ID elementu', 'Photo ID', 'ALT na stronie', 'Stan'], $imageRows);
+        $this->info('ZDJĘCIA NA STRONIE GŁÓWNEJ (pojedyncze, miniatury, okładki galerii) — '.count($imageRows));
+        $this->table(['ID elementu', 'Photo ID', 'ALT na stronie', 'Stan'], array_slice($imageRows, 0, 55));
+        if (count($imageRows) > 55) $this->line('Pokazano pierwsze 55 wierszy; łącznie: '.count($imageRows));
         $this->warn('Nie zmieniam ALT automatycznie. Opis musi wynikać z zawartości konkretnego zdjęcia, nie tylko z fraz SEO.');
 
         $this->newLine();
