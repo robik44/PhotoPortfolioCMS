@@ -2,6 +2,7 @@
     @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <script src="{{ asset('js/site-typography.js') }}"></script>
     <script src="{{ asset('js/builder-button.js') }}"></script>
+    <script src="{{ asset('js/builder-auto-flow.js') }}?v={{ @filemtime(public_path('js/builder-auto-flow.js')) ?: 1 }}"></script>
     @php
         $builderHeaderSettings = \App\Models\SiteSetting::pluck('value', 'key')->toArray();
         $builderHeaderMenuItems = \App\Models\MenuItem::query()
@@ -1330,47 +1331,70 @@ document.addEventListener("DOMContentLoaded", function () {
         return box;
     }
 
-    // Return the vertical displacement caused by earlier growing blocks.
-    // On manual positioning we save this as an anchor, so the element remains
-    // exactly where it was dropped without disabling future automatic flow.
-    function inheritedFlowShift(yPx, movingId = null) {
-        let shift = 0;
-        data.sections.forEach(source => {
-            if (source.id === movingId || source.flow_mode !== 'auto') return;
-            const node = Array.from(content.querySelectorAll(".fve-element"))
-                .find(element => element.dataset.id === source.id);
-            if (!node) return;
-            const baseline = Number(source.flow_base_height) || node.offsetHeight;
-            const baseTop = (Number(source.position_y) || 0) * 9;
-            if (yPx >= baseTop + baseline - 0.5) {
-                shift += node.offsetHeight - baseline;
-            }
+    // Measure the same boxes that appear in the editor. Positions saved by
+    // the builder remain the authoritative, unshifted coordinates.
+    function flowMeasurements(overrideId = null, overrideYPx = null) {
+        const nodes = new Map(Array.from(content.querySelectorAll(".fve-element"))
+            .map(node => [node.dataset.id, node]));
+        return data.sections.filter(item => nodes.has(item.id)).map(item => {
+            const node = nodes.get(item.id);
+            return {
+                id: item.id,
+                x: (Number(item.position_x) || 0) * 14,
+                y: item.id === overrideId ? overrideYPx : (Number(item.position_y) || 0) * 9,
+                width: node.offsetWidth,
+                height: node.offsetHeight,
+                baseline: Number(item.flow_base_height) || 0,
+                anchor: Number(item.flow_anchor) || 0,
+                mode: item.flow_mode || 'free'
+            };
         });
-        return shift;
     }
 
-    // Opt-in flowing layout: preserve old absolute positions and overlays.
+    function inheritedFlowShift(yPx, movingId = null) {
+        const measured = flowMeasurements(movingId, yPx);
+        const plan = window.BuilderAutoFlow.calculate(measured);
+        if (movingId) return plan.placements.find(entry => entry.id === movingId)?.shift || 0;
+        return plan.shifts.reduce((total, event) =>
+            total + (yPx >= event.at - 0.1 ? event.delta : 0), 0);
+    }
+
     function reflowElements() {
-        const entries = data.sections.map(item => ({
-            item, node: Array.from(content.querySelectorAll(".fve-element")).find(n => n.dataset.id === item.id)
-        })).filter(entry => entry.node);
-        entries.sort((a, b) => (Number(a.item.position_y) || 0) - (Number(b.item.position_y) || 0));
-        const sources = [];
-        for (const entry of entries) {
-            const baseTop = (Number(entry.item.position_y) || 0) * 9;
-            const shift = sources.reduce((sum, src) => sum + (baseTop >= src.bottom - 0.5 ? src.delta : 0), 0);
-            entry.node.style.top = (baseTop + shift - (Number(entry.item.flow_anchor) || 0)) + "px";
-            if (entry.item.flow_mode === 'auto') {
-                const height = entry.node.offsetHeight;
-                if (!Number.isFinite(Number(entry.item.flow_base_height)) || Number(entry.item.flow_base_height) <= 0) {
-                    entry.item.flow_base_height = height;
-                }
-                const baseline = Number(entry.item.flow_base_height) || height;
-                const delta = height - baseline;
-                if (Math.abs(delta) > 0.5) sources.push({bottom: baseTop + baseline, delta});
-            }
+        const measured = flowMeasurements();
+        const plan = window.BuilderAutoFlow.calculate(measured);
+        const nodes = new Map(Array.from(content.querySelectorAll(".fve-element"))
+            .map(node => [node.dataset.id, node]));
+        for (const entry of plan.placements) {
+            const node = nodes.get(entry.id);
+            if (node) node.style.top = entry.top + "px";
         }
-        return Math.max(900, ...entries.map(e => e.node.offsetTop + e.node.offsetHeight + 40));
+        data.sections.forEach(item => {
+            if (item.flow_mode !== 'auto' || Number(item.flow_base_height) > 0) return;
+            const node = nodes.get(item.id);
+            if (node && node.offsetHeight > 0) item.flow_base_height = node.offsetHeight;
+        });
+        return Math.max(900, ...Array.from(nodes.values()).map(node =>
+            node.offsetTop + node.offsetHeight + 40));
+    }
+
+    // Images and responsive gallery previews may finish loading after render.
+    let autoFlowObserver = null;
+    function observeAutoFlow() {
+        if (!autoFlowObserver) {
+            autoFlowObserver = new ResizeObserver(() => {
+                if (!editor.classList.contains('open')) return;
+                requestAnimationFrame(() => {
+                    if (!editor.classList.contains('open')) return;
+                    const height = reflowElements();
+                    content.style.height = height + "px";
+                    content.style.minHeight = height + "px";
+                    updateZoom();
+                    renderRulers();
+                });
+            });
+        }
+        autoFlowObserver.disconnect();
+        content.querySelectorAll(".fve-element").forEach(node => autoFlowObserver.observe(node));
     }
 
     function render() {
@@ -1732,6 +1756,7 @@ document.addEventListener("DOMContentLoaded", function () {
             page.style.minHeight = "0";
             updateZoom();
             renderRulers();
+            observeAutoFlow();
         });
         window.ThumbnailGallery.fitCanvas(content);
     }
@@ -2439,6 +2464,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (!options.silent && nextInsertionPoint) {
             item.position_x = Math.min(nextInsertionPoint.x, Math.max(0, 100 - item.element_width));
             item.position_y = nextInsertionPoint.y;
+            item.flow_anchor = inheritedFlowShift(item.position_y * 9);
             nextInsertionPoint = null;
         }
 
