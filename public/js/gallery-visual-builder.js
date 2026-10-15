@@ -16,6 +16,7 @@
     let selected = 'title';
     let device = 'desktop';
     let snap = true;
+    let guides = true;
     let drag = null;
     let dirty = false;
 
@@ -106,7 +107,7 @@
     const selectedObject = () => {
         if (selected.startsWith('photo-')) {
             const id=Number(selected.slice(6)),idx=orderedPhotos().findIndex(p=>p.id===id);
-            return {obj:photoPosition(id,Math.max(0,idx)),type:'freephoto',id};
+            return {obj:photoPosition(id,Math.max(0,idx)),type:'freephoto',id:selected,photoId:id};
         }
         const core = layout.blocks[selected];
         if (core) return {obj:core,type:selected,id:selected};
@@ -267,7 +268,16 @@
         const ref=selectedObject();
         if(!ref){inspector.appendChild(html('p','','Wybierz element na podglądzie.'));return;}
         const {obj,type,id}=ref;
-        inspector.appendChild(html('h3','',id.startsWith('photo-')?'Zdjęcie '+id.slice(6):blockName(id)));
+        inspector.appendChild(html('h3','',type==='freephoto' ? 'Zdjęcie '+(ref.photoId || id.slice(6)) : blockName(id)));
+        if(type==='freephoto'){
+            const selectedPhoto=photoById.get(Number(ref.photoId));
+            if(selectedPhoto){
+                const preview=html('div','gv-photo-inspector-preview');
+                preview.appendChild(makeImage(selectedPhoto));
+                preview.appendChild(html('p','gv-hint','Przesuwaj płynnie myszką lub strzałkami po 1 px; Shift + strzałka: 10 px. Linie pokazują wyrównanie do innych zdjęć i tekstów.'));
+                inspector.appendChild(preview);
+            }
+        }
         if ((id==='title'||id==='description') && scope==='gallery') {
             const field=html('div','gv-control');
             addLabel(field,id==='title'?'Treść tytułu':'Treść opisu');
@@ -292,11 +302,11 @@
             field.appendChild(control);
             inspector.appendChild(field);
         }
-        input(inspector,'Pozycja X (%)',obj.x,v=>obj.x=clamp(Number(v),0,95),{min:0,max:95});
-        input(inspector,'Pozycja Y (px)',obj.y,v=>obj.y=clamp(Number(v),0,30000),{min:0,max:30000});
+        input(inspector,'Pozycja X (%)',obj.x,v=>obj.x=clamp(Number(v),0,95),{min:0,max:95,step:.01});
+        input(inspector,'Pozycja Y (px)',obj.y,v=>obj.y=clamp(Number(v),0,30000),{min:0,max:30000,step:1});
         input(inspector,'Szerokość (%)',obj.w,v=>obj.w=clamp(Number(v),4,100),{min:4,max:100});
         if(type==='freephoto'){
-            input(inspector,'Wysokość zdjęcia (px)',obj.h,v=>obj.h=clamp(Number(v),60,1200),{min:60,max:1200});
+            input(inspector,'Wysokość zdjęcia (px)',obj.h,v=>obj.h=clamp(Number(v),60,1200),{min:60,max:1200,step:1});
         }
         if(type==='photos'||type==='freephoto'){
             if(type==='photos'){
@@ -355,6 +365,43 @@
             inspector.appendChild(link);
         }
     }
+    // Compare all visible items using native (not zoom-scaled) pixel positions.
+    // The active item itself is excluded, so its own edges never trigger snapping.
+    function otherRects(excludeId) {
+        return [...canvas.querySelectorAll('.gv-element')]
+            .filter(el => el.dataset.id !== excludeId && el.offsetWidth > 0 && el.offsetHeight > 0)
+            .map(el => ({
+                x:el.offsetLeft,y:el.offsetTop,w:el.offsetWidth,h:el.offsetHeight,
+            }));
+    }
+    function guideLines(match) {
+        canvas.querySelectorAll('.gv-align-guide').forEach(node => node.remove());
+        if (!guides || !match) return;
+        for (const [direction,value] of [['vertical',match.vertical],['horizontal',match.horizontal]]) {
+            if (value === null || !Number.isFinite(value)) continue;
+            const line = html('div','gv-align-guide gv-align-'+direction);
+            line.style[direction === 'vertical' ? 'left' : 'top'] = value + 'px';
+            canvas.appendChild(line);
+        }
+    }
+    function precise(value) { return Math.round(value * 10000) / 10000; }
+    function alignRect(id, rect) {
+        const engine = window.FoodFotoGalleryGuides;
+        // Do not block editing if an old browser has a stale cached helper file.
+        if (!engine) return {x:rect.x,y:rect.y,vertical:null,horizontal:null};
+        return engine.align(rect,otherRects(id),{
+            threshold:7, snap, guides,
+        });
+    }
+    function pointFromModel(obj) {
+        return {x:Number(obj.x)*canvas.offsetWidth/100,y:Number(obj.y),
+            w:Number(obj.w)*canvas.offsetWidth/100,h:Number(obj.h)||80};
+    }
+    function setPrecisePosition(obj,x,y) {
+        obj.x=precise(clamp(x/canvas.offsetWidth*100,0,95));
+        obj.y=precise(clamp(y,0,30000));
+    }
+
     function beginDrag(event,id){
         if(event.button!==0)return;
         // Tablet/mobile previews are stacked responsively, not pixel-positioned.
@@ -367,27 +414,46 @@
         if(!selectedInfo.obj)return;
         const obj=selectedInfo.obj,rect=canvas.getBoundingClientRect();
         const resize=Boolean(event.target.closest('[data-resize]'));
-        drag={id,obj,x0:event.clientX,y0:event.clientY,initialX:obj.x,
-            initialY:obj.y,initialW:obj.w,resize,rectWidth:rect.width};
+        const target=event.currentTarget;
+        drag={id,obj,x0:event.clientX,y0:event.clientY,initialX:Number(obj.x),
+            initialY:Number(obj.y),initialW:Number(obj.w),resize,rectWidth:rect.width,
+            element:target, width:target.offsetWidth,height:target.offsetHeight};
         event.preventDefault();event.currentTarget.setPointerCapture(event.pointerId);
         selected=id;
         root.querySelectorAll('.gv-element').forEach(el=>el.classList.toggle('gv-selected',el.dataset.id===id));
+        // Selection updates the right panel immediately, including for photos,
+        // regardless of whether the browser fires a click after dragging.
+        updateInspector();
     }
     canvas.addEventListener('pointermove',event=>{
         if(!drag)return;
-        const dx=(event.clientX-drag.x0)/drag.rectWidth*100;
+        const dx=(event.clientX-drag.x0)/currentScale;
         const dy=(event.clientY-drag.y0)/currentScale;
-        const round=v=>snap?Math.round(v/5)*5:fmt(v);
-        if(drag.resize)drag.obj.w=clamp(round(drag.initialW+dx),4,100);
-        else{
-            drag.obj.x=clamp(round(drag.initialX+dx),0,95);
-            drag.obj.y=clamp(round(drag.initialY+dy),0,30000);
+        if(drag.resize){
+            const desiredWidth=drag.initialW+dx/canvas.offsetWidth*100;
+            drag.obj.w=precise(clamp(desiredWidth,4,100));
+            guideLines(null);
+        }else{
+            const rect={
+                x:drag.initialX*canvas.offsetWidth/100+dx,
+                y:drag.initialY+dy,
+                w:drag.width,h:drag.height,
+            };
+            const match=alignRect(drag.id,rect);
+            setPrecisePosition(drag.obj,match.x,match.y);
+            guideLines(match);
         }
-        const moved=canvas.querySelector('.gv-element[data-id="'+drag.id+'"]');
-        if(moved){moved.style.left=drag.obj.x+'%';moved.style.top=drag.obj.y+'px';moved.style.width=drag.obj.w+'%';}
+        drag.element.style.left=drag.obj.x+'%';
+        drag.element.style.top=drag.obj.y+'px';
+        drag.element.style.width=drag.obj.w+'%';
         progress();
     });
-    const finish=()=>{if(!drag)return;drag=null;render();};
+    const finish=()=>{
+        if(!drag)return;
+        drag=null;
+        guideLines(null);
+        render();
+    };
     canvas.addEventListener('pointerup',finish);
     canvas.addEventListener('pointercancel',finish);
     function addExtra(type){
@@ -406,6 +472,10 @@
         root.querySelectorAll('[data-gv-device]').forEach(b=>b.classList.toggle('active',b===button));render();
     }));
     $('#gv-snap').addEventListener('change',e=>{snap=e.target.checked;});
+    $('#gv-guides').addEventListener('change',e=>{
+        guides=e.target.checked;
+        if(!guides)guideLines(null);
+    });
     zoomSelect.addEventListener('change',e=>{
         zoomMode=e.target.value;
         scrollArea.scrollLeft=0;
@@ -414,6 +484,28 @@
     focusButton.addEventListener('click',()=>setFocus(!root.classList.contains('gv-focus')));
     document.addEventListener('keydown',event=>{
         if(event.key==='Escape'&&root.classList.contains('gv-focus'))setFocus(false);
+        if(device !== 'desktop' || !['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(event.key))return;
+        const active=document.activeElement;
+        if(active && (active.matches('input,select,textarea,[contenteditable="true"]') ||
+            active.closest('[contenteditable="true"]')))return;
+        const ref=selectedObject();
+        if(!ref)return;
+        event.preventDefault();
+        const amount=event.shiftKey ? 10 : 1;
+        let deltaX=0,deltaY=0;
+        if(event.key==='ArrowLeft')deltaX=-amount;
+        if(event.key==='ArrowRight')deltaX=amount;
+        if(event.key==='ArrowUp')deltaY=-amount;
+        if(event.key==='ArrowDown')deltaY=amount;
+        const position=pointFromModel(ref.obj);
+        // Arrow keys are exact. Snapping applies only to mouse dragging.
+        setPrecisePosition(ref.obj,position.x+deltaX,position.y+deltaY);
+        progress();
+        render();
+        // Show alignment lines (without moving the element) while fine tuning.
+        const after=pointFromModel(ref.obj);
+        const engine=window.FoodFotoGalleryGuides;
+        if(engine && guides)guideLines(engine.align(after,otherRects(selected),{threshold:2,snap:false,guides:true}));
     });
     if(typeof ResizeObserver!=='undefined'){
         const observer = new ResizeObserver(scheduleFit);
