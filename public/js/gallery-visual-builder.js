@@ -167,6 +167,9 @@
     function render() {
         canvas.replaceChildren();
         canvas.className='gv-canvas gv-'+device;
+        $('#gv-mode-help').textContent=layout.photo_mode==='free'
+            ? 'Swobodny: zaznacz zdjęcie, ustaw X i Y lub przeciągnij. Niebieskie linie wskazują pozycję, zielone wyrównanie do innych elementów.'
+            : 'Siatka: zdjęcia ustawiają się automatycznie. Do przesuwania pojedynczych fotografii wybierz „Swobodny”.';
         canvas.style.setProperty('--gv-cols-tablet',String(layout.columns_tablet));
         canvas.style.setProperty('--gv-cols-mobile',String(layout.columns_mobile));
         const blocks=layout.blocks;
