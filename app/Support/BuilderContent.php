@@ -9,6 +9,14 @@ class BuilderContent
     public static function validate(array $content): void
     {
         foreach ($content['sections'] ?? [] as $index => $element) {
+            if (($element['type'] ?? null) === 'color_panel') {
+                Validator::make($element, [
+                    'panel_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+                    'panel_opacity' => ['sometimes', 'numeric', 'between:0,100'],
+                    'panel_layer' => ['sometimes', 'integer', 'between:0,50'],
+                    'element_height' => ['required', 'numeric', 'between:1,1500'],
+                ])->validate();
+            }
             if (($element['type'] ?? null) === 'button') BuilderButton::validate($element);
             if (in_array($element['type'] ?? null, \App\Services\SiteFontLibrary::TEXT_BLOCKS, true)) {
                 BuilderTypography::validate($element, $index);
