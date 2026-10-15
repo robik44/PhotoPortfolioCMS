@@ -28,7 +28,9 @@
       const conflicts = rows.filter(other =>
         other.id !== source.id &&
         overlapsX(source, other) &&
-        other.y >= source.y - 60 &&
+        // Detect real vertical intersection, even when an image begins
+        // far above the new text. The old 60px cutoff made a tiny drag
+        // suddenly turn reflow off and let the text overlap the image.
         other.y < bottom + gap - .5 &&
         other.y + other.height > source.y + .5 &&
         (other.mode !== 'auto' || source.index > other.index)
