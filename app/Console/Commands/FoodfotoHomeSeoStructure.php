@@ -35,7 +35,7 @@ class FoodfotoHomeSeoStructure extends Command
             // A visual headline is already present before the six service cards.
             // Setting its semantic HTML to H2 preserves its text block and styling.
             if (($element['id'] ?? '') === 'fve-1792017662127-5bnp9p4slmk') {
-                if (($element['type'] ?? '') === 'text'
+                if (in_array(($element['type'] ?? ''), ['text', 'heading'], true)
                     && trim((string) ($element['content'] ?? '')) === 'Piękne obrazy dla smacznych historii'
                     && !in_array(($element['semantic_tag'] ?? 'p'), ['h1','h2','h3'], true)) {
                     $element['semantic_tag'] = 'h2';
