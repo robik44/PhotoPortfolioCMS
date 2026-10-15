@@ -248,11 +248,12 @@
                 '#' . $canvasId . ' .page-element[data-builder-index="' . $loop->index . '"] [data-builder-typography-target]'
             ) !!}
         @elseif($responsiveType === 'process_steps')
+            @php($processSectionIndex = $loop->index)
             @foreach(\App\Support\ProcessTypography::parts($element) as $partKey => $textPart)
                 {!! \App\Support\BuilderTypography::responsiveCss(
                     $textPart,
                     $fontCatalog,
-                    '#' . $canvasId . ' .page-element[data-builder-index="' . $loop->index . '"] [data-process-part="' . $partKey . '"]'
+                    '#' . $canvasId . ' .page-element[data-builder-index="' . $processSectionIndex . '"] [data-process-part="' . $partKey . '"]'
                 ) !!}
             @endforeach
         @endif
