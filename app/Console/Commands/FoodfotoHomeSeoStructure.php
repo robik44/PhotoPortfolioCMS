@@ -40,6 +40,10 @@ class FoodfotoHomeSeoStructure extends Command
                     && !in_array(($element['semantic_tag'] ?? 'p'), ['h1','h2','h3'], true)) {
                     $element['semantic_tag'] = 'h2';
                     $changes[] = 'HTML H2 dla „Piękne obrazy dla smacznych historii”';
+                } elseif (in_array(($element['type'] ?? ''), ['text', 'heading'], true)
+                    && trim((string) ($element['content'] ?? '')) === 'Piękne obrazy dla smacznych historii'
+                    && ($element['semantic_tag'] ?? '') === 'h2') {
+                    $this->info('H2 jest już poprawnie ustawione dla „Piękne obrazy dla smacznych historii”.');
                 } else {
                     $this->warn('Nie zmieniam H2: oryginalna treść lub typ elementu różni się od audytu.');
                 }
@@ -51,6 +55,8 @@ class FoodfotoHomeSeoStructure extends Command
                 if (preg_match('/^\s*worzę obrazy,/u', $copy)) {
                     $element['content'] = preg_replace('/^(\s*)worzę obrazy,/u', '$1Tworzę obrazy,', $copy, 1);
                     $changes[] = 'Literówka: „Tworzę obrazy…”';
+                } elseif (preg_match('/^\\s*Tworzę obrazy,/u', $copy)) {
+                    $this->info('Literówka „Tworzę obrazy…” jest już poprawiona.');
                 } else {
                     $this->warn('Nie zmieniam akapitu: jego początek jest inny niż w audycie.');
                 }
