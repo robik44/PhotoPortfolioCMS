@@ -21,6 +21,7 @@
     $catalog = $fontCatalog ?? app(\App\Services\SiteFontLibrary::class)->catalog();
     $headFont = \App\Services\SiteFontLibrary::css($design['heading_font'] ?? 'Georgia', $catalog, 'Georgia');
     $bodyFont = \App\Services\SiteFontLibrary::css($design['body_font'] ?? 'Arial', $catalog, 'Arial');
+    $processTextParts = \App\Support\ProcessTypography::parts($process);
 @endphp
 <section class="ff-process {{ ($design['show_arrows'] ?? true) === false ? 'ff-process-hide-arrows' : '' }}"
     style="
@@ -46,10 +47,10 @@
     ">
     <div class="ff-process-intro">
         <div>
-            <p class="ff-process-eyebrow">{{ $process['process_kicker'] ?? 'JAK PRACUJĘ' }}</p>
-            <h2 class="ff-process-title">{{ $process['process_title'] ?? 'Od pomysłu do gotowych kadrów' }}</h2>
+            <p class="ff-process-eyebrow" data-process-part="kicker" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['kicker'], $catalog) }}">{{ $process['process_kicker'] ?? 'JAK PRACUJĘ' }}</p>
+            <h2 class="ff-process-title" data-process-part="title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['title'], $catalog) }}">{{ $process['process_title'] ?? 'Od pomysłu do gotowych kadrów' }}</h2>
         </div>
-        <p class="ff-process-lead">{{ $process['process_intro'] ?? 'Dbam o każdy detal — od koncepcji, przez stylizację, po finalne zdjęcia. Pracuję elastycznie, dopasowując się do potrzeb Twojej marki.' }}</p>
+        <p class="ff-process-lead" data-process-part="intro" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['intro'], $catalog) }}">{{ $process['process_intro'] ?? 'Dbam o każdy detal — od koncepcji, przez stylizację, po finalne zdjęcia. Pracuję elastycznie, dopasowując się do potrzeb Twojej marki.' }}</p>
     </div>
     <div class="ff-process-steps">
         @foreach($steps as $i => $step)
@@ -65,8 +66,8 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="ff-process-step-title">{{ $step['title'] ?? '' }}</h3>
-                    <p class="ff-process-step-description">{{ $step['description'] ?? '' }}</p>
+                    <h3 class="ff-process-step-title" data-process-part="step{{ $i+1 }}_title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_title'], $catalog) }}">{{ $step['title'] ?? '' }}</h3>
+                    <p class="ff-process-step-description" data-process-part="step{{ $i+1 }}_description" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_description'], $catalog) }}">{{ $step['description'] ?? '' }}</p>
                 </div>
             </article>
         @endforeach
