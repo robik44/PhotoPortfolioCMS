@@ -75,7 +75,9 @@
         let fs=device === 'mobile' ? obj.mobile : device === 'tablet' ? obj.tablet : obj.size;
         return {fontFamily:fontMap[obj.font]||fontMap.sans,fontSize:(Number(fs)||16)+'px',
             fontWeight:obj.weight||400,color:obj.color||'#222',
-            lineHeight:obj.leading||1.5,letterSpacing:(obj.spacing||0)+'px'};
+            lineHeight:obj.leading||1.5,letterSpacing:(obj.spacing||0)+'px',
+            textAlign:obj.align||'left',fontStyle:obj.italic?'italic':'normal',
+            textTransform:obj.uppercase?'uppercase':'none',opacity:(obj.opacity??100)/100};
     };
     const makeImage = photo => {
         const image=html('img');
@@ -288,6 +290,13 @@
                 input(inspector,'Kolor',obj.color,v=>obj.color=v,{type:'color'});
                 input(inspector,'Interlinia',obj.leading,v=>obj.leading=clamp(Number(v),.7,4),{min:.7,max:4,step:.05});
                 input(inspector,'Odstęp liter (px)',obj.spacing,v=>obj.spacing=clamp(Number(v),-10,25),{min:-10,max:25,step:.1});
+                input(inspector,'Wyrównanie',obj.align||'left',v=>obj.align=v,{values:[
+                    ['left','Do lewej'],['center','Do środka'],['right','Do prawej'],['justify','Justuj']]});
+                input(inspector,'Kursywa',String(Boolean(obj.italic)),v=>obj.italic=v==='true',{values:[
+                    ['false','Wyłączona'],['true','Włączona']]});
+                input(inspector,'Wielkie litery',String(Boolean(obj.uppercase)),v=>obj.uppercase=v==='true',{values:[
+                    ['false','Bez zmiany'],['true','WERSALIKI']]});
+                input(inspector,'Przezroczystość (%)',obj.opacity??100,v=>obj.opacity=clamp(Number(v),0,100),{min:0,max:100});
             }
         }
         if(id.startsWith('extra-')){
