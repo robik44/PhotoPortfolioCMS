@@ -156,3 +156,45 @@ test('a preset appended at the bottom leaves its saved top unchanged', () => {
     const rows = [{id:'last',flowGroup:'p',mode:'auto',x:0,y:300,width:800,height:500}];
     assert.equal(top(rows,'last'),300);
 });
+
+test('legacy saved gallery positions above visual insertion still move as a complete row', () => {
+    // 3 cards are visibly below the click, but their stored Y precedes it
+    // because prior content already shifted them down in the editor.
+    const group = 'insert-preset';
+    const rows = [
+        {id:'earlier',mode:'free',x:0,y:1930,width:1400,height:260},
+        {id:'card1',mode:'free',x:50,y:2350,width:350,height:500},
+        {id:'card2',mode:'free',x:450,y:2350,width:350,height:500},
+        {id:'card3',mode:'free',x:850,y:2350,width:350,height:500},
+        {id:'newImage',mode:'auto',flowGroup:group,
+          insertionTargets:['card1','card2','card3'],
+          insertionExisting:['earlier','card1','card2','card3'],
+          insertionTargetTop:2580,
+          x:50,y:2430,width:575,height:390},
+        {id:'heading',mode:'auto',flowGroup:group,x:730,y:2475,width:500,height:70},
+        {id:'paragraph',mode:'auto',flowGroup:group,x:730,y:2600,width:500,height:85},
+        {id:'button',mode:'auto',flowGroup:group,x:730,y:2700,width:250,height:44},
+    ];
+    assert.equal(top(rows,'earlier'),1930);
+    for(const id of ['card1','card2','card3']) assert.equal(top(rows,id),2834);
+    assert.equal(top(rows,'newImage'),2430);
+    // The longest member (390px image) defines the bottom of the section.
+    rows.find(row => row.id==='newImage').height=490;
+    for(const id of ['card1','card2','card3']) assert.equal(top(rows,id),2934);
+});
+
+test('visual insertion does not shift an older section whose saved position is later', () => {
+    const group='inserted';
+    const rows=[
+        {id:'earlier',x:0,y:2000,width:1200,height:260,mode:'free'},
+        {id:'newImage',x:50,y:2270,width:575,height:390,flowGroup:group,mode:'auto',
+            insertionTargets:['card1','card2'],insertionExisting:['earlier','card1','card2'],
+            insertionTargetTop:2310},
+        {id:'newText',x:700,y:2400,width:500,height:200,flowGroup:group,mode:'auto'},
+        {id:'card1',x:0,y:2310,width:400,height:500,mode:'free'},
+        {id:'card2',x:500,y:2310,width:400,height:500,mode:'free'},
+    ];
+    assert.equal(top(rows,'earlier'),2000);
+    assert.equal(top(rows,'card1'),2674);
+    assert.equal(top(rows,'card2'),2674);
+});
