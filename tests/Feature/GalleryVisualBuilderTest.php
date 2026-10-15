@@ -174,4 +174,97 @@ class GalleryVisualBuilderTest extends TestCase
     }
 
 
+    public function test_shared_draft_is_previewed_in_both_gallery_editors_but_not_public_pages(): void
+    {
+        $first = $this->gallery();
+        $second = Gallery::create([
+            'title' => 'Opakowania',
+            'slug' => 'opakowania',
+            'description' => 'Fotografia produktów na opakowania',
+            'seo_title' => 'Fotografia opakowań | Magda Gugała',
+        ]);
+        $this->actingAs(User::factory()->create());
+        $pageOne = $this->get(route('portfolio.gallery', $first))->assertOk()->getContent();
+        $pageTwo = $this->get(route('portfolio.gallery', $second))->assertOk()->getContent();
+
+        $shared = GalleryVisualLayout::defaults();
+        $shared['blocks']['title']['font'] = 'bodoni';
+        $shared['blocks']['title']['size'] = 55;
+        $this->save($first, 'global', 'save', $shared)->assertRedirect()->assertSessionHasNoErrors();
+
+        $settings = SiteSetting::pluck('value', 'key')->all();
+        $this->assertTrue(GalleryVisualLayout::hasUnpublishedSharedChanges($settings));
+        $this->assertSame('bodoni', GalleryVisualLayout::draft($settings, 'gallery', $first->id)['blocks']['title']['font']);
+        $this->assertSame('bodoni', GalleryVisualLayout::draft($settings, 'gallery', $second->id)['blocks']['title']['font']);
+
+        $this->get(route('galleries.builder', ['gallery'=>$first->id, 'scope'=>'gallery']))
+            ->assertOk()->assertSee('nieopublikowany wspólny szkic');
+        $this->get(route('galleries.builder', ['gallery'=>$second->id, 'scope'=>'gallery']))
+            ->assertOk()->assertSee('nieopublikowany wspólny szkic')
+            ->assertSee('Opakowania')
+            ->assertSee('Fotografia produktów na opakowania');
+
+        $this->assertSame($pageOne, $this->get(route('portfolio.gallery', $first))->getContent());
+        $this->assertSame($pageTwo, $this->get(route('portfolio.gallery', $second))->getContent());
+        $this->assertSame('Fotografia żywności | Magda Gugała', $first->fresh()->seo_title);
+        $this->assertSame('Fotografia opakowań | Magda Gugała', $second->fresh()->seo_title);
+        $this->assertNull(GalleryVisualLayout::published($settings, $first->id));
+        $this->assertNull(GalleryVisualLayout::published($settings, $second->id));
+    }
+
+    public function test_gallery_changes_stay_local_and_do_not_freeze_new_shared_draft(): void
+    {
+        $first = $this->gallery();
+        $second = Gallery::create([
+            'title'=>'Food Styling','slug'=>'stylizacja','description'=>'Stylizacja potraw',
+        ]);
+        $this->actingAs(User::factory()->create());
+
+        $shared = GalleryVisualLayout::defaults();
+        $shared['blocks']['title']['font'] = 'bodoni';
+        $shared['blocks']['title']['size'] = 48;
+        $this->save($first, 'global', 'save', $shared)->assertRedirect()->assertSessionHasNoErrors();
+
+        $local = $shared;
+        $local['blocks']['title']['size'] = 56;
+        $this->save($first, 'gallery', 'save', $local)->assertRedirect()->assertSessionHasNoErrors();
+
+        $shared['blocks']['description']['size'] = 21;
+        $shared['blocks']['title']['font'] = 'inter';
+        $this->save($first, 'global', 'save', $shared)->assertRedirect()->assertSessionHasNoErrors();
+
+        $settings = SiteSetting::pluck('value', 'key')->all();
+        $firstDraft = GalleryVisualLayout::draft($settings, 'gallery', $first->id);
+        $secondDraft = GalleryVisualLayout::draft($settings, 'gallery', $second->id);
+        $this->assertSame(56.0, (float) $firstDraft['blocks']['title']['size']);
+        $this->assertSame(48.0, (float) $secondDraft['blocks']['title']['size']);
+        $this->assertSame('inter', $firstDraft['blocks']['title']['font']);
+        $this->assertSame('inter', $secondDraft['blocks']['title']['font']);
+        $this->assertSame(21.0, (float) $firstDraft['blocks']['description']['size']);
+
+        $localOverride = GalleryVisualLayout::read($settings, GalleryVisualLayout::key('gallery','draft',$first->id));
+        $this->assertSame(56.0, (float) $localOverride['blocks']['title']['size']);
+        $this->assertArrayNotHasKey('font', $localOverride['blocks']['title']);
+        $this->assertNull(GalleryVisualLayout::read($settings, GalleryVisualLayout::key('gallery','draft',$second->id)));
+    }
+
+    public function test_local_publication_is_blocked_until_pending_shared_template_is_published(): void
+    {
+        $gallery = $this->gallery();
+        $this->actingAs(User::factory()->create());
+        $shared = GalleryVisualLayout::defaults();
+        $shared['blocks']['title']['size'] = 58;
+        $this->save($gallery,'global','save',$shared)->assertRedirect()->assertSessionHasNoErrors();
+
+        $local = $shared;
+        $local['blocks']['description']['color'] = '#ff0000';
+        $this->save($gallery,'gallery','publish',$local)->assertSessionHasErrors('layout');
+        $this->assertNull(GalleryVisualLayout::published(SiteSetting::pluck('value','key')->all(),$gallery->id));
+
+        // Save is still allowed, and does not affect the public site.
+        $this->save($gallery,'gallery','save',$local)->assertRedirect()->assertSessionHasNoErrors();
+        $this->assertNull(GalleryVisualLayout::published(SiteSetting::pluck('value','key')->all(),$gallery->id));
+    }
+
+
 }
