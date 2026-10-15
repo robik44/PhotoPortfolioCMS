@@ -61,7 +61,7 @@ class Seo
         $fallbackTitle = $baseTitle !== '' ? (mb_stripos($baseTitle, $site) !== false ? $baseTitle : $baseTitle.' — '.$site) : self::firstText($settings['seo_default_title'] ?? null, $site);
         $resolvedTitle = $entity === null
             ? self::firstText($settings['home_seo_title'] ?? null, $settings['seo_default_title'] ?? null, $fallbackTitle)
-            : self::firstText($entity?->seo_title, $entity instanceof Gallery ? ($settings['seo_default_title'] ?? null) : null, $fallbackTitle);
+            : self::firstText($entity?->seo_title, $fallbackTitle);
         $description = self::firstText($entity === null ? ($settings['home_seo_description'] ?? null) : null, $entity?->seo_description, $settings['seo_default_description'] ?? null,
             $entity instanceof Gallery ? $entity->description : null, $entity instanceof Page ? strip_tags($entity->content ?? '') : null,
             $settings['hero_text'] ?? null, $settings['site_subtitle'] ?? null);
