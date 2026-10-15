@@ -6,6 +6,15 @@
     $canvasSettings = is_array($canvasSettings ?? null) ? $canvasSettings : [];
     $canvasBackground = $settings['background_color'] ?? '#ffffff';
     $designHeight = 900;
+    // Use the first visually placed gallery as the Portfolio scroll target.
+    // Do not depend on a heading: it can be edited or deleted in the builder.
+    $portfolioAnchorIndex = $canvasId === 'home-public-builder-canvas'
+        ? $sections
+            ->filter(fn ($element) => in_array(($element['type'] ?? ''), ['gallery', 'thumbnail_gallery'], true))
+            ->sortBy(fn ($element) => (float) ($element['position_y'] ?? 0))
+            ->keys()
+            ->first()
+        : null;
     $layerMap = [
         'image' => 10,
         'separator' => 20,
@@ -71,7 +80,7 @@
         @endphp
 
         <div
-            @if(($element['id'] ?? null) === 'portfolio-heading') id="portfolio" @endif
+            @if($portfolioAnchorIndex !== null && $loop->index === $portfolioAnchorIndex) id="portfolio" @endif
             class="page-element page-element-{{ $type }}"
             style="
                 --mobile-order:{{ (int) round($y * 1000) }};
@@ -314,6 +323,28 @@
         const next = Math.ceil(maxBottom) + 'px';
         if (canvas.style.minHeight !== next) canvas.style.minHeight = next;
     };
+
+    // Same-page Portfolio links scroll to the gallery rather than to a
+    // removable heading. Account for the sticky global header.
+    const portfolio = canvas.querySelector('#portfolio');
+    if (portfolio) {
+        document.addEventListener('click', (event) => {
+            const link = event.target.closest('a[href]');
+            if (!link || link.target === '_blank') return;
+            const destination = new URL(link.href, window.location.href);
+            const normalizedPath = path => path.replace(/\\/+$/, '') || '/';
+            if (destination.origin !== window.location.origin
+                || normalizedPath(destination.pathname) !== normalizedPath(window.location.pathname)
+                || destination.hash !== '#portfolio') return;
+
+            event.preventDefault();
+            const headerHeight = document.querySelector('.site-header')?.getBoundingClientRect().height || 0;
+            const top = Math.max(0, portfolio.getBoundingClientRect().top + window.scrollY - headerHeight - 12);
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            window.scrollTo({top, behavior: reduceMotion ? 'auto' : 'smooth'});
+            window.history.replaceState(null, '', destination.pathname + destination.search + destination.hash);
+        });
+    }
 
     const observer = new ResizeObserver(fit);
     observer.observe(canvas);
