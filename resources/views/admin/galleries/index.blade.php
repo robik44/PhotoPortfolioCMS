@@ -222,6 +222,11 @@
                                         Otwórz galerię →
                                     </a>
 
+                                    <a href="{{ route('galleries.builder', ['gallery' => $gallery->id, 'scope' => 'gallery']) }}"
+                                       style="color:#222;font-size:13px;text-decoration:underline;text-underline-offset:3px;">
+                                        Builder →
+                                    </a>
+
                                     <a
                                         href="{{ route('galleries.edit', $gallery) }}"
                                         style="
