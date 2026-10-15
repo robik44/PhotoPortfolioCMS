@@ -3,6 +3,8 @@
     <script src="{{ asset('js/site-typography.js') }}"></script>
     <script src="{{ asset('js/builder-button.js') }}"></script>
     <script src="{{ asset('js/builder-auto-flow.js') }}?v={{ @filemtime(public_path('js/builder-auto-flow.js')) ?: 1 }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
+    <script src="{{ asset('js/foodfoto-process.js') }}?v={{ @filemtime(public_path('js/foodfoto-process.js')) ?: 1 }}"></script>
     @php
         $builderHeaderSettings = \App\Models\SiteSetting::pluck('value', 'key')->toArray();
         $builderHeaderMenuItems = \App\Models\MenuItem::query()
@@ -32,6 +34,7 @@
     @endphp
     <script>window.builderButtonTargets = @json($buttonTargets->values());</script>
     <script>
+        window.FoodfotoProcess.configure(@json($siteFonts['choices']));
         window.builderTypography = window.SiteTypography.create({
             families: @json($siteFonts['families']),
             choices: @json($siteFonts['choices']),
@@ -605,6 +608,9 @@
             <button type="button" class="fve-tool" data-fve-preset="three-steps">
                 + Trzy etapy
             </button>
+            <button type="button" class="fve-tool" data-fve-preset="process-collaboration">
+                + Proces współpracy — 3 etapy
+            </button>
             <button type="button" class="fve-tool" data-fve-preset="contact-banner">
                 + Baner kontaktowy
             </button>
@@ -1033,7 +1039,8 @@ document.addEventListener("DOMContentLoaded", function () {
             gallery: "Galeria",
             thumbnail_gallery: "Galeria miniaturek",
             button: "Przycisk",
-            separator: "Separator"
+            separator: "Separator",
+            process_steps: "Proces współpracy — 3 etapy"
         };
 
         return labels[type] || "Element";
@@ -1308,6 +1315,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 box.appendChild(grid);
             }
+
+        } else if (item.type === "process_steps") {
+
+            box.appendChild(window.FoodfotoProcess.render(item));
 
         } else if (item.type === "text") {
 
@@ -1914,6 +1925,9 @@ document.addEventListener("DOMContentLoaded", function () {
         window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
+        if (item.type === 'process_steps') {
+            window.FoodfotoProcess.panel(properties, item, render);
+        }
         if (['heading', 'text'].includes(item.type)) {
             const currentSemanticTag = item.semantic_tag
                 || (item.type === 'heading' ? (item.heading_level || 'div') : 'p');
@@ -2081,7 +2095,7 @@ document.addEventListener("DOMContentLoaded", function () {
             window.ThumbnailGallery.properties(properties, item, photos, render, 'fve-field');
         }
 
-        if (item.type !== "image" && item.type !== "thumbnail_gallery") {
+        if (item.type !== "image" && item.type !== "thumbnail_gallery" && item.type !== "process_steps") {
 
             field(
                 item.type === 'button' ? 'Tekst przycisku' : "Treść",
@@ -2470,6 +2484,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         window.builderTypography.initialize(item);
         if (type === 'heading') item.heading_level = 'h2';
+        if (type === 'process_steps') {
+            window.FoodfotoProcess.initialize(item);
+            item.element_width = 90;
+            item.flow_mode = 'auto';
+        }
         if (type === 'thumbnail_gallery') {
             window.ThumbnailGallery.initialize(item);
             item.element_width = 90;
@@ -2656,6 +2675,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 position_x: copyX, position_y: startY + 32,
                 element_width: 22
             });
+        } else if (preset === 'process-collaboration') {
+            // A single flexible section; all texts, icons and colors edit separately.
+            // Its height is natural, allowing automatic flow without fragile overlays.
+            const item = insert('process_steps', {
+                position_x: 5,
+                position_y: nextInsertionPoint ? nextInsertionPoint.y : startY,
+                element_width: 90,
+                flow_mode: 'auto',
+                flow_base_height: 0,
+                flow_anchor: 0
+            });
+            window.FoodfotoProcess.initialize(item);
+            if (nextInsertionPoint) {
+                item.position_x = Math.min(nextInsertionPoint.x, 100 - item.element_width);
+                item.flow_anchor = inheritedFlowShift(item.position_y * 9);
+                nextInsertionPoint = null;
+            }
         } else if (preset === 'three-steps') {
             insert('heading', {
                 content: 'Od pomysłu do kadru',
