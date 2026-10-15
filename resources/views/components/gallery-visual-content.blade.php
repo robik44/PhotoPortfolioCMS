@@ -33,7 +33,11 @@
         return 'font-family:'.$gv::font($item['font']).';'
             .'font-size:'.$item['size'].'px;font-weight:'.$item['weight'].';'
             .'line-height:'.$item['leading'].';letter-spacing:'.$item['spacing'].'px;'
-            .'color:'.$item['color'].';';
+            .'color:'.$item['color'].';'
+            .'text-align:'.($item['align'] ?? 'left').';'
+            .'font-style:'.(!empty($item['italic']) ? 'italic' : 'normal').';'
+            .'text-transform:'.(!empty($item['uppercase']) ? 'uppercase' : 'none').';'
+            .'opacity:'.(isset($item['opacity']) ? ((float) $item['opacity'] / 100) : 1).';';
     };
 @endphp
 
