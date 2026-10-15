@@ -139,4 +139,39 @@ class GalleryVisualBuilderTest extends TestCase
         $bad['blocks']['title']['x'] = -700;
         $this->save($gallery, 'global', 'publish', $bad)->assertSessionHasErrors('layout');
     }
+    public function test_free_photo_positions_are_saved_as_id_keyed_map_without_null_slots(): void
+    {
+        $gallery = $this->gallery();
+        $photo = Photo::query()->forceCreate([
+            'id' => 90,
+            'filename' => 'photos/test-food.jpg',
+            'title' => 'Zdjęcie jedzenia',
+            'alt' => 'Zupa na talerzu',
+        ]);
+        $gallery->photos()->attach($photo->id, ['sort_order' => 0, 'is_cover' => true]);
+        $this->actingAs(User::factory()->create());
+
+        $layout = GalleryVisualLayout::defaults();
+        $layout['photo_mode'] = 'free';
+        // Reproduce older browsers: JSON.stringify emitted [null, ...,
+        // {x,y,w,h}] when the array was indexed by a photo ID.
+        $layout['individual_photos'] = array_fill(0, 91, null);
+        $layout['individual_photos'][90] = ['x' => 18.25, 'y' => 480.5, 'w' => 22, 'h' => 250];
+
+        $this->save($gallery, 'gallery', 'save', $layout)
+            ->assertRedirect()->assertSessionHasNoErrors();
+
+        $settings = SiteSetting::pluck('value', 'key')->all();
+        $draft = GalleryVisualLayout::draft($settings, 'gallery', $gallery->id);
+        $this->assertSame(18.25, $draft['individual_photos'][90]['x']);
+        $this->assertSame(480.5, $draft['individual_photos'][90]['y']);
+        $this->assertCount(1, $draft['individual_photos']);
+
+        // Saving a draft leaves all live gallery content untouched.
+        $this->assertSame('Fotografia żywności', $gallery->fresh()->title);
+        $this->assertSame('Zupa na talerzu', $photo->fresh()->alt);
+        $this->assertNull(GalleryVisualLayout::published($settings, $gallery->id));
+    }
+
+
 }
