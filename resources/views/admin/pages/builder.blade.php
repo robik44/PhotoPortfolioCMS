@@ -1189,8 +1189,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
             } else {
 
-                box.innerHTML =
-                    "<div style='padding:100px 20px;text-align:center;background:#f3f3f3;color:#999;'>Wybierz zdjęcie</div>";
+                if (item.image_placeholder_hidden) {
+                    // Keep the transparent image slot selectable so photos
+                    // can be chosen later without covering the backdrop.
+                    box.style.height = (Number(item.image_height) || 200) + 'px';
+                    box.style.border = '1px dashed rgba(128,128,128,.5)';
+                    box.title = 'Kliknij i wybierz zdjęcie z biblioteki';
+                } else {
+                    box.innerHTML =
+                        "<div style='padding:100px 20px;text-align:center;background:#f3f3f3;color:#999;'>Wybierz zdjęcie</div>";
+                }
             }
 
         } else if (item.type === "color_panel") {
@@ -2932,7 +2940,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     content, heading_level: 'h2', semantic_tag: 'h2',
                     style: {
                         font_size: size, font_weight: 400, line_height: 1.09,
-                        font_family: 'Bodoni Moda', color, ...extra
+                        font_family: 'Georgia', color, ...extra
                     }
                 });
             const label = (content, x, y, width, color) =>
@@ -2940,7 +2948,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     content, semantic_tag: 'small',
                     style: {
                         font_size: 13, font_weight: 600, line_height: 1.65,
-                        letter_spacing: 3.5, color, font_family: 'Inter'
+                        letter_spacing: 3.5, color, font_family: 'Arial'
                     }
                 });
             // Upper band — photography is placed between the dark base and overlay.
