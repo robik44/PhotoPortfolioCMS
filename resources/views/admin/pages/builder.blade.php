@@ -481,6 +481,50 @@
         resize: vertical;
     }
 
+    /* Keep the automatic layout control readable in the narrow right sidebar.
+       Ordinary typography inputs are width:100%; checkboxes must not be. */
+    #full-visual-editor .fve-auto-flow-control {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        padding: 12px 10px;
+        margin: 4px 0 0;
+        border: 1px solid #d4d4d4;
+        border-radius: 6px;
+        background: #fafafa;
+        cursor: pointer;
+        color: #202020;
+        font-size: 13px;
+        font-weight: 650;
+        line-height: 1.35;
+        white-space: normal;
+        overflow-wrap: break-word;
+    }
+    #full-visual-editor .fve-auto-flow-control input[type="checkbox"] {
+        appearance: auto;
+        -webkit-appearance: checkbox;
+        display: block;
+        flex: 0 0 19px;
+        width: 19px !important;
+        min-width: 19px;
+        max-width: 19px;
+        height: 19px;
+        padding: 0;
+        margin: 0;
+        border-radius: 3px;
+        accent-color: #202020;
+        cursor: pointer;
+    }
+    #full-visual-editor .fve-auto-flow-control span {
+        display: block;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    #full-visual-editor .fve-auto-flow-control:focus-within {
+        outline: 2px solid #838383;
+        outline-offset: 2px;
+    }
+
     .fve-zoom {
         min-width: 55px;
         text-align: center;
@@ -1959,13 +2003,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // New content may grow vertically without disturbing the existing page.
         const flowWrap = document.createElement('label');
-        flowWrap.className = 'fve-field';
-        flowWrap.style.display = 'flex';
-        flowWrap.style.gap = '10px';
-        flowWrap.style.alignItems = 'center';
+        flowWrap.className = 'fve-auto-flow-control';
         const flowInput = document.createElement('input');
         flowInput.type = 'checkbox';
+        flowInput.className = 'fve-auto-flow-input';
         flowInput.checked = item.flow_mode === 'auto';
+        flowInput.setAttribute('aria-label', 'Automatyczny układ — odsuwaj elementy poniżej');
         flowInput.addEventListener('change', () => {
             if (flowInput.checked) {
                 const node = Array.from(content.querySelectorAll('.fve-element')).find(n => n.dataset.id === item.id);
@@ -1977,7 +2020,9 @@ document.addEventListener("DOMContentLoaded", function () {
             render();
         });
         flowWrap.appendChild(flowInput);
-        flowWrap.appendChild(document.createTextNode('Automatyczny układ — odsuwaj elementy poniżej'));
+        const flowLabel = document.createElement('span');
+        flowLabel.textContent = 'Automatyczny układ — odsuwaj elementy poniżej';
+        flowWrap.appendChild(flowLabel);
         properties.appendChild(flowWrap);
         const flowTip = document.createElement('small');
         flowTip.style.cssText = 'display:block;margin:2px 0 14px;color:#666;line-height:1.45';
