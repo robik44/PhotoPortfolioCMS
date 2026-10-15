@@ -659,6 +659,9 @@
             <button type="button" class="fve-tool" data-fve-preset="contact-banner">
                 + Baner kontaktowy
             </button>
+            <button type="button" class="fve-tool" data-fve-preset="contact-finale">
+                + Finał strony — zdjęcie i kontakt
+            </button>
             @if($isHomeBuilder ?? false)
                 <button type="button" class="fve-tool" data-fve-preset="foodfoto-home">
                     + Kompozycja FoodFoto
@@ -1087,7 +1090,8 @@ document.addEventListener("DOMContentLoaded", function () {
             thumbnail_gallery: "Galeria miniaturek",
             button: "Przycisk",
             separator: "Separator",
-            process_steps: "Proces współpracy — 3 etapy"
+            process_steps: "Proces współpracy — 3 etapy",
+            color_panel: "Tło / panel kolorowy"
         };
 
         return labels[type] || "Element";
@@ -1188,6 +1192,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 box.innerHTML =
                     "<div style='padding:100px 20px;text-align:center;background:#f3f3f3;color:#999;'>Wybierz zdjęcie</div>";
             }
+
+        } else if (item.type === "color_panel") {
+
+            const hex = /^#[0-9a-f]{6}$/i.test(item.panel_color || '') ? item.panel_color : '#ffffff';
+            const alpha = Math.max(0, Math.min(100, Number(item.panel_opacity) ?? 100)) / 100;
+            const red = parseInt(hex.slice(1,3),16);
+            const green = parseInt(hex.slice(3,5),16);
+            const blue = parseInt(hex.slice(5,7),16);
+            box.style.height = (Number(item.element_height) || 200) + 'px';
+            box.style.background = 'rgba(' + red + ',' + green + ',' + blue + ',' + alpha + ')';
+            box.style.minHeight = '0';
 
         } else if (item.type === "separator") {
 
@@ -1531,6 +1546,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
             element.style.width =
                 item.element_width + "%";
+            if (item.type === 'color_panel') element.style.minWidth = '0';
 
             element.style.minHeight =
                 Number(item.element_height) > 0
@@ -1556,7 +1572,11 @@ document.addEventListener("DOMContentLoaded", function () {
             };
 
             element.style.zIndex =
-                layerMap[item.type] || 100;
+                (item.type === 'color_panel')
+                    ? Math.max(0, Math.min(50, Number(item.panel_layer) || 2))
+                    : (item.type === 'image' && Number(item.image_layer) >= 0
+                        ? Math.max(0, Math.min(50, Number(item.image_layer)))
+                        : (layerMap[item.type] || 100));
 
             if (selectedIds.has(item.id)) {
                 element.classList.add("selected", "group-selected");
@@ -2070,9 +2090,33 @@ document.addEventListener("DOMContentLoaded", function () {
         properties.appendChild(flowTip);
 
 
-        window.builderTypography.panel(properties, item, render, 'fve-field');
+        if (item.type !== 'color_panel') window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
+        if (item.type === 'color_panel') {
+            const backgroundField = document.createElement('label');
+            backgroundField.className = 'fve-field';
+            backgroundField.textContent = 'Kolor panelu';
+            const colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.value = /^#[0-9a-f]{6}$/i.test(item.panel_color || '') ? item.panel_color : '#ffffff';
+            colorInput.addEventListener('input', () => {
+                item.panel_color = colorInput.value;
+                const node = content.querySelector('.fve-element[data-id="' + CSS.escape(item.id) + '"]');
+                if (node?.firstElementChild) {
+                    const hex = colorInput.value;
+                    const rgb = [1,3,5].map(i => parseInt(hex.slice(i,i+2),16));
+                    node.firstElementChild.style.background = 'rgba(' + rgb.join(',') + ',' +
+                        (Math.max(0, Math.min(100, Number(item.panel_opacity ?? 100))) / 100) + ')';
+                }
+            });
+            backgroundField.appendChild(colorInput);
+            properties.appendChild(backgroundField);
+            field('Przezroczystość panelu (%)', 'number', item.panel_opacity ?? 100,
+                value => { item.panel_opacity = Math.max(0, Math.min(100, Number(value) || 0)); render(); },
+                { min:0, max:100, step:1 });
+        }
+
         if (item.type === 'process_steps') {
             window.FoodfotoProcess.panel(properties, item, render);
         }
@@ -2871,6 +2915,71 @@ document.addEventListener("DOMContentLoaded", function () {
                     style: { font_size: 17, line_height: 1.5 }
                 });
             }
+        } else if (preset === 'contact-finale') {
+            // Two stacked bands built from regular, separately editable CMS elements.
+            // Photo slots intentionally start empty: the editor chooses photos from
+            // their own library without uploading screenshots or hard-coding URLs.
+            const add = (type, dx, dy, width, extra = {}) => insert(type, {
+                position_x: dx, position_y: startY + dy, element_width: width, ...extra
+            });
+            const panel = (x, y, width, height, color, opacity, layer = 2) =>
+                add('color_panel', x, y, width, {
+                    element_height: height, panel_color: color,
+                    panel_opacity: opacity, panel_layer: layer
+                });
+            const heading = (content, x, y, width, size, color, extra = {}) =>
+                add('heading', x, y, width, {
+                    content, heading_level: 'h2', semantic_tag: 'h2',
+                    style: {
+                        font_size: size, font_weight: 400, line_height: 1.09,
+                        font_family: 'Bodoni Moda', color, ...extra
+                    }
+                });
+            const label = (content, x, y, width, color) =>
+                add('text', x, y, width, {
+                    content, semantic_tag: 'small',
+                    style: {
+                        font_size: 13, font_weight: 600, line_height: 1.65,
+                        letter_spacing: 3.5, color, font_family: 'Inter'
+                    }
+                });
+            // Upper band — photography is placed between the dark base and overlay.
+            panel(0, 0, 100, 385, '#393632', 100, 1);
+            add('image', 0, 0, 100, {
+                image_height: 385, element_height: 385, image_fit: 'cover',
+                image_placeholder_hidden: true, image_layer: 10
+            });
+            panel(0, 0, 52, 385, '#1c1a19', 38, 15);
+            label('DOBRA FOTOGRAFIA\\nOTWIERA APETYT', 7, 6, 42, '#ffffff');
+            heading('Smak zaczyna się\\nod obrazu', 7, 15, 51, 72, '#ffffff');
+
+            // Lower contact band — white background, two columns and a plant photo.
+            const lower = 385 / 9;
+            panel(0, lower, 100, 355, '#ffffff', 100, 2);
+            label('MASZ POMYSŁ NA SESJĘ?', 8, lower + 6, 36, '#595d51');
+            heading('Porozmawiajmy\\no Twoim projekcie', 8, lower + 12, 39, 55, '#171717');
+            add('text', 8, lower + 30, 39, {
+                content: 'Chętnie odpowiem na pytania, doradzę i wspólnie ustalimy, jak najlepiej pokazać Twój produkt lub markę.',
+                semantic_tag: 'p',
+                style: {font_size: 18, line_height: 1.65, color: '#5f5f5f'}
+            });
+            panel(51, lower + 9, .2, 178, '#9c9c9c', 75, 30);
+            add('text', 56, lower + 15, 6, {
+                content: '✉', semantic_tag: 'div',
+                style: {font_size: 49, color: '#252525', line_height: 1}
+            });
+            label('NAPISZ DO MNIE', 64, lower + 17, 22, '#2e2e2e');
+            add('button', 64, lower + 23, 20, {
+                content: 'magda@foodfoto.pl  →', button_link: 'mailto:magda@foodfoto.pl',
+                button_new_tab: false, button_background: '#ffffff',
+                button_border_color: '#333333', button_border_width: 1,
+                button_radius: 0, button_padding_y: 14, button_padding_x: 12,
+                style: {color: '#222222', font_size: 17, letter_spacing: .3}
+            });
+            add('image', 84, lower, 16, {
+                image_height: 355, element_height: 355, image_fit: 'cover',
+                image_placeholder_hidden: true, image_layer: 24
+            });
         } else if (preset === 'contact-banner') {
             insert('image', {
                 position_x: 5, position_y: startY, element_width: 90,
