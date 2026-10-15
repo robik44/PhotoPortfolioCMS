@@ -33,7 +33,9 @@
         // suddenly turn reflow off and let the text overlap the image.
         other.y < bottom + gap - .5 &&
         other.y + other.height > source.y + .5 &&
-        (other.mode !== 'auto' || source.index > other.index)
+        // Earlier auto sections are predecessors, not targets. A newly
+        // placed text must never push an earlier auto section backwards.
+        (other.mode !== 'auto' || other.y > source.y + .5)
       );
       if (conflicts.length) {
         const firstY = Math.min(...conflicts.map(row => row.y));
