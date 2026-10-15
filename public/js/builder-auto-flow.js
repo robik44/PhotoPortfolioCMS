@@ -11,6 +11,9 @@
       id: String(v.id), index,
       type: String(v.type || ''),
       group: typeof v.flowGroup === 'string' && v.flowGroup ? v.flowGroup : null,
+      insertionTargets: Array.isArray(v.insertionTargets) ? v.insertionTargets.map(String) : null,
+      insertionExisting: Array.isArray(v.insertionExisting) ? v.insertionExisting.map(String) : null,
+      insertionTargetTop: v.insertionTargetTop,
       x: n(v.x), y: n(v.y),
       width: Math.max(0, n(v.width)), height: Math.max(0, n(v.height)),
       baseline: Math.max(0, n(v.baseline)),
@@ -36,17 +39,31 @@
       const at = Math.min(...members.map(item => item.y));
       const bottom = Math.max(...members.map(item => item.y + item.height));
       if (bottom <= at) continue;
-      // Keep any already empty space between the click and the next row.
-      // Shift only by the missing height so inserted layouts do not create
-      // enormous blank bands below them.
-      const nextStarts = rows
-        .filter(item => item.group !== group && item.y >= at - .1)
-        .map(item => item.y);
-      const nextY = nextStarts.length ? Math.min(...nextStarts) : Infinity;
-      const delta = Math.max(0, bottom + gap - nextY);
+      const insertion = members.find(item => item.insertionTargets?.length);
+      let delta = 0;
+      let targets = null;
+      let existing = null;
+      if (insertion) {
+        // An old card can be BELOW the click in the editor, but ABOVE it in
+        // saved coordinates after previous flow and manual anchors. Use the
+        // pre-insertion visual snapshot rather than raw Y for these cards.
+        targets = insertion.insertionTargets;
+        existing = insertion.insertionExisting || [];
+        const visualNext = n(insertion.insertionTargetTop, Infinity);
+        delta = Math.max(0, bottom + gap - visualNext);
+      } else {
+        // Legacy presets without insertion metadata retain earlier behavior.
+        const nextStarts = rows
+          .filter(item => item.group !== group && item.y >= at - .1)
+          .map(item => item.y);
+        const nextY = nextStarts.length ? Math.min(...nextStarts) : Infinity;
+        delta = Math.max(0, bottom + gap - nextY);
+      }
       if (delta > .5) events.push({
         at, delta, sourceId: 'group:' + group,
-        groupId: group, kind: 'insertion', targets: [],
+        groupId: group, kind: 'insertion', targets: targets || [],
+        explicitTargets: targets ? new Set(targets) : null,
+        existingIds: existing ? new Set(existing) : null,
         sources: [{id:'group:' + group,targets:[]}]
       });
     }
@@ -103,11 +120,19 @@
     const layout = () => rows.map(row => {
       const contributions = {};
       for (const event of grouped) {
-        if (row.y < event.at - .1 ||
-          (event.kind === 'insertion' && row.group === event.groupId) ||
+        if (event.kind === 'insertion') {
+          if (row.group === event.groupId) continue;
+          if (event.explicitTargets) {
+            // Original elements follow the visual snapshot. Elements created
+            // later can still follow by position, with their saved anchor
+            // cancelling previously inherited shifts.
+            const original = event.existingIds?.has(row.id);
+            if (original ? !event.explicitTargets.has(row.id) : row.y < event.at - .1) continue;
+          } else if (row.y < event.at - .1) continue;
+        } else if (row.y < event.at - .1 ||
           (event.kind === 'collision' &&
             event.sources.some(source => source.id === row.id)) ||
-          (event.kind !== 'collision' && row.id === event.sourceId)) continue;
+          row.id === event.sourceId) continue;
         contributions[event.sourceId] = (contributions[event.sourceId] || 0) + event.delta;
       }
       const shift = Object.values(contributions).reduce((sum, x) => sum + x, 0);
