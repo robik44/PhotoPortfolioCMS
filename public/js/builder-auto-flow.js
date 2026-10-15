@@ -44,13 +44,11 @@
       let targets = null;
       let existing = null;
       if (insertion) {
-        // An old card can be BELOW the click in the editor, but ABOVE it in
-        // saved coordinates after previous flow and manual anchors. Use the
-        // pre-insertion visual snapshot rather than raw Y for these cards.
         targets = insertion.insertionTargets;
         existing = insertion.insertionExisting || [];
-        const visualNext = n(insertion.insertionTargetTop, Infinity);
-        delta = Math.max(0, bottom + gap - visualNext);
+        // The current visible Y may differ from both the saved Y and the
+        // insertion-time snapshot. Resolve the necessary gap after layout(),
+        // using the actual group and target positions, not a static delta.
       } else {
         // Legacy presets without insertion metadata retain earlier behavior.
         const nextStarts = rows
@@ -59,7 +57,7 @@
         const nextY = nextStarts.length ? Math.min(...nextStarts) : Infinity;
         delta = Math.max(0, bottom + gap - nextY);
       }
-      if (delta > .5) events.push({
+      if (delta > .5 || (targets && targets.length)) events.push({
         at, delta, sourceId: 'group:' + group,
         groupId: group, kind: 'insertion', targets: targets || [],
         explicitTargets: targets ? new Set(targets) : null,
@@ -149,6 +147,22 @@
       const positions = new Map(layout().map(row => [row.id, row.top]));
       let changed = false;
       for (const event of grouped) {
+        if (event.kind === 'insertion' && event.explicitTargets) {
+          const members = groups.get(event.groupId) || [];
+          const bottom = Math.max(...members.map(member =>
+            (positions.get(member.id) ?? member.y) + member.height)) + gap;
+          const targetTops = [...event.explicitTargets]
+            .filter(id => positions.has(id))
+            .map(id => positions.get(id));
+          if (members.length && targetTops.length) {
+            const deficit = bottom - Math.min(...targetTops);
+            if (deficit > .5) {
+              event.delta += deficit;
+              changed = true;
+            }
+          }
+          continue;
+        }
         if (event.kind !== 'collision') continue;
         let required = 0;
         let owner = event.sourceId;
