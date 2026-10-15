@@ -109,6 +109,7 @@
             data-flow-mode="{{ ($element['flow_mode'] ?? 'free') === 'auto' ? 'auto' : 'free' }}"
             data-flow-baseline="{{ max(0, (float) ($element['flow_base_height'] ?? 0)) }}"
             data-flow-anchor="{{ (float) ($element['flow_anchor'] ?? 0) }}"
+            data-flow-contributions="{{ isset($element['flow_anchor_contributions']) ? json_encode((object) $element['flow_anchor_contributions']) : '' }}"
             data-base-top="{{ $top }}"
         >
             @if($type === 'image')
@@ -323,6 +324,9 @@
         const nodes = Array.from(canvas.querySelectorAll('.page-element'));
         const model = nodes.map(node => ({
             id: node.dataset.builderIndex,
+            type: node.className.match(/page-element-(\w+)/)?.[1] || '',
+            anchorContributions: node.dataset.flowContributions
+                ? JSON.parse(node.dataset.flowContributions) : null,
             x: node.offsetLeft,
             y: Number(node.dataset.baseTop) || 0,
             width: node.offsetWidth,
