@@ -187,6 +187,11 @@ class GalleryController extends Controller
         $hasPublished = \App\Support\GalleryVisualLayout::read(
             $settings, \App\Support\GalleryVisualLayout::key($scope, 'published', $gallery->id)
         ) !== null;
+        $hasSharedPublished = \App\Support\GalleryVisualLayout::read(
+            $settings, \App\Support\GalleryVisualLayout::key('global', 'published')
+        ) !== null;
+        $hasSharedDraftChanges = \App\Support\GalleryVisualLayout::hasUnpublishedSharedChanges($settings);
+        $galleryChoices = Gallery::query()->orderBy('title')->get(['id', 'title', 'slug']);
         $relatedServices = [
             'zywnosc' => ['Fotografia żywności', 'Fotografia kulinarna'],
             'stylizacja' => ['Food styling i stylizacja żywności'],
@@ -194,7 +199,8 @@ class GalleryController extends Controller
             'czasopisma' => ['Fotografia kulinarna'],
         ][$gallery->slug] ?? [];
         return view('admin.galleries.visual-builder',
-            compact('gallery', 'scope', 'layout', 'hasPublished', 'relatedServices'));
+            compact('gallery', 'scope', 'layout', 'hasPublished', 'hasSharedPublished',
+                'hasSharedDraftChanges', 'galleryChoices', 'relatedServices'));
     }
 
     public function saveVisualBuilder(\Illuminate\Http\Request $request, Gallery $gallery)
@@ -229,6 +235,12 @@ class GalleryController extends Controller
             return back()->withErrors(['layout' => 'Niepoprawny format projektu galerii.']);
         }
         $layout = \App\Support\GalleryVisualLayout::validate($decoded);
+        if ($scope === 'gallery' && $action === 'publish' &&
+            \App\Support\GalleryVisualLayout::hasUnpublishedSharedChanges($settings)) {
+            return back()->withErrors(['layout' =>
+                'Wspólny szablon ma nieopublikowany szkic. Aby uniknąć różnic między podglądem a publiczną galerią, najpierw opublikuj lub odrzuć wspólny szkic. Zapis indywidualnego szkicu nadal jest możliwy.'
+            ])->withInput();
+        }
         // Text edits remain drafts until explicitly published. Publishing updates
         // the canonical Gallery fields, never separate SEO metadata.
         $textChanges = null;
@@ -259,14 +271,12 @@ class GalleryController extends Controller
                     return back()->withErrors(['layout' => 'Element obrazu wskazuje zdjęcie spoza tej galerii.']);
                 }
             }
-            // Compute overrides against the published global design, never
-            // against a not-yet-published global draft.
-            $base = \App\Support\GalleryVisualLayout::merge(
-                \App\Support\GalleryVisualLayout::defaults(),
-                \App\Support\GalleryVisualLayout::read(
-                    $settings, \App\Support\GalleryVisualLayout::key('global', 'published')
-                ) ?? []
-            );
+            // Preview inheritance comes from the shared *draft*. Compare
+            // against that same baseline so inherited shared styles do not
+            // accidentally become permanent per-gallery overrides.
+            // Publishing local changes is blocked while the shared draft
+            // differs from published state (see guard above).
+            $base = \App\Support\GalleryVisualLayout::sharedDraft($settings);
             $stored = \App\Support\GalleryVisualLayout::diff($base, $layout);
             $stored['version'] = 1;
         }
