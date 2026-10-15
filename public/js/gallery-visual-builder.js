@@ -521,6 +521,20 @@
         scrollArea.scrollLeft=0;
         scheduleFit();
     });
+    const gallerySwitch=$('#gv-gallery-switch');
+    gallerySwitch.addEventListener('change', event => {
+        const target=event.target.value;
+        if (dirty && !confirm('Masz niezapisane zmiany. Przejść do innej galerii bez ich zapisywania?')) {
+            gallerySwitch.value=window.location.href.split('#')[0];
+            // Restore selected option even when browser normalizes query params.
+            [...gallerySwitch.options].forEach(opt=>{
+                opt.selected=opt.value.includes('/galleries/'+gallery.id+'/builder');
+            });
+            return;
+        }
+        dirty=false;
+        window.location.assign(target);
+    });
     focusButton.addEventListener('click',()=>setFocus(!root.classList.contains('gv-focus')));
     document.addEventListener('keydown',event=>{
         if(event.key==='Escape'&&root.classList.contains('gv-focus'))setFocus(false);
