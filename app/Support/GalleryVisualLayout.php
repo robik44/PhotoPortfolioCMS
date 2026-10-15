@@ -81,15 +81,33 @@ final class GalleryVisualLayout
         return self::merge(self::merge(self::defaults(), $global ?? []), $local ?? []);
     }
 
+    /** Shared baseline used by the editor; drafts are visible across gallery previews. */
+    public static function sharedDraft(array $settings): array
+    {
+        $published = self::read($settings, self::key('global', 'published')) ?? [];
+        $draft = self::read($settings, self::key('global', 'draft'));
+        return self::merge(self::defaults(), $draft ?? $published);
+    }
+
+    /** Whether an unpublished shared draft differs from the public shared template. */
+    public static function hasUnpublishedSharedChanges(array $settings): bool
+    {
+        $draft = self::read($settings, self::key('global', 'draft'));
+        if ($draft === null) return false;
+        $published = self::read($settings, self::key('global', 'published')) ?? [];
+        return self::diff(
+            self::merge(self::defaults(), $published),
+            self::merge(self::defaults(), $draft)
+        ) !== [];
+    }
+
+    /**
+     * Editor preview: show the current shared DRAFT on any gallery, layered
+     * with that gallery's own draft overrides. Published pages remain isolated.
+     */
     public static function draft(array $settings, string $scope, int $galleryId): array
     {
-        $globalPublished = self::read($settings, self::key('global', 'published')) ?? [];
-        // Individual drafts must be based on the *published* global template,
-        // not a work-in-progress global draft which visitors cannot yet see.
-        $global = $scope === 'global'
-            ? (self::read($settings, self::key('global', 'draft')) ?? $globalPublished)
-            : $globalPublished;
-        $global = self::merge(self::defaults(), $global);
+        $global = self::sharedDraft($settings);
         if ($scope === 'global') return $global;
         $local = self::read($settings, self::key('gallery', 'draft', $galleryId))
             ?? self::read($settings, self::key('gallery', 'published', $galleryId))
