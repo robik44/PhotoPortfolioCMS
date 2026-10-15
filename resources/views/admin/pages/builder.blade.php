@@ -2036,21 +2036,29 @@ document.addEventListener("DOMContentLoaded", function () {
         const flowInput = document.createElement('input');
         flowInput.type = 'checkbox';
         flowInput.className = 'fve-auto-flow-input';
-        flowInput.checked = item.flow_mode === 'auto';
+        const flowMembers = item.flow_group
+            ? data.sections.filter(section => section.flow_group === item.flow_group)
+            : [item];
+        flowInput.checked = flowMembers.some(section => section.flow_mode === 'auto');
         flowInput.setAttribute('aria-label', 'Automatyczny układ — odsuwaj elementy poniżej');
         flowInput.addEventListener('change', () => {
-            if (flowInput.checked) {
-                const node = Array.from(content.querySelectorAll('.fve-element')).find(n => n.dataset.id === item.id);
-                item.flow_base_height = node?.offsetHeight || Number(item.element_height) || 50;
-                item.flow_mode = 'auto';
-            } else {
-                item.flow_mode = 'free';
-            }
+            flowMembers.forEach(section => {
+                if (flowInput.checked) {
+                    const node = Array.from(content.querySelectorAll('.fve-element'))
+                        .find(n => n.dataset.id === section.id);
+                    section.flow_base_height = node?.offsetHeight || Number(section.element_height) || 50;
+                    section.flow_mode = 'auto';
+                } else {
+                    section.flow_mode = 'free';
+                }
+            });
             render();
         });
         flowWrap.appendChild(flowInput);
         const flowLabel = document.createElement('span');
-        flowLabel.textContent = 'Automatyczny układ — odsuwaj elementy poniżej';
+        flowLabel.textContent = item.flow_group
+            ? 'Automatyczny układ całej sekcji — odsuwaj elementy poniżej'
+            : 'Automatyczny układ — odsuwaj elementy poniżej';
         flowWrap.appendChild(flowLabel);
         properties.appendChild(flowWrap);
         const flowTip = document.createElement('small');
