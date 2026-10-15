@@ -297,29 +297,32 @@
 
 </style>
 
+<script src="{{ asset('js/builder-auto-flow.js') }}?v={{ @filemtime(public_path('js/builder-auto-flow.js')) ?: 1 }}"></script>
 <script>
 (() => {
     const canvas = document.getElementById(@json($canvasId));
     if (!canvas) return;
 
     const fit = () => {
-        const entries = Array.from(canvas.querySelectorAll('.page-element'))
-            .sort((a, b) => Number(a.dataset.baseTop) - Number(b.dataset.baseTop));
-        const sources = [];
+        const nodes = Array.from(canvas.querySelectorAll('.page-element'));
+        const model = nodes.map(node => ({
+            id: node.dataset.builderIndex,
+            x: node.offsetLeft,
+            y: Number(node.dataset.baseTop) || 0,
+            width: node.offsetWidth,
+            height: node.offsetHeight,
+            baseline: Number(node.dataset.flowBaseline) || 0,
+            anchor: Number(node.dataset.flowAnchor) || 0,
+            mode: node.dataset.flowMode || 'free'
+        }));
+        const plan = window.BuilderAutoFlow.calculate(model);
+        const positions = new Map(plan.placements.map(entry => [entry.id, entry.top]));
         let maxBottom = 900;
-        for (const element of entries) {
-            const baseTop = Number(element.dataset.baseTop) || 0;
-            const shift = sources.reduce((sum, source) =>
-                sum + (baseTop >= source.bottom - 0.5 ? source.delta : 0), 0);
-            element.style.top = (baseTop + shift - (Number(element.dataset.flowAnchor) || 0)) + 'px';
-            const height = element.offsetHeight;
-            if (element.dataset.flowMode === 'auto') {
-                const baseline = Number(element.dataset.flowBaseline) || height;
-                const delta = height - baseline;
-                if (Math.abs(delta) > 0.5) sources.push({bottom: baseTop + baseline, delta});
-            }
-            maxBottom = Math.max(maxBottom, element.offsetTop + height + 40);
-        }
+        nodes.forEach(node => {
+            const top = positions.get(node.dataset.builderIndex);
+            if (top !== undefined) node.style.top = top + 'px';
+            maxBottom = Math.max(maxBottom, node.offsetTop + node.offsetHeight + 40);
+        });
         const next = Math.ceil(maxBottom) + 'px';
         if (canvas.style.minHeight !== next) canvas.style.minHeight = next;
     };
