@@ -189,44 +189,8 @@ class HomeBuilderController extends Controller
             $changed = true;
         }
 
-        $portfolioHeadingIndex = $findIndex($sections, fn ($item) => ($item["id"] ?? null) === "portfolio-heading");
-
-        if ($portfolioHeadingIndex === null) {
-            $portfolioHeadingIndex = $findIndex($sections, fn ($item) =>
-                ($item["type"] ?? null) === "heading"
-                && mb_strtolower(trim((string) ($item["content"] ?? ""))) === "portfolio"
-            );
-
-            if ($portfolioHeadingIndex !== null) {
-                $sections[$portfolioHeadingIndex]["id"] = "portfolio-heading";
-                $changed = true;
-            }
-        }
-
-        if ($portfolioHeadingIndex === null) {
-            $sections[] = [
-                "id" => "portfolio-heading",
-                "type" => "heading",
-                "content" => "Portfolio",
-                "heading_level" => "h2",
-                "semantic_tag" => "h2",
-                "position_x" => 7,
-                "position_y" => 90,
-                "element_width" => 40,
-                "style" => [
-                    "font_size" => 42,
-                    "font_weight" => 400,
-                    "color" => "#222222",
-                    "text_align" => "left",
-                    "line_height" => 1.2,
-                    "letter_spacing" => 0,
-                ],
-            ];
-            $changed = true;
-        } elseif (empty($sections[$portfolioHeadingIndex]["semantic_tag"])) {
-            $sections[$portfolioHeadingIndex]["semantic_tag"] = "h2";
-            $changed = true;
-        }
+        // A removed Portfolio heading must stay removed. Navigation to the
+        // gallery is now anchored to the gallery itself in the public canvas.
 
         if ($changed) {
             $content["sections"] = $sections;
