@@ -16,7 +16,7 @@ final class GalleryVisualLayout
 {
     public static function defaults(): array
     {
-        return [
+        $defaults = [
             'version' => 1,
             'canvas_height' => 900,
             'columns' => 4,
@@ -37,6 +37,13 @@ final class GalleryVisualLayout
             ],
             'extras' => [],
         ];
+        foreach ($defaults['blocks'] as &$block) {
+            if (isset($block['font'])) {
+                $block += ['align' => 'left', 'italic' => false, 'uppercase' => false, 'opacity' => 100];
+            }
+        }
+        unset($block);
+        return $defaults;
     }
 
     public static function key(string $scope, string $state, ?int $id = null): string
@@ -101,6 +108,11 @@ final class GalleryVisualLayout
                 && !array_is_list($value) && !array_is_list($base[$key])) {
                 $part = self::diff($base[$key], $value);
                 if ($part) $result[$key] = $part;
+            } elseif (is_numeric($base[$key]) && is_numeric($value)
+                && (float) $base[$key] === (float) $value) {
+                // JSON and validation turn 48 into 48.0; that must NOT become a
+                // gallery override which would freeze future shared changes.
+                continue;
             } elseif ($base[$key] !== $value) {
                 $result[$key] = $value;
             }
