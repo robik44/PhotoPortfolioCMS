@@ -13,6 +13,17 @@
     }
     const scope = initial.scope;
     let layout = initial.layout;
+    // The Laravel default is an empty PHP array, serialized as [].
+    // Keeping it as a JS array causes positions assigned under photo IDs
+    // (e.g. 90) to serialize as [null, null, ...] and fail PHP validation.
+    // Always use an ID-keyed object for free-position photo coordinates.
+    const normalizePositions = positions => {
+        if (!positions || typeof positions !== 'object') return {};
+        return Object.fromEntries(Object.entries(positions).filter(([id, value]) =>
+            /^[1-9][0-9]*$/.test(id) && value && typeof value === 'object' &&
+            !Array.isArray(value)));
+    };
+    layout.individual_photos = normalizePositions(layout.individual_photos);
     let selected = 'title';
     let device = 'desktop';
     let snap = true;
@@ -96,6 +107,9 @@
     };
     const photoPosition = (id, index) => {
         const k=String(id);
+        if (!layout.individual_photos || Array.isArray(layout.individual_photos)) {
+            layout.individual_photos = normalizePositions(layout.individual_photos);
+        }
         if (!layout.individual_photos[k]) {
             const col=index % 4, row=Math.floor(index/4);
             layout.individual_photos[k]={x:layout.blocks.photos.x+col*22,
@@ -530,6 +544,7 @@
         window.location.reload();
     });
     root.querySelector('form').addEventListener('submit',e=>{
+        layout.individual_photos = normalizePositions(layout.individual_photos);
         $('#gv-payload').value=JSON.stringify(layout);
         if(e.submitter?.value==='unpublish'&&!confirm(
             'Wyłączyć opublikowany układ? Strona wróci do wcześniejszego szablonu albo do szablonu wspólnego.'
