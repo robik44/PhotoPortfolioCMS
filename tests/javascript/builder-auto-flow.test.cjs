@@ -107,3 +107,52 @@ test('production-like older process and large photo: one-pixel drag does not swa
         previous = positions;
     }
 });
+
+test('multi-element image/text preset fits at clicked row and moves all cards in unison', () => {
+    const group = 'inserted-layout';
+    const rows = [
+        {id:'existing',mode:'free',x:0,y:100,width:1250,height:310},
+        {id:'photo',mode:'auto',flowGroup:group,x:70,y:500,width:574,height:390},
+        {id:'heading',mode:'auto',flowGroup:group,x:770,y:545,width:450,height:62},
+        {id:'paragraph',mode:'auto',flowGroup:group,x:770,y:653,width:450,height:80},
+        {id:'button',mode:'auto',flowGroup:group,x:770,y:788,width:280,height:46},
+        {id:'card1',mode:'free',x:50,y:570,width:320,height:420},
+        {id:'card2',mode:'free',x:400,y:570,width:320,height:420},
+        {id:'card3',mode:'free',x:750,y:570,width:320,height:420}
+    ];
+    assert.equal(top(rows,'existing'),100);
+    assert.equal(top(rows,'photo'),500);
+    assert.equal(top(rows,'heading'),545);
+    assert.equal(top(rows,'paragraph'),653);
+    assert.equal(top(rows,'button'),788);
+    for(const id of ['card1','card2','card3']) assert.equal(top(rows,id),904);
+});
+
+test('growing a paragraph expands its whole preset slot', () => {
+    const rows = [
+        {id:'photo',flowGroup:'p',mode:'auto',x:0,y:300,width:600,height:390},
+        {id:'paragraph',flowGroup:'p',mode:'auto',x:650,y:400,width:500,height:400},
+        {id:'below',mode:'free',x:0,y:500,width:1200,height:300}
+    ];
+    assert.equal(top(rows,'photo'),300);
+    assert.equal(top(rows,'paragraph'),400);
+    assert.equal(top(rows,'below'),814);
+    rows[1].height = 500;
+    assert.equal(top(rows,'below'),914);
+});
+
+test('two inserted preset groups stay ordered, aligned and independently editable', () => {
+    const rows = [
+        {id:'first',flowGroup:'a',mode:'auto',x:0,y:300,width:600,height:390},
+        {id:'second',flowGroup:'b',mode:'auto',x:0,y:500,width:600,height:390},
+        {id:'old',mode:'free',x:0,y:700,width:600,height:300}
+    ];
+    assert.equal(top(rows,'first'),300);
+    assert.equal(top(rows,'second'),704);
+    assert.equal(top(rows,'old'),1108);
+});
+
+test('a preset appended at the bottom leaves its saved top unchanged', () => {
+    const rows = [{id:'last',flowGroup:'p',mode:'auto',x:0,y:300,width:800,height:500}];
+    assert.equal(top(rows,'last'),300);
+});
