@@ -36,8 +36,16 @@
       const at = Math.min(...members.map(item => item.y));
       const bottom = Math.max(...members.map(item => item.y + item.height));
       if (bottom <= at) continue;
-      events.push({
-        at, delta: bottom - at + gap, sourceId: 'group:' + group,
+      // Keep any already empty space between the click and the next row.
+      // Shift only by the missing height so inserted layouts do not create
+      // enormous blank bands below them.
+      const nextStarts = rows
+        .filter(item => item.group !== group && item.y >= at - .1)
+        .map(item => item.y);
+      const nextY = nextStarts.length ? Math.min(...nextStarts) : Infinity;
+      const delta = Math.max(0, bottom + gap - nextY);
+      if (delta > .5) events.push({
+        at, delta, sourceId: 'group:' + group,
         groupId: group, kind: 'insertion', targets: [],
         sources: [{id:'group:' + group,targets:[]}]
       });
