@@ -47,7 +47,10 @@ class GalleryVisualBuilderTest extends TestCase
             ->assertSee('Wizualny builder galerii')
             ->assertSee('Fotografia żywności')
             ->assertSee('Zapisz szkic')
-            ->assertSee('Opublikuj układ');
+            ->assertSee('Opublikuj układ')
+            ->assertSee('Jeden układ komputerowy dla wszystkich ekranów')
+            ->assertDontSee('data-gv-device="tablet"', false)
+            ->assertDontSee('data-gv-device="mobile"', false);
     }
 
     public function test_saving_draft_does_not_change_public_gallery_or_seo(): void
@@ -77,6 +80,9 @@ class GalleryVisualBuilderTest extends TestCase
         $public = $this->get(route('portfolio.gallery', $gallery))->assertOk()
             ->assertSee('gv-public-canvas')
             ->assertSee('data-gv-id="title"', false)
+            ->assertSee('content="width=1400"', false)
+            ->assertSee('width:1200px;min-width:1200px')
+            ->assertDontSee('@media(max-width:900px)')
             ->assertSee('Zupa pomidorowa')
             ->assertSee('data-photo-title="Zupa"', false)
             ->assertSee('gallery-item')
