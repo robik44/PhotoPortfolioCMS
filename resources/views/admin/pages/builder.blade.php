@@ -1405,6 +1405,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 id: item.id,
                 type: item.type,
                 flowGroup: item.flow_group || null,
+                insertionTargets: item.flow_insertion_targets || null,
+                insertionExisting: item.flow_insertion_existing || null,
+                insertionTargetTop: item.flow_insertion_target_top ?? null,
                 anchorContributions: item.flow_anchor_contributions ?? null,
                 x: (Number(item.position_x) || 0) * 14,
                 y: item.id === overrideId ? overrideYPx : (Number(item.position_y) || 0) * 9,
@@ -2653,6 +2656,18 @@ document.addEventListener("DOMContentLoaded", function () {
         // The normal preset keeps its designed horizontal alignment.
         const clickedPoint = nextInsertionPoint;
         const startY = clickedPoint ? clickedPoint.y : Math.max(5, lastBottom + 8);
+        // Capture the VISUAL position of downstream content before adding the
+        // preset; stored Y can be far above the rendered Y due to old anchors.
+        const beforeInsertion = Array.from(content.querySelectorAll('.fve-element'))
+            .map(node => ({id:node.dataset.id, top:node.offsetTop, height:node.offsetHeight}));
+        const clickTop = startY * 9;
+        const visibleBelow = clickedPoint
+            ? beforeInsertion.filter(row => row.top >= clickTop - 50 && row.top + row.height > clickTop - 1)
+            : [];
+        const firstBelow = visibleBelow.length ? Math.min(...visibleBelow.map(row => row.top)) : null;
+        const downstreamIds = firstBelow === null ? [] : beforeInsertion
+            .filter(row => row.top >= firstBelow - 24)
+            .map(row => row.id);
         const created = [];
         const flowGroup = 'layout-' + Date.now() + '-' + Math.random().toString(36).slice(2);
         const useGroupFlow = preset !== 'foodfoto-home';
@@ -2884,6 +2899,17 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
+        // Explicitly mark pre-existing elements below the clicked location.
+        // This survives save/reload and keeps old rows together even when their
+        // raw coordinates precede the click because of prior visual reflow.
+        if (useGroupFlow && clickedPoint && created.length && downstreamIds.length) {
+            const marker = data.sections.find(row => row.id === created[0]);
+            if (marker) {
+                marker.flow_insertion_targets = downstreamIds;
+                marker.flow_insertion_existing = beforeInsertion.map(row => row.id);
+                marker.flow_insertion_target_top = firstBelow;
+            }
+        }
         // A click is consumed by the complete preset, not by a single child.
         if (clickedPoint) nextInsertionPoint = null;
         selectedIds.clear();
