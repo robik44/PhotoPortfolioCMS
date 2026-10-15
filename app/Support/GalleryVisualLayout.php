@@ -76,9 +76,12 @@ final class GalleryVisualLayout
 
     public static function draft(array $settings, string $scope, int $galleryId): array
     {
-        $global = self::read($settings, self::key('global', 'draft'))
-            ?? self::read($settings, self::key('global', 'published'))
-            ?? [];
+        $globalPublished = self::read($settings, self::key('global', 'published')) ?? [];
+        // Individual drafts must be based on the *published* global template,
+        // not a work-in-progress global draft which visitors cannot yet see.
+        $global = $scope === 'global'
+            ? (self::read($settings, self::key('global', 'draft')) ?? $globalPublished)
+            : $globalPublished;
         $global = self::merge(self::defaults(), $global);
         if ($scope === 'global') return $global;
         $local = self::read($settings, self::key('gallery', 'draft', $galleryId))
