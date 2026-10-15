@@ -228,7 +228,9 @@ final class GalleryVisualLayout
         $block['opacity'] = $limit($block['opacity'] ?? 100, 0, 100);
         if (!in_array($block['align'], ['left','center','right','justify'], true)) $invalid('Niepoprawne wyrównanie tekstu.');
         if (!is_bool($block['italic']) || !is_bool($block['uppercase'])) $invalid('Niepoprawny styl tekstu.');
-        if (!in_array($block['font'] ?? '', ['serif','bodoni','sans','inter'], true)) $invalid('Niepoprawna czcionka.');
+        $catalogFonts = array_keys(app(\App\Services\SiteFontLibrary::class)->catalog()['families']);
+        if (!in_array($block['font'] ?? '', ['serif','bodoni','sans','inter'], true)
+            && !in_array($block['font'] ?? '', $catalogFonts, true)) $invalid('Niepoprawna czcionka.');
         if (!preg_match('/^#[0-9a-f]{6}$/i', (string) ($block['color'] ?? ''))) $invalid('Niepoprawny kolor tekstu.');
     }
 
@@ -238,7 +240,8 @@ final class GalleryVisualLayout
             'serif' => 'Georgia, serif',
             'bodoni' => '"Bodoni Moda", Georgia, serif',
             'inter' => '"Inter", Arial, sans-serif',
-            default => 'Arial, sans-serif',
+            default => \App\Services\SiteFontLibrary::css($choice,
+                app(\App\Services\SiteFontLibrary::class)->catalog()),
         };
     }
 
