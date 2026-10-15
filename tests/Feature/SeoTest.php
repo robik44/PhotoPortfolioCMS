@@ -575,7 +575,7 @@ class SeoTest extends TestCase
         $this->assertSame($before, $builder->fresh()->content);
         $this->assertDatabaseHas('site_settings', [
             'key' => 'home_seo_title',
-            'value' => 'Stylistka żywności i fotografia kulinarna | Magda Gugała',
+            'value' => 'Fotografia żywności i stylistka żywności | Magda Gugała',
         ]);
         $this->get('/')->assertOk()
             ->assertSee('Stylistka żywności i fotografia kulinarna | Magda Gugała', false);
