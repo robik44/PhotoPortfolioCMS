@@ -28,6 +28,54 @@
     heading_font: 'Georgia', body_font: 'Arial', show_arrows: true
   };
   let fontChoices = [];
+  let typographyEditor = null;
+  const activeParts = new WeakMap();
+  function attachTypography(editor) { typographyEditor = editor; }
+  const typographyParts = [
+    ['kicker','Etykieta „JAK PRACUJĘ”','text'],
+    ['title','Nagłówek główny','heading'],
+    ['intro','Opis wprowadzający','text'],
+    ...[1,2,3].flatMap(i => [
+      ['step'+i+'_title','Etap '+i+' — tytuł','heading'],
+      ['step'+i+'_description','Etap '+i+' — opis','text']
+    ])
+  ];
+  function defaultTextStyle(item,key) {
+    const d = item.process_design;
+    const heading = key==='title' || key.endsWith('_title');
+    const kicker = key==='kicker';
+    const title = key==='title';
+    const intro = key==='intro';
+    const size = kicker ? 11 : title ? d.title_size : intro ? d.lead_size : heading ? d.step_title_size : d.step_description_size;
+    const color = kicker ? d.accent : (heading ? d.text : d.muted);
+    return {
+      font_family: kicker || intro || (!heading) ? d.body_font : d.heading_font,
+      font_size: size,
+      font_weight: kicker ? 600 : title ? d.title_weight : heading ? 400 : 400,
+      font_style: 'normal',
+      text_transform: kicker ? 'uppercase' : 'none',
+      text_align: 'left',
+      line_height: kicker ? 1.5 : title ? 1.08 : intro ? 1.62 : heading ? 1.18 : 1.55,
+      letter_spacing: kicker ? .19 : title ? -.025 : 0,
+      letter_spacing_unit: kicker || title ? 'em' : 'px',
+      color,
+      color_alpha: 100,
+      opacity: 100,
+      margin_top: 0,
+      margin_bottom: kicker ? 18 : heading && !title ? 9 : 0
+    };
+  }
+  function typographyItem(item,key) {
+    initialize(item);
+    const type = typographyParts.find(row => row[0]===key)?.[2] || 'text';
+    item.process_typography ??= {};
+    const proxy = item.process_typography[key] ??= {type,style:{}};
+    proxy.type = type;
+    proxy.style = defaultTextStyle(item,key);
+    return proxy;
+  }
+  function activate(item,key) { if (typographyParts.some(part=>part[0]===key)) activeParts.set(item,key); }
+  function currentPart(item) { return activeParts.get(item) || 'title'; }
   function configure(choices) { fontChoices = Array.isArray(choices) ? choices : []; }
   function initialize(item) {
     if (!item.process_kicker && item.process_kicker !== '') item.process_kicker = 'JAK PRACUJĘ';
@@ -71,7 +119,7 @@
     const found = fontChoices.find(c => c.value === id);
     return found ? found.css : fallback;
   }
-  function render(item) {
+  function render(item, onTextClick = null) {
     initialize(item);
     const d = item.process_design;
     const section = tag('section', 'ff-process');
@@ -98,12 +146,26 @@
       '--ff-process-body-font': fontCSS(d.body_font,'Arial, sans-serif')
     };
     for (const [key,value] of Object.entries(cssVars)) section.style.setProperty(key,String(value));
+    const assignText = (node,key) => {
+      node.dataset.processPart = key;
+      if (typographyEditor) typographyEditor.apply(node, typographyItem(item,key));
+      if (onTextClick) {
+        node.style.cursor = 'text';
+        node.addEventListener('mousedown', event => event.stopPropagation());
+        node.addEventListener('click', event => {
+          event.stopPropagation();
+          activate(item,key);
+          onTextClick(key);
+        });
+      }
+      return node;
+    };
     const intro = tag('div','ff-process-intro');
     const leadLeft = tag('div');
-    leadLeft.appendChild(tag('p','ff-process-eyebrow',item.process_kicker));
-    leadLeft.appendChild(tag('h2','ff-process-title',item.process_title));
+    leadLeft.appendChild(assignText(tag('p','ff-process-eyebrow',item.process_kicker),'kicker'));
+    leadLeft.appendChild(assignText(tag('h2','ff-process-title',item.process_title),'title'));
     intro.appendChild(leadLeft);
-    intro.appendChild(tag('p','ff-process-lead',item.process_intro));
+    intro.appendChild(assignText(tag('p','ff-process-lead',item.process_intro),'intro'));
     section.appendChild(intro);
     const steps = tag('div','ff-process-steps');
     item.process_steps.slice(0,3).forEach((step,index) => {
@@ -112,8 +174,8 @@
       bubble.appendChild(createIcon(iconLabels.some(i=>i[0]===step.icon) ? step.icon : defaultSteps[index].icon));
       col.appendChild(bubble);
       const text = tag('div');
-      text.appendChild(tag('h3','ff-process-step-title',step.title));
-      text.appendChild(tag('p','ff-process-step-description',step.description));
+      text.appendChild(assignText(tag('h3','ff-process-step-title',step.title),'step'+(index+1)+'_title'));
+      text.appendChild(assignText(tag('p','ff-process-step-description',step.description),'step'+(index+1)+'_description'));
       col.appendChild(text);
       steps.appendChild(col);
     });
@@ -166,18 +228,21 @@
       field(container,'Opis',step.description,'textarea',v=>step.description=v);
     });
     const d=item.process_design;
-    sectionTitle('Typografia');
-    const choices = fontChoices.map(c=>[c.value,c.label]);
-    const familyChoices=choices.length?choices:[['Georgia','Georgia'],['Arial','Arial']];
-    field(container,'Czcionka nagłówków',d.heading_font,'select',v=>d.heading_font=v,{choices:familyChoices});
-    field(container,'Czcionka opisów',d.body_font,'select',v=>d.body_font=v,{choices:familyChoices});
-    for(const [key,label,min,max,step] of [
-      ['title_size','Wielkość głównego nagłówka (px)',20,100,.1],
-      ['title_weight','Grubość głównego nagłówka',100,900,100],
-      ['lead_size','Wielkość opisu (px)',10,36,.1],
-      ['step_title_size','Wielkość tytułów etapów (px)',12,40,.1],
-      ['step_description_size','Wielkość opisów etapów (px)',10,30,.1]
-    ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step});
+    sectionTitle('Pełna typografia — pojedyncze napisy');
+    const picker = field(container,'Wybierz napis do edycji',currentPart(item),'select',key=>{
+      activate(item,key);
+      // Rebuild only this module panel; do not discard other elements or settings.
+      container.innerHTML = '';
+      panel(container,item,rerender);
+    },{choices:typographyParts.map(([key,label])=>[key,label])});
+    picker.title = 'Możesz też kliknąć napis bezpośrednio w podglądzie.';
+    const helper=tag('p','', 'Kliknij dowolny napis w sekcji lub wybierz go powyżej. Poniżej masz te same funkcje co w zwykłym polu tekstowym.');
+    helper.style.cssText='font-size:12px;color:#666;line-height:1.5;';
+    container.appendChild(helper);
+    if(typographyEditor){
+      const part=typographyItem(item,currentPart(item));
+      typographyEditor.panel(container,part,rerender,'fve-field');
+    }
     sectionTitle('Kolory');
     for(const [key,label] of [
       ['background','Tło'],['text','Nagłówki'],['muted','Teksty opisów'],
@@ -195,5 +260,5 @@
     ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
     field(container,'Strzałki między etapami',d.show_arrows===false?'no':'yes','select',v=>d.show_arrows=v==='yes',{choices:[['yes','Pokaż'],['no','Ukryj']]});
   }
-  window.FoodfotoProcess={initialize,render,panel,configure};
+  window.FoodfotoProcess={initialize,render,panel,configure,attachTypography,activate,typographyItem,typographyParts};
 })();
