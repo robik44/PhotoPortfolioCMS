@@ -92,6 +92,7 @@
         el.style.left=obj.x+'%';
         el.style.top=obj.y+'px';
         el.style.width=obj.w+'%';
+        el.style.order=Math.round(Number(obj.y)||0);
         if(cssLabel)el.setAttribute('aria-label',cssLabel);
         el.appendChild(inner);
         const handle=html('span','gv-grip','↘');
@@ -350,6 +351,11 @@
         root.querySelectorAll('[data-gv-device]').forEach(b=>b.classList.toggle('active',b===button));render();
     }));
     $('#gv-snap').addEventListener('change',e=>{snap=e.target.checked;});
+    $('#gv-canvas-height').addEventListener('change',e=>{
+        layout.canvas_height=clamp(Number(e.target.value)||900,450,30000);
+        e.target.value=String(layout.canvas_height);
+        progress();render();
+    });
     $('#gv-mode').addEventListener('change',e=>{
         layout.photo_mode=e.target.value;
         if(layout.photo_mode==='free'&&scope==='global'){
