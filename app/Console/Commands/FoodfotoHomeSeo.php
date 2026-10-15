@@ -15,7 +15,8 @@ class FoodfotoHomeSeo extends Command
 {
     protected $signature = 'foodfoto:home-seo
         {--apply : Zapisz SEO strony głównej po utworzeniu kopii zapasowej}
-        {--fix-overlap : Dodatkowo rozróżnij konkurencyjne tytuły stron O mnie, food-styling i galerii stylizacja}';
+        {--fix-overlap : Dodatkowo rozróżnij konkurencyjne tytuły stron O mnie, food-styling i galerii stylizacja}
+        {--update-hero-copy : Dostosuj krótki opis hero, ale tylko jeśli nadal ma znaną, niezmienioną treść}';
 
     protected $description = 'Audyt produkcyjnej strony głównej: nagłówki, teksty, frazy, alty, meta i konkurencja podstron. Bez zmian domyślnie.';
 
@@ -188,6 +189,25 @@ class FoodfotoHomeSeo extends Command
             'home_seo_title' => self::HOME_TITLE,
             'home_seo_description' => self::HOME_DESCRIPTION,
         ];
+        $homeContent = $builder->content;
+        $newHeroCopy = null;
+        if ($this->option('update-hero-copy')) {
+            $oldHero = 'Fotografia kulinarna, fotografia reklamowa i fotografia produktowa dla marek, restauracji i wydawnictw.';
+            $copy = 'Jako stylistka żywności (food stylistka) łączę food styling z fotografią kulinarną i reklamową dla marek.';
+            foreach ($homeContent['sections'] as &$section) {
+                if (($section['id'] ?? '') !== 'hero-text') continue;
+                $current = trim(preg_replace('/\\s+/u', ' ', (string) ($section['content'] ?? '')));
+                if (mb_strtolower($current) !== mb_strtolower($oldHero)) {
+                    $this->warn('Tekst hero jest inny niż audytowany. Nie zmieniam go automatycznie.');
+                    break;
+                }
+                $section['content'] = $copy;
+                $newHeroCopy = $copy;
+                break;
+            }
+            unset($section);
+            if ($newHeroCopy === null) $this->warn('Tekst hero pozostaje bez zmian. Uzupełnimy go ręcznie po analizie treści z CMS.');
+        }
         // Only change exact, previously audited SEO titles. Never overwrite
         // a title the editor has since customized.
         $overlap = collect();
@@ -248,7 +268,7 @@ class FoodfotoHomeSeo extends Command
             return self::FAILURE;
         }
 
-        DB::transaction(function () use ($updates, $overlap) {
+        DB::transaction(function () use ($updates, $overlap, $builder, $homeContent, $newHeroCopy) {
             foreach ($updates as $key => $value) {
                 SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
             }
@@ -258,8 +278,13 @@ class FoodfotoHomeSeo extends Command
                 $entity->seo_description = $row['target']['description'];
                 $entity->save();
             }
+            if ($newHeroCopy !== null) {
+                $builder->content = $homeContent;
+                $builder->save();
+            }
         });
-        $this->info('ZAPISANO nowe TITLE i DESCRIPTION strony głównej. Układ, teksty, zdjęcia i ALT bez zmian.');
+        $this->info('ZAPISANO nowe TITLE i DESCRIPTION strony głównej. Zdjęcia, ALT i pozycje elementów bez zmian.');
+        if ($newHeroCopy !== null) $this->info('Zmieniono tylko krótkie zdanie hero, zachowując położenie i typografię.');
         if ($overlap->isNotEmpty()) $this->info('Rozróżniono '.count($overlap).' tytuły SEO podstron/galerii. Nie zmieniono ich indeksowania ani adresów.');
         $this->line('Kopia zapasowa: '.$backupPath);
         return self::SUCCESS;
