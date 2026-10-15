@@ -541,4 +541,45 @@ class SeoTest extends TestCase
         $this->get(route('site-settings.edit'))->assertOk();
     }
 
+
+    public function test_gallery_without_own_seo_title_does_not_inherit_generic_home_title(): void
+    {
+        $this->settings([
+            'seo_site_name' => 'FoodFoto',
+            'seo_default_title' => 'Stylistka żywności — strona główna',
+        ]);
+        $gallery = $this->gallery(['title' => 'Stylizacja dań', 'slug' => 'stylizacja']);
+        $this->assertSame('Stylizacja dań — FoodFoto', Seo::meta($gallery)['title']);
+        $this->assertNotSame(Seo::meta(null)['title'], Seo::meta($gallery)['title']);
+    }
+
+    public function test_home_seo_command_dry_run_never_changes_cms_and_apply_edits_only_home_meta(): void
+    {
+        $builder = \App\Models\PageBuilder::create([
+            'page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => [
+                'version' => 1, 'sections' => [
+                    ['id' => 'hero-heading', 'type' => 'heading', 'semantic_tag' => 'h1',
+                     'content' => 'Fotografia i stylizacja żywności', 'position_y' => 10],
+                    ['id' => 'food-photo', 'type' => 'image', 'photo_title' => 'Apetyczna sałatka',
+                     'position_y' => 20],
+                ],
+            ],
+        ]);
+        $before = $builder->content;
+        $this->artisan('foodfoto:home-seo')->assertSuccessful();
+        $this->assertSame($before, $builder->fresh()->content);
+        $this->assertDatabaseMissing('site_settings', ['key' => 'home_seo_title']);
+
+        $this->artisan('foodfoto:home-seo --apply')->assertSuccessful();
+        $this->assertSame($before, $builder->fresh()->content);
+        $this->assertDatabaseHas('site_settings', [
+            'key' => 'home_seo_title',
+            'value' => 'Stylistka żywności i fotografia kulinarna | Magda Gugała',
+        ]);
+        $this->get('/')->assertOk()
+            ->assertSee('Stylistka żywności i fotografia kulinarna | Magda Gugała', false);
+    }
+
+
 }
