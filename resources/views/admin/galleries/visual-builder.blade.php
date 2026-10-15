@@ -35,6 +35,13 @@
             <a class="gv-tool" href="{{ route('galleries.index', ['collection' => $gallery->gallery_collection_id]) }}">← Galerie</a>
             <a class="gv-tool" href="{{ route('galleries.edit', $gallery) }}">Edytuj treść i SEO</a>
             <a class="gv-tool" href="{{ route('portfolio.gallery', $gallery) }}" target="_blank" rel="noopener noreferrer">Strona publiczna ↗</a>
+            <label for="gv-gallery-switch" style="font-size:12px;font-weight:600;">Podgląd galerii</label>
+            <select id="gv-gallery-switch" aria-label="Wybierz galerię do podglądu">
+                @foreach($galleryChoices as $galleryChoice)
+                    <option value="{{ route('galleries.builder', ['gallery' => $galleryChoice->id, 'scope' => $scope]) }}"
+                        @selected($galleryChoice->id === $gallery->id)>{{ $galleryChoice->title }}</option>
+                @endforeach
+            </select>
             <span style="flex:1"></span>
             <button type="button" id="gv-fullscreen" class="gv-tool gv-tool-strong" aria-pressed="false" title="Zwiększ obszar roboczy i ukryj boczne menu CMS">⛶ Pełny ekran</button>
             <a class="gv-tool {{ $scope === 'global' ? 'active' : '' }}" href="{{ route('galleries.builder', ['gallery' => $gallery->id, 'scope' => 'global']) }}">Wspólny szablon</a>
@@ -54,7 +61,22 @@
             @else
                 Edytujesz <strong>wyłącznie {{ $gallery->title }}</strong>. Zmienione właściwości nadpisują wspólny szablon; pozostałe nadal dziedziczą jego ustawienia.
             @endif
-            Zapis szkicu nie zmienia publicznej strony. @if($hasPublished) <strong>Ten zakres ma już opublikowany układ.</strong> @endif
+            <strong>Zapis szkicu nie zmienia publicznej strony.</strong>
+            @if($hasPublished) Ten zakres ma już opublikowany układ. @endif
+            @if($scope === 'gallery')
+                @if($hasSharedDraftChanges)
+                    <span class="gv-inheritance-info">
+                        <strong>Podgląd dziedziczy nieopublikowany wspólny szkic.</strong>
+                        Możesz zapisywać własny szkic, lecz najpierw trzeba zatwierdzić lub odrzucić wspólny projekt, zanim opublikujesz tę galerię.
+                    </span>
+                @elseif($hasSharedPublished)
+                    <span class="gv-inheritance-info">Podgląd dziedziczy <strong>opublikowany wspólny szablon</strong> oraz indywidualne zmiany.</span>
+                @else
+                    <span class="gv-inheritance-info">Wspólny szablon nie jest jeszcze opublikowany. Indywidualny projekt działa tylko w podglądzie i szkicu.</span>
+                @endif
+            @else
+                <span class="gv-inheritance-info">To jest <strong>wspólny podgląd roboczy</strong>. Wybierz inną galerię powyżej, by sprawdzić ten sam projekt z innymi zdjęciami i tekstami.</span>
+            @endif
         </p>
 
         <div class="gv-main">
@@ -124,7 +146,8 @@
             <span id="gv-status" class="gv-status">Projekt gotowy do edycji</span>
             <button type="button" id="gv-reset-layout" class="gv-tool">Odrzuć niezapisane zmiany</button>
             <button type="submit" name="action" value="save" class="gv-tool">Zapisz szkic</button>
-            <button type="submit" name="action" value="publish" class="gv-publish">Opublikuj układ</button>
+            <button type="submit" name="action" value="publish" class="gv-publish"
+                @if($scope === 'gallery' && $hasSharedDraftChanges) disabled title="Najpierw opublikuj lub odrzuć wspólny szkic" @endif>Opublikuj układ</button>
             @if($hasPublished)
                 <button type="submit" name="action" value="unpublish" class="gv-danger">Wyłącz opublikowany układ</button>
             @endif
@@ -136,6 +159,9 @@
         .gv-shell{margin:24px auto 70px;max-width:1900px;padding:0 16px;color:#222;font-family:Arial,sans-serif}
         .gv-toolbar,.gv-preview-top,.gv-save{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
         .gv-toolbar{margin:0 0 14px}
+        .gv-toolbar select{min-width:210px;max-width:290px;padding:9px 12px;border:1px solid #bec8d5;border-radius:5px;background:white;font-size:13px}
+        .gv-inheritance-info{display:block;margin-top:5px;color:#34516e}
+        .gv-publish:disabled{cursor:not-allowed;opacity:.42}
         .gv-toolbar .gv-tool-strong{background:#eaf0ff;border-color:#b9c9e6;font-weight:700}
         .gv-zoom-label,.gv-zoom-current{white-space:nowrap}
         .gv-zoom-current{color:#555;min-width:38px;font-variant-numeric:tabular-nums;font-weight:700}
@@ -240,5 +266,5 @@
         @media(max-height:650px){.gv-focus .gv-info{display:none}.gv-focus .gv-preview-top{padding:7px 10px}}
     </style>
     <script defer src="{{ asset('js/gallery-visual-guides.js') }}?v=2"></script>
-    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=4"></script>
+    <script defer src="{{ asset('js/gallery-visual-builder.js') }}?v=5"></script>
 </x-app-layout>
