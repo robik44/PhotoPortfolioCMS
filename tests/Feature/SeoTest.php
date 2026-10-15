@@ -582,4 +582,42 @@ class SeoTest extends TestCase
     }
 
 
+    public function test_seo_copy_update_only_changes_expected_hero_text_without_touching_layout_or_photos(): void
+    {
+        $oldCopy = 'Fotografia kulinarna, fotografia reklamowa i fotografia produktowa dla marek, restauracji i wydawnictw.';
+        $builder = \App\Models\PageBuilder::create([
+            'page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['sections' => [
+                ['id' => 'hero-text', 'type' => 'text', 'content' => $oldCopy,
+                    'position_x' => 5, 'position_y' => 20, 'element_width' => 45,
+                    'style' => ['font_size' => 18]],
+                ['id' => 'photo', 'type' => 'image', 'photo_id' => 112,
+                    'position_x' => 50, 'position_y' => 25],
+            ]],
+        ]);
+
+        $this->artisan('foodfoto:home-seo --apply --update-hero-copy')->assertSuccessful();
+        $after = $builder->fresh()->content['sections'];
+        $this->assertStringContainsString('stylistka żywności', $after[0]['content']);
+        $this->assertSame(5, $after[0]['position_x']);
+        $this->assertSame(20, $after[0]['position_y']);
+        $this->assertSame(['font_size' => 18], $after[0]['style']);
+        $this->assertSame(['id' => 'photo', 'type' => 'image', 'photo_id' => 112,
+            'position_x' => 50, 'position_y' => 25], $after[1]);
+    }
+
+    public function test_seo_copy_update_does_not_replace_newer_editorial_hero_copy(): void
+    {
+        $new = 'Autorski tekst pozostawiony przez redaktora.';
+        $builder = \App\Models\PageBuilder::create([
+            'page_id' => null, 'type' => 'home', 'published' => true,
+            'content' => ['sections' => [
+                ['id' => 'hero-text', 'type' => 'text', 'content' => $new],
+            ]],
+        ]);
+        $this->artisan('foodfoto:home-seo --apply --update-hero-copy')->assertSuccessful();
+        $this->assertSame($new, $builder->fresh()->content['sections'][0]['content']);
+    }
+
+
 }
