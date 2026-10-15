@@ -27,6 +27,13 @@
     const photoById = new Map(photos.map(p => [Number(p.id), p]));
     const fontMap = {serif:'Georgia,serif', bodoni:'"Bodoni Moda",Georgia,serif',
         sans:'Arial,sans-serif', inter:'"Inter",Arial,sans-serif'};
+    const fontChoices = [['serif','Georgia'],['bodoni','Bodoni Moda'],
+        ['sans','Arial'],['inter','Inter']];
+    (initial.fonts || []).forEach(font => {
+        if (!font || typeof font.id !== 'string') return;
+        fontMap[font.id] = font.css;
+        if (!fontChoices.some(choice=>choice[0]===font.id)) fontChoices.push([font.id,font.label]);
+    });
     const html = (tag, className, text) => {
         const el = document.createElement(tag);
         if (className) el.className = className;
@@ -280,8 +287,7 @@
                 input(inspector,'Wysokość (px)',obj.h||240,v=>obj.h=clamp(Number(v),60,1200));
             }
             if(type!=='image'){
-                input(inspector,'Czcionka',obj.font,v=>obj.font=v,{
-                    values:[['serif','Georgia'],['bodoni','Bodoni Moda'],['sans','Arial'],['inter','Inter']]});
+                input(inspector,'Czcionka',obj.font,v=>obj.font=v,{values:fontChoices});
                 input(inspector,'Rozmiar — komputer (px)',obj.size,v=>obj.size=clamp(Number(v),8,160),{min:8,max:160});
                 input(inspector,'Rozmiar — tablet (px)',obj.tablet,v=>obj.tablet=clamp(Number(v),8,160),{min:8,max:160});
                 input(inspector,'Rozmiar — telefon (px)',obj.mobile,v=>obj.mobile=clamp(Number(v),8,160),{min:8,max:160});
