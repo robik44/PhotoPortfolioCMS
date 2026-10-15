@@ -28,7 +28,7 @@
         $pageHeight = max($pageHeight, (float) $extra['y'] + (float) ($extra['h'] ?? 120) + 60);
     }
 
-    $pos = static fn (array $item) => 'left:'.$item['x'].'%;top:'.$item['y'].'px;width:'.$item['w'].'%;';
+    $pos = static fn (array $item) => 'left:'.$item['x'].'%;top:'.$item['y'].'px;width:'.$item['w'].'%;--gv-order:'.(int) round($item['y']).';';
     $typeCss = static function (array $item, string $id) use ($gv): string {
         return 'font-family:'.$gv::font($item['font']).';'
             .'font-size:'.$item['size'].'px;font-weight:'.$item['weight'].';'
@@ -66,7 +66,7 @@
     @endforeach
     @media(max-width:900px){
         .gv-public-canvas{height:auto!important;padding:38px 5% 60px;display:flex;flex-direction:column;gap:20px}
-        .gv-public-canvas>.gv-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important}
+        .gv-public-canvas>.gv-block{position:relative!important;left:auto!important;top:auto!important;width:100%!important;order:var(--gv-order,500)}
         .gv-public-canvas .gv-grid{grid-template-columns:repeat({{ (int) $visualLayout['columns_tablet'] }},minmax(0,1fr));}
         .gv-public-canvas .gv-free-photo{max-width:100%;height:auto!important}
         .gv-public-canvas .gv-free-photo .gallery-item img{height:auto;max-height:600px}
