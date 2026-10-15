@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { align } = require('../../public/js/gallery-visual-guides.js');
+const { align, normalizePositions } = require('../../public/js/gallery-visual-guides.js');
 
 const other = [{x:100,y:170,w:80,h:80}];
 
@@ -44,4 +44,29 @@ test('one-pixel precision is preserved without a matching guide', () => {
     assert.deepEqual(align({x:101.125,y:55.25,w:32,h:29},[],{snap:true}),{
         x:101.125,y:55.25,vertical:null,horizontal:null,
     });
+});
+
+test('Laravel empty array becomes safe ID-keyed photo position object', () => {
+    const empty=normalizePositions([]);
+    assert.equal(Array.isArray(empty),false);
+    empty['90']={x:15.25,y:400.5,w:20,h:250};
+    const encoded=JSON.stringify(empty);
+    assert.equal(encoded,'{"90":{"x":15.25,"y":400.5,"w":20,"h":250}}');
+    assert.equal(encoded.includes('null'),false);
+});
+
+test('legacy sparse array keeps valid photo IDs and drops JSON null slots', () => {
+    const legacy=[];
+    legacy[90]={x:15,y:400,w:20,h:250};
+    const normalized=normalizePositions(legacy);
+    assert.deepEqual(Object.keys(normalized),['90']);
+    assert.equal(Object.keys(JSON.parse(JSON.stringify(normalized))).length,1);
+});
+
+test('rejects null and invalid free-photo entries while preserving valid ones', () => {
+    assert.deepEqual(normalizePositions({
+        '90':{x:6,y:360,w:20,h:250},
+        '91':null,'garbage':{x:0,y:0},
+        '0':{x:0,y:0},
+    }),{'90':{x:6,y:360,w:20,h:250}});
 });
