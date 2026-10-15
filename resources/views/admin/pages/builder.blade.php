@@ -2958,14 +2958,14 @@ document.addEventListener("DOMContentLoaded", function () {
                 image_placeholder_hidden: true, image_layer: 10
             });
             panel(0, 0, 52, 385, '#1c1a19', 38, 15);
-            label('DOBRA FOTOGRAFIA\\nOTWIERA APETYT', 7, 6, 42, '#ffffff');
-            heading('Smak zaczyna się\\nod obrazu', 7, 15, 51, 72, '#ffffff');
+            label('DOBRA FOTOGRAFIA\nOTWIERA APETYT', 7, 6, 42, '#ffffff');
+            heading('Smak zaczyna się\nod obrazu', 7, 15, 51, 72, '#ffffff');
 
             // Lower contact band — white background, two columns and a plant photo.
             const lower = 385 / 9;
             panel(0, lower, 100, 355, '#ffffff', 100, 2);
             label('MASZ POMYSŁ NA SESJĘ?', 8, lower + 6, 36, '#595d51');
-            heading('Porozmawiajmy\\no Twoim projekcie', 8, lower + 12, 39, 55, '#171717');
+            heading('Porozmawiajmy\no Twoim projekcie', 8, lower + 12, 39, 55, '#171717');
             add('text', 8, lower + 30, 39, {
                 content: 'Chętnie odpowiem na pytania, doradzę i wspólnie ustalimy, jak najlepiej pokazać Twój produkt lub markę.',
                 semantic_tag: 'p',
