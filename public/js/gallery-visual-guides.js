@@ -48,5 +48,15 @@
         };
     }
 
-    return { align, nearestMatch, anchors };
+    // PHP's [] becomes a JavaScript array. Assigning image IDs as array
+    // indices creates sparse arrays filled with null on JSON.stringify.
+    // This utility always returns a plain dictionary keyed by photo ID.
+    function normalizePositions(value) {
+        if (!value || typeof value !== 'object') return {};
+        return Object.fromEntries(Object.entries(value).filter(([id, p]) =>
+            /^[1-9][0-9]*$/.test(id) && p && typeof p === 'object' &&
+            !Array.isArray(p)));
+    }
+
+    return { align, nearestMatch, anchors, normalizePositions };
 });
