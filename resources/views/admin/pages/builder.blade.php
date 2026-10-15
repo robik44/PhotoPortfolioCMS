@@ -21,7 +21,7 @@
 
         $buttonTargets = collect([
             ['url' => url('/'), 'label' => 'START'],
-            ['url' => url('/').'#portfolio', 'label' => 'Portfolio'],
+            ['url' => url('/').'#portfolio', 'label' => 'Galeria na stronie głównej — przewiń'],
         ])->concat(\App\Models\Page::where('published', true)->orderBy('title')->get()->map(fn ($target) => [
             'url' => isset(\App\Support\ContentPages::PAGES[$target->slug]) ? url('/'.$target->slug) : route('page.public', $target),
             'label' => 'Strona: '.$target->title,
