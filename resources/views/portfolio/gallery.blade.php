@@ -32,13 +32,14 @@
     $galleryTitleCss = $galleryTypographyCss('title', 'title_font_family');
     $galleryDescriptionCss = $galleryTypographyCss('description', 'description_font_family');
     $galleryCaptionCss = $galleryTypographyCss('caption', 'caption_font_family');
+    $visualLayout = \App\Support\GalleryVisualLayout::published($settings, $gallery->id);
 @endphp
 
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=1400">
+    <meta name="viewport" content="{{ $visualLayout ? 'width=device-width, initial-scale=1' : 'width=1400' }}">
     @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($gallery)])
 
 @include('components.site-typography')
@@ -296,6 +297,9 @@
 
     @include('components.site-header', ['settings' => $globalHeaderSettings, 'menuItems' => $globalHeaderMenuItems])
 
+    @if($visualLayout)
+        @include('components.gallery-visual-content', ['visualLayout' => $visualLayout])
+    @else
     <section class="gallery-heading">
         <h1 style="{{ $galleryTitleCss }}">{{ $gallery->title }}</h1>
 
@@ -357,6 +361,7 @@
         <div class="empty-gallery">
             <p>Ta galeria nie zawiera jeszcze zdjęć.</p>
         </div>
+    @endif
     @endif
 
 </div>
