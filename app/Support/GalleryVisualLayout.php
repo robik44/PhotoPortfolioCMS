@@ -138,6 +138,18 @@ final class GalleryVisualLayout
         if (!in_array($data['photo_fit'] ?? null, ['cover', 'contain'], true)) $invalid('Niepoprawny sposób kadrowania zdjęć.');
         if (!in_array($data['photo_mode'] ?? null, ['grid', 'free'], true)) $invalid('Niepoprawny układ zdjęć.');
 
+        if (isset($data['content'])) {
+            if (!is_array($data['content'])
+                || !is_string($data['content']['title'] ?? null)
+                || !is_string($data['content']['description'] ?? null)
+                || mb_strlen(trim($data['content']['title'])) < 1
+                || mb_strlen($data['content']['title']) > 255
+                || mb_strlen($data['content']['description']) > 20000) {
+                $invalid('Niepoprawny tytuł lub opis galerii.');
+            }
+            $data['content']['title'] = trim($data['content']['title']);
+        }
+
         $blocks = $data['blocks'] ?? null;
         if (!is_array($blocks) || array_diff(['title','description','services','back','photos'], array_keys($blocks))) {
             $invalid('Brakuje podstawowych elementów galerii.');
