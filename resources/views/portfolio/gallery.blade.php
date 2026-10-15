@@ -39,7 +39,8 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="{{ $visualLayout ? 'width=device-width, initial-scale=1' : 'width=1400' }}">
+    {{-- Gallery pages preserve the same desktop geometry across all devices. --}}
+    <meta name="viewport" content="width=1400">
     @include('components.seo-meta', ['seo' => \App\Support\Seo::meta($gallery)])
 
 @include('components.site-typography')
