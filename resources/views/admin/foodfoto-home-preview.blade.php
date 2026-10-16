@@ -88,21 +88,73 @@
 #ff-size{padding:5px;border:1px solid #bbb}
 </style>
 @foreach($editorPositions as $id => $pos)
-@if(in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true) && is_array($pos))
+@if(($canvas || in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true)) && preg_match('/^[a-z0-9_-]{1,80}$/', $id) && is_array($pos))
 <style>
 [data-move-id="{{ $id }}"] {
  translate: {{ max(-350,min(350,(int)($pos['x'] ?? 0))) }}px {{ max(-350,min(350,(int)($pos['y'] ?? 0))) }}px;
  @if((int)($pos['w'] ?? 0) > 0)width:{{ min(1200,(int)$pos['w']) }}px;@endif
+ @if((int)($pos['h'] ?? 0) > 0)height:{{ min(1200,(int)$pos['h']) }}px;@endif
  @if((int)($pos['z'] ?? 0) !== 0)z-index:{{ max(-5,min(25,(int)$pos['z'])) }};@endif
 }
 </style>
 @endif
 @endforeach
+@if($canvas)
+@foreach($canvasFontOptions as $fontId => $fontInfo)
+@if(preg_match('/^fffont_[a-f0-9]{12}$/', (string)$fontId) && is_array($fontInfo))
+<style>@font-face{font-family:'{{ $fontId }}';src:url('{{ $fontInfo['url'] ?? '' }}') format('{{ str_ends_with($fontInfo['url'] ?? '', '.woff2') ? 'woff2' : 'woff' }}');font-display:swap;}</style>
+@endif
+@endforeach
+@foreach($canvasTypography as $key => $style)
+@if(preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', (string)$key) && is_array($style))
+<style>[data-canvas-text="{{ $key }}"]{
+font-size:{{ max(8,min(160,(float)($style['font_size'] ?? 18))) }}px!important;
+line-height:{{ max(.5,min(3,(float)($style['line_height'] ?? 1.4))) }}!important;
+letter-spacing:{{ max(-5,min(20,(float)($style['letter_spacing'] ?? 0))) }}px!important;
+font-family:{{ array_key_exists(($style['font_family'] ?? ''), $canvasFontOptions) && preg_match('/^fffont_[a-f0-9]{12}$/', (string)($style['font_family'] ?? '')) ? "'" . $style['font_family'] . "'" : (in_array(($style['font_family'] ?? 'inherit'), ['inherit','Georgia','Arial','Helvetica','Verdana','Tahoma','Trebuchet MS','Times New Roman','Courier New'], true) ? (($style['font_family'] ?? 'inherit') === 'inherit' ? 'inherit' : "'" . ($style['font_family'] ?? 'inherit') . "'") : 'inherit') }}!important;
+font-weight:{{ max(100,min(900,(int)($style['font_weight'] ?? 400))) }}!important;
+text-align:{{ in_array(($style['text_align'] ?? 'inherit'), ['inherit','left','center','right','justify'], true) ? ($style['text_align'] ?? 'inherit') : 'inherit' }}!important;
+text-transform:{{ in_array(($style['text_transform'] ?? 'none'), ['none','uppercase','lowercase','capitalize'], true) ? ($style['text_transform'] ?? 'none') : 'none' }}!important;
+color:{{ (($style['color'] ?? 'inherit') === 'inherit') ? 'inherit' : ('color-mix(in srgb, ' . ($style['color'] ?? '#222222') . ' ' . (int)($style['color_alpha'] ?? 100) . '%, transparent)') }}!important;
+background-color:{{ (($style['background_color'] ?? 'transparent') === 'transparent') ? 'transparent' : ('color-mix(in srgb, ' . ($style['background_color'] ?? '#ffffff') . ' ' . (int)($style['background_alpha'] ?? 100) . '%, transparent)') }}!important;
+
+word-spacing:{{ max(-20,min(50,(float)($style['word_spacing'] ?? 0))) }}px!important;
+margin-top:{{ max(-100,min(200,(float)($style['margin_top'] ?? 0))) }}px!important;
+margin-bottom:{{ max(-100,min(200,(float)($style['margin_bottom'] ?? 0))) }}px!important;
+max-width:{{ (float)($style['max_width'] ?? 0) > 0 ? max(1,min(1200,(float)$style['max_width'])).'px' : 'none' }}!important;
+}</style>
+@endif
+@endforeach
+@endif
+@if($canvas)
+<style>
+/* Fixed-width grid tracks: resizing one gallery card never shrinks siblings. */
+.cards-gallery{grid-template-columns:repeat(4,minmax(0,1fr))!important;align-items:start}
+.cards-gallery>a{min-width:0;max-width:none;justify-self:start;box-sizing:border-box}
+.cards-gallery>a.ff-width-resized{max-width:none!important}
+.cards-gallery>a.ff-free-resized{display:flex;flex-direction:column;overflow:visible}
+.cards-gallery>a.ff-free-resized img{display:block;flex:1 1 0;min-height:0;width:100%!important;height:calc(100% - 32px)!important;aspect-ratio:auto!important;object-fit:fill!important}
+.cards-gallery>a.ff-free-resized h3{flex:0 0 32px;margin:0;padding-top:5px;box-sizing:border-box}
+.cards-gallery>a.ff-width-resized:not(.ff-height-resized) img{aspect-ratio:4/3;height:auto;object-fit:cover}
+.about-experience{align-items:start!important}
+.about-experience .visual{align-self:start!important;min-width:0;overflow:visible}
+.about-experience .visual.ff-free-resized img{width:100%!important;height:100%!important;max-width:none!important;aspect-ratio:auto!important;object-fit:fill!important;display:block}
+[data-move-id].ff-free-resized:is(img){object-fit:fill!important;aspect-ratio:auto!important;max-width:none!important}
+</style>
+@endif
+@if($canvas)
+<style>.ff-layout-editing [data-move-id]{position:relative;cursor:grab}.ff-layout-editing [data-move-id] a{pointer-events:none}.ff-layout-editing [data-move-id]:hover{outline:2px dashed #1e774a;outline-offset:2px}</style>
+@endif
 </head>
 <body>
 @unless($public)
-<div class="preview-top"><strong>WERSJA ROBOCZA — dostęp administratora</strong><div><a href="{{ route('home-builder.edit') }}">Otwórz builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
+<div class="preview-top"><strong>{{ $canvas ? 'EDYTOR NA PRAWDZIWYM UKŁADZIE — tylko wersja robocza' : 'WERSJA ROBOCZA — dostęp administratora' }}</strong><div>@if($canvas)<a href="{{ route('foodfoto.builder.edit') }}">Pełna typografia i elementy ↗</a>@else<a href="{{ route('foodfoto.canvas') }}">Edytuj rzeczywistą stronę ↗</a>@endif <a href="{{ route('home-builder.edit') }}">Stary builder</a> <a href="{{ url('/') }}" target="_blank" rel="noopener">Aktualna strona ↗</a></div></div>
 @endunless
+@if($canvas && $canvasUsingFixture)
+<div role="status" style="background:#fff3ca;color:#423400;padding:14px 22px;font:14px Arial,sans-serif;position:relative;z-index:51">
+ <strong>Tryb testowy Codespaces:</strong> ta baza zawiera inny układ niż produkcyjny. Widzisz roboczą kompozycję z dostępnych zdjęć, nie dokładną kopię www.foodfoto.pl. Zapisy działają wyłącznie w szkicu i nie zmieniają publicznej strony.
+</div>
+@endif
 <div class="wrap" data-foodfoto-layout data-positions='@json($editorPositions)'>
 @unless($public)
 <div class="ff-ruler-top" aria-hidden="true"></div><div class="ff-ruler-left" aria-hidden="true"></div><div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
@@ -113,18 +165,18 @@
 </header>
 <section class="hero" style="--hero-copy-x:{{ (int)($previewDecorations['preview_hero_copy_x'] ?? 85) }}px;--hero-heading-size:{{ (int)($previewDecorations['preview_hero_heading_size'] ?? 80) }}px">
  @if(!empty($previewDecorations['preview_hero_image']))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ asset('storage/'.$previewDecorations['preview_hero_image']) }}" alt="Fotografia kulinarna — baner FoodFoto">
  @elseif(is_file(public_path('images/foodfoto-carrots-hero.jpg')))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ asset('images/foodfoto-carrots-hero.jpg') }}" alt="Pieczona marchewka z kremem i ziołami">
  @elseif($photo = $photos->get((int)($sections[0]['photo_id'] ?? 0)))
- <img class="hero-photo" data-move-id="hero-photo" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
+ <img class="hero-photo" data-move-id="hero-photo" @if($canvas) data-canvas-photo="hero-photo" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia kulinarna' }}">
  @endif
  <img class="hero-basil" data-move-id="hero-basil" src="{{ !empty($previewDecorations['preview_basil_hero']) ? asset('storage/'.$previewDecorations['preview_basil_hero']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
- <div class="hero-copy" data-move-id="hero-text"><h1 data-preview-field="preview_hero_title" style="white-space:pre-line">{{ $previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry' }}</h1><p data-preview-field="preview_hero_description">{{ $previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.' }}</p><a class="btn" href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label">{{ $previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio' }}</span> →</a></div>
+ <div class="hero-copy" data-move-id="hero-text"><h1 @if($canvas) data-move-id="hero-heading" @endif data-preview-field="preview_hero_title" @if($canvas) data-canvas-text="preview_hero_title" @endif style="white-space:pre-line">{{ $canvas ? ($canvasTexts['preview_hero_title'] ?? ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry')) : ($previewDecorations['preview_hero_title'] ?? 'Apetyt na dobre kadry') }}</h1><p @if($canvas) data-move-id="hero-description" @endif data-preview-field="preview_hero_description" @if($canvas) data-canvas-text="preview_hero_description" @endif>{{ $canvas ? ($canvasTexts['preview_hero_description'] ?? ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.')) : ($previewDecorations['preview_hero_description'] ?? 'Fotografia i stylizacja żywności. Fotografia kulinarna i reklamowa dla marek, które chcą smakować obrazem.') }}</p><a class="btn" @if($canvas) data-move-id="hero-button" @endif href="{{ $previewDecorations['preview_hero_button_url'] ?? '#portfolio' }}"><span data-preview-field="preview_hero_button_label" @if($canvas) data-canvas-text="preview_hero_button_label" @endif>{{ $canvas ? ($canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio')) : ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}</span> →</a></div>
 </section>
 <section class="section services-section" id="uslugi">
  <h2 class="sr-only">{{ $sections[3]['content'] ?? 'Fotografia i stylizacja żywności' }}</h2>
- <div class="lead">{{ $sections[4]['content'] ?? '' }}</div>
+ <div class="lead" @if($canvas) data-move-id="services-intro" data-canvas-text="section-4" @endif>{{ $canvas ? ($canvasTexts['section-4'] ?? ($sections[4]['content'] ?? '')) : ($sections[4]['content'] ?? '') }}</div>
  <div class="services">
  @foreach([ [5,8,11], [6,9,12], [7,10,13], [14,17,20], [15,18,21], [16,19,22] ] as $indices)
  @php($imageIndex = $indices[0])
@@ -132,9 +184,9 @@
  @php($textIndex = $indices[2])
  @php($name=trim($sections[$titleIndex]['content'] ?? ''))
  @php($url=$seoLinks[mb_strtolower($name)] ?? null)
- <article class="service">
+ <article class="service" @if($canvas) data-move-id="service-{{ $titleIndex }}" @endif>
  @if($url)<a href="{{ $url }}">@endif
- @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
+ @if($photo=$photos->get((int)($sections[$imageIndex]['photo_id']??0)))<img loading="lazy" @if($canvas) data-canvas-photo="service-{{ $imageIndex }}" data-move-id="service-photo-{{ $imageIndex }}" @endif src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: $name }}">@else<div class="placeholder" style="height:230px">Zdjęcie w bibliotece</div>@endif
  <h3>{{ $name }} @if($url)↗@endif</h3>
  @if($url)</a>@endif
  <p>{{ $sections[$textIndex]['content'] ?? '' }}</p></article>
@@ -145,20 +197,20 @@
  <div class="cards-gallery">
  @foreach($galleries as $gallery)
  @php($cover=$gallery->photos->first(fn($p)=>(bool)$p->pivot->is_cover)??$gallery->photos->first())
- <a href="{{ route('portfolio.gallery',$gallery) }}">
+ <a href="{{ route('portfolio.gallery',$gallery) }}" @if($canvas) data-move-id="gallery-{{ $gallery->id }}" @endif>
  @if($cover)<img loading="lazy" src="{{ $cover->imageUrl() }}" alt="{{ $cover->alt ?: $gallery->title }}">@endif
  <h3>{{ $gallery->title }} →</h3></a>
  @endforeach
  </div>
 </section>
 <section class="editorial">
- @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
- <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title">{{ $previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia' }}</h2><p data-preview-field="preview_editorial_description">{{ $previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.' }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
+ @if($photo=$photos->get((int)(($previewDecorations['preview_editorial_photo_id'] ?? null) ?: ($sections[25]['photo_id'] ?? 0))))<img class="photo" data-move-id="editorial-photo" @if($canvas) data-canvas-photo="editorial-photo" @endif loading="lazy" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: 'Fotografia żywności' }}">@endif
+ <img class="editorial-basil" data-move-id="editorial-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true"><div class="copy" data-move-id="editorial-copy"><h2 data-preview-field="preview_editorial_title" @if($canvas) data-canvas-text="preview_editorial_title" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_title'] ?? ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia')) : ($previewDecorations['preview_editorial_title'] ?? 'Więcej niż zwykłe zdjęcia') }}</h2><p data-preview-field="preview_editorial_description" @if($canvas) data-canvas-text="preview_editorial_description" @endif>{{ $canvas ? ($canvasTexts['preview_editorial_description'] ?? ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.')) : ($previewDecorations['preview_editorial_description'] ?? 'Światło, kolor i detal tworzą obrazy, które nie tylko pobudzają apetyt, ale też podkreślają charakter produktu i opowiadają historię marki.') }}</p><a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a></div>
 </section>
 <section class="process-section" aria-labelledby="foodfoto-process-heading">
  <div class="process-intro" data-move-id="process-intro">
-  <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title">{{ $previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru' }}</h2>
-  <p data-preview-field="preview_process_description">{{ $previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.' }}</p>
+  <h2 id="foodfoto-process-heading" data-preview-field="preview_process_title" @if($canvas) data-canvas-text="preview_process_title" @endif>{{ $canvas ? ($canvasTexts['preview_process_title'] ?? ($previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru')) : ($previewDecorations['preview_process_title'] ?? 'Od pomysłu do kadru') }}</h2>
+  <p data-preview-field="preview_process_description" @if($canvas) data-canvas-text="preview_process_description" @endif>{{ $canvas ? ($canvasTexts['preview_process_description'] ?? ($previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.')) : ($previewDecorations['preview_process_description'] ?? 'Każda sesja zaczyna się od pomysłu. Potem przychodzą stylizacja, światło i dopracowanie obrazu, który opowiada historię produktu.') }}</p>
  </div>
  <div class="process-steps" data-move-id="process-steps">
   @foreach([
@@ -166,9 +218,9 @@
    ['02', 'Realizacja', 'Stylizacja produktu i praca ze światłem.', (int) (($previewDecorations['preview_process_2_photo_id'] ?? null) ?: ($sections[14]['photo_id'] ?? 0))],
    ['03', 'Rezultaty', 'Zdjęcia przygotowane do publikacji i kampanii.', (int) (($previewDecorations['preview_process_3_photo_id'] ?? null) ?: ($sections[16]['photo_id'] ?? 0))]
   ] as $stage)
-  <article class="process-step">
+  <article class="process-step" @if($canvas) data-move-id="process-step-{{ $stage[0] }}" @endif>
    @if($processPhoto = $photos->get($stage[3]))
-    <img loading="lazy" src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
+    <img loading="lazy" @if($canvas) data-canvas-photo="process-photo-{{ $loop->index }}" data-move-id="stage-image-{{ $loop->index }}" @endif src="{{ $processPhoto->imageUrl() }}" alt="{{ $processPhoto->alt ?: $stage[1] }}">
    @else
     <div class="placeholder" style="height:195px">Fotografia</div>
    @endif
@@ -183,13 +235,13 @@
 <section class="about-experience" aria-labelledby="experience-heading">
  <div class="visual" data-move-id="experience-photo">
   @if($aboutPhoto = $photos->get((int)(($previewDecorations['preview_experience_photo_id'] ?? null) ?: ($sections[6]['photo_id'] ?? 0))))
-   <img loading="lazy" src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
+   <img loading="lazy" @if($canvas) data-canvas-photo="experience-photo" @endif src="{{ $aboutPhoto->imageUrl() }}" alt="{{ $aboutPhoto->alt ?: 'Fotografia kulinarna — realizacja' }}">
   @endif
  </div>
  <div class="experience-copy" data-move-id="experience-copy">
   <div class="eyebrow">Doświadczenie, które widać</div>
-  <h2 id="experience-heading" data-preview-field="preview_experience_title">{{ $previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole' }}</h2>
-  <p data-preview-field="preview_experience_description">{{ $previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.' }}</p>
+  <h2 id="experience-heading" data-preview-field="preview_experience_title" @if($canvas) data-canvas-text="preview_experience_title" @endif>{{ $canvas ? ($canvasTexts['preview_experience_title'] ?? ($previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole')) : ($previewDecorations['preview_experience_title'] ?? 'Od niemal 30 lat z aparatem przy stole') }}</h2>
+  <p data-preview-field="preview_experience_description" @if($canvas) data-canvas-text="preview_experience_description" @endif>{{ $canvas ? ($canvasTexts['preview_experience_description'] ?? ($previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.')) : ($previewDecorations['preview_experience_description'] ?? 'Fotografia i stylizacja żywności to połączenie doświadczenia, uważności na detal i umiejętności pokazania charakteru produktu. Każdy kadr powstaje z myślą o konkretnym zastosowaniu.') }}</p>
   <a class="btn" href="{{ url('/o-mnie') }}">Poznaj mnie →</a>
   <img class="about-basil" src="{{ !empty($previewDecorations['preview_basil_editorial']) ? asset('storage/'.$previewDecorations['preview_basil_editorial']) : asset('images/foodfoto-basil.svg') }}" alt="" aria-hidden="true">
  </div>
@@ -215,17 +267,49 @@
 @if(count($customBlocks))
 <section class="section" id="foodfoto-custom-elements" aria-label="Dodatkowe elementy strony">
 @foreach($customBlocks as $block)
+  <div @if($canvas) data-move-id="custom-{{ $loop->index }}" @endif>
   @if(($block['type'] ?? '') === 'heading')
     <h2>{{ $block['content'] ?? '' }}</h2>
   @elseif(($block['type'] ?? '') === 'text')
     <p style="font:18px/1.7 Arial,sans-serif;white-space:pre-line">{{ $block['content'] ?? '' }}</p>
   @elseif(($block['type'] ?? '') === 'image')
     @if($customPhoto = $photos->get((int)($block['photo_id'] ?? 0)))
-      <img style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
+      <img @if($canvas) data-canvas-photo="custom-{{ $loop->index }}" @endif style="display:block;max-width:100%;height:auto;margin:20px 0" src="{{ $customPhoto->imageUrl() }}" alt="{{ $customPhoto->alt ?: 'Fotografia żywności' }}">
     @endif
   @elseif(($block['type'] ?? '') === 'button')
-    <a class="btn" href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
+    <a class="btn" @if($canvas) data-move-id="custom-button-{{ $loop->index }}" @endif href="{{ Str::startsWith($block['url'] ?? '', ['/', '#', 'https://', 'http://']) ? ($block['url'] ?: '#kontakt') : '#kontakt' }}">{{ $block['content'] ?? 'Dowiedz się więcej' }}</a>
   @endif
+  </div>
+@endforeach
+</section>
+@endif
+@if($canvas)
+<section id="ff-added-elements" class="section" aria-label="Nowe elementy wersji roboczej" style="padding:30px 80px">
+@foreach($canvasElements as $element)
+ <div class="ff-added-element" data-move-id="{{ $element['id'] }}" data-added-element="{{ $element['id'] }}" style="position:relative;margin:12px 0;min-height:20px">
+ @if(($element['type']??'')==='heading')
+  <h2>{{ $element['content'] ?: 'Nowy nagłówek' }}</h2>
+ @elseif(($element['type']??'')==='text')
+  <p style="white-space:pre-line">{{ $element['content'] ?: 'Nowy tekst' }}</p>
+ @elseif(($element['type']??'')==='button')
+  <a class="btn" href="{{ $element['url'] ?: '#portfolio' }}">{{ $element['content'] ?: 'Przycisk' }}</a>
+ @elseif(($element['type']??'')==='image')
+  @if($addedPhoto=$photos->get((int)($element['photo_id']??0)))
+   <img src="{{ $addedPhoto->imageUrl() }}" alt="{{ $addedPhoto->alt ?: 'Zdjęcie wstawione w builderze' }}" style="max-width:100%;display:block;height:auto">
+  @else <div style="padding:40px;background:#edf1eb">Wybierz fotografię w panelu po prawej</div> @endif
+ @elseif(in_array(($element['type']??''),['gallery','thumbnail_gallery'],true))
+  @php($targetGallery=$galleries->firstWhere('id',(int)($element['gallery_id']??0)))
+  @if($targetGallery)
+   <div style="display:flex;gap:12px;flex-wrap:wrap">
+    @foreach($targetGallery->photos->take(6) as $galleryPhoto)
+     <img src="{{ $galleryPhoto->imageUrl() }}" alt="{{ $galleryPhoto->alt ?: $targetGallery->title }}" style="width:150px;height:110px;object-fit:cover">
+    @endforeach
+   </div>
+  @else <div style="padding:40px;background:#edf1eb">Wybierz galerię w panelu po prawej</div> @endif
+ @elseif(($element['type']??'')==='separator')
+  <hr style="border:0;border-top:1px solid #bbb">
+ @endif
+ </div>
 @endforeach
 </section>
 @endif
@@ -234,17 +318,674 @@
 
 
 @unless($public)
+@if($canvas)
+<aside id="ff-type-panel" style="position:fixed;right:18px;top:235px;z-index:101;background:white;border:1px solid #aaa;padding:14px;width:275px;font:13px Arial">
+ <strong>Typografia — kliknij tekst</strong>
+ <p id="ff-type-selected" style="font-size:12px">Nie wybrano tekstu</p>
+ <label>Rozmiar (px, krok 0,1) <input id="ff-type-size" type="number" min="8" max="160" step=".1" value="18" style="width:100%"></label>
+ <input id="ff-type-slider" type="range" min="8" max="160" step=".1" value="18" style="width:100%">
+ <label>Interlinia <input id="ff-type-line" type="number" min=".5" max="3" step=".05" value="1.4" style="width:100%"></label>
+ <label>Odstępy liter (px) <input id="ff-type-space" type="number" min="-5" max="20" step=".01" value="0" style="width:100%"></label>
+ <label>Krój pisma <select id="ff-type-family"><option value="inherit">Dziedziczony</option><option>Georgia</option><option>Arial</option><option>Helvetica</option><option>Verdana</option><option>Tahoma</option><option>Trebuchet MS</option><option>Times New Roman</option><option>Courier New</option>@foreach($canvasFontOptions as $fontId=>$fontInfo)<option value="{{ $fontId }}">{{ $fontInfo['label'] ?? $fontId }} (własna)</option>@endforeach</select></label>
+ <form id="ff-font-upload" enctype="multipart/form-data" style="margin:10px 0">
+  <label>Dodaj własną czcionkę WOFF / WOFF2 (do 2 MB)
+   <input name="font" type="file" accept=".woff,.woff2" required>
+  </label><button type="submit">Dodaj czcionkę</button>
+  <p id="ff-font-upload-status" role="status"></p>
+ </form>
+ <label>Kolor tekstu <input id="ff-type-color" type="color" value="#222222" aria-label="Kolor tekstu" style="width:80px;height:32px;vertical-align:middle"></label>
+ <button type="button" id="ff-type-color-pick">Pobierz kolor z ekranu</button>
+ <label>Krycie koloru tekstu (%) <input id="ff-type-color-alpha" type="number" min="0" max="100" step="1" value="100"></label>
+ <label>Kolor tła elementu <input id="ff-type-bg" type="color" value="#ffffff" aria-label="Kolor tła elementu" style="width:80px;height:32px;vertical-align:middle"></label>
+ <button type="button" id="ff-type-bg-clear">Bez tła</button>
+ <button type="button" id="ff-type-bg-pick">Pobierz kolor tła z ekranu</button>
+ <label>Krycie tła (%) <input id="ff-type-bg-alpha" type="number" min="0" max="100" step="1" value="100"></label>
+ <p id="ff-eye-status" role="status" style="font-size:12px"></p>
+ <label>Grubość <select id="ff-type-weight">@foreach(range(100,900,100) as $w)<option value="{{ $w }}">{{ $w }}</option>@endforeach</select></label>
+ <label>Wyrównanie <select id="ff-type-align"><option value="inherit">Dziedziczone</option><option value="left">Do lewej</option><option value="center">Wyśrodkuj</option><option value="right">Do prawej</option><option value="justify">Wyjustuj</option></select></label>
+ <label>Wielkość liter <select id="ff-type-transform"><option value="none">Normalna</option><option value="uppercase">Wersaliki</option><option value="lowercase">Małe</option><option value="capitalize">Pierwsze Litery Wielkie</option></select></label>
+ <label>Odstępy słów (px, krok 0,1) <input id="ff-type-word" type="number" min="-20" max="50" step=".1" value="0"></label>
+ <label>Margines górny (px) <input id="ff-type-margin-top" type="number" min="-100" max="200" step="1" value="0"></label>
+ <label>Margines dolny (px) <input id="ff-type-margin-bottom" type="number" min="-100" max="200" step="1" value="0"></label>
+ <label>Maksymalna szerokość tekstu (px; 0 = bez limitu) <input id="ff-type-max-width" type="number" min="0" max="1200" step="1" value="0"></label>
+ <p style="margin:10px 0">Boks tekstowy: <button id="ff-type-select-box" type="button">Zaznacz i rozciągaj ↘</button></p>
+ <form id="ff-type-form" method="POST" action="{{ route('foodfoto.canvas.typography', [], false) }}">@csrf<input type="hidden" name="typography" id="ff-type-json"><button type="submit">Zapisz typografię</button></form>
+ <small>Ustawienia dotyczą tylko wersji roboczej.</small>
+</aside>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ const form=document.getElementById('ff-type-form');
+ const size=document.getElementById('ff-type-size'),slider=document.getElementById('ff-type-slider');
+ const line=document.getElementById('ff-type-line'),space=document.getElementById('ff-type-space');
+ const extraInputs={
+  font_family:document.getElementById('ff-type-family'),
+  font_weight:document.getElementById('ff-type-weight'),
+  text_align:document.getElementById('ff-type-align'),
+  text_transform:document.getElementById('ff-type-transform'),
+  word_spacing:document.getElementById('ff-type-word'),
+  margin_top:document.getElementById('ff-type-margin-top'),
+  margin_bottom:document.getElementById('ff-type-margin-bottom'),
+  color:document.getElementById('ff-type-color'),
+  background_color:document.getElementById('ff-type-bg'),
+  color_alpha:document.getElementById('ff-type-color-alpha'),
+  background_alpha:document.getElementById('ff-type-bg-alpha'),
+  max_width:document.getElementById('ff-type-max-width')
+ };
+ const extraDefaults={font_family:'inherit',font_weight:400,text_align:'inherit',text_transform:'none',word_spacing:0,margin_top:0,margin_bottom:0,max_width:0,color:'#222222',background_color:'#ffffff',color_alpha:100,background_alpha:100};
+ const canvasFontOptions={...@json($canvasFontOptions)};
+ const fontFamilyInput=document.getElementById('ff-type-family');
+ document.getElementById('ff-font-upload').addEventListener('submit',async event=>{
+  event.preventDefault();
+  const status=document.getElementById('ff-font-upload-status');
+  status.textContent='Wysyłanie czcionki…';
+  try{
+   const form=event.currentTarget,body=new FormData(form);
+   body.append('_token',document.querySelector('#ff-save-all-form input[name="_token"]').value);
+   const response=await fetch('/admin/foodfoto-canvas/fonts',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok)throw new Error('HTTP '+response.status);
+   const result=await response.json();
+   const added=Object.entries(result.fonts).filter(([key])=>!canvasFontOptions[key]);
+   Object.assign(canvasFontOptions,result.fonts);
+   for(const [id,info] of added){
+    const option=document.createElement('option');option.value=id;option.textContent=info.label+' (własna)';
+    fontFamilyInput.appendChild(option);
+    const css=document.createElement('style');
+    css.textContent="@font-face{font-family:'"+id+"';src:url('"+info.url+"');font-display:swap}";
+    document.head.appendChild(css);
+    fontFamilyInput.value=id;
+   }
+   status.textContent='Czcionka dodana do wersji roboczej. Zaznacz tekst, wybierz krój i zapisz typografię.';
+   form.reset();
+  }catch(error){status.textContent='Błąd dodawania czcionki: '+error.message}
+ });
+ const eyedropperStatus=document.getElementById('ff-eye-status');
+ function sampleColor(target){
+  if(!('EyeDropper' in window)){
+   eyedropperStatus.textContent='Ta przeglądarka nie udostępnia próbnika całego ekranu. W Firefoxie możesz skorzystać z systemowego próbnika koloru albo wpisać HEX.';
+   return;
+  }
+  new EyeDropper().open().then(result=>{
+   target.value=result.sRGBHex;target.dispatchEvent(new Event('input',{bubbles:true}));
+   eyedropperStatus.textContent='Pobrano kolor.';
+  }).catch(()=>{eyedropperStatus.textContent='Nie wybrano koloru.'});
+ }
+ document.getElementById('ff-type-color-pick').addEventListener('click',()=>sampleColor(extraInputs.color));
+ document.getElementById('ff-type-bg-pick').addEventListener('click',()=>sampleColor(extraInputs.background_color));
+ document.getElementById('ff-type-bg-clear').addEventListener('click',()=>{
+  extraInputs.background_color.value='#ffffff';
+  if(!selected)return;
+  const v=values[selected.dataset.canvasText]||read(selected);
+  v.background_color='transparent';
+  values[selected.dataset.canvasText]=v;
+  selected.style.setProperty('background-color','transparent','important');
+ });
+ const values={...@json($canvasTypography)};
+ let selected=null;
+ function read(el){
+  const css=getComputedStyle(el);
+  const id=el.dataset.canvasText;
+  return values[id] || {font_size:parseFloat(css.fontSize)||18,line_height:parseFloat(css.lineHeight)/(parseFloat(css.fontSize)||18)||1.4,letter_spacing:parseFloat(css.letterSpacing)||0};
+ }
+ function apply(){
+  if(!selected)return;
+  let v={font_size:Number(size.value),line_height:Number(line.value),letter_spacing:Number(space.value)};
+  for(const [key,input] of Object.entries(extraInputs))v[key]=['font_weight','word_spacing','margin_top','margin_bottom','max_width','color_alpha','background_alpha'].includes(key)?Number(input.value):input.value;
+  if(!(v.font_size>=8&&v.font_size<=160&&v.line_height>=.5&&v.line_height<=3&&v.letter_spacing>=-5&&v.letter_spacing<=20))return;
+  values[selected.dataset.canvasText]=v;
+  selected.style.setProperty('font-size',v.font_size+'px','important');
+  selected.style.setProperty('line-height',String(v.line_height),'important');
+  selected.style.setProperty('letter-spacing',v.letter_spacing+'px','important');
+  const cssProperties={'font-family':v.font_family,'font-weight':v.font_weight,'text-align':v.text_align,
+   'text-transform':v.text_transform,'word-spacing':v.word_spacing+'px',
+   'margin-top':v.margin_top+'px','margin-bottom':v.margin_bottom+'px',
+   'max-width':v.max_width?v.max_width+'px':'none',
+   'color':v.color==='inherit'?'inherit':'color-mix(in srgb, '+v.color+' '+v.color_alpha+'%, transparent)',
+   'background-color':v.background_color==='transparent'?'transparent':'color-mix(in srgb, '+v.background_color+' '+v.background_alpha+'%, transparent)'};
+  for(const [prop,val] of Object.entries(cssProperties))selected.style.setProperty(prop,String(val),'important');
+  slider.value=v.font_size;
+ }
+ nodes.forEach(el=>el.addEventListener('click',()=>{
+  if(selected) selected.style.outline='';
+  selected=el;selected.style.outline='2px solid #1b8058';
+  document.getElementById('ff-type-selected').textContent=el.innerText.slice(0,65);
+  const v=read(el);
+  size.value=v.font_size;slider.value=v.font_size;line.value=v.line_height;space.value=v.letter_spacing;
+  for(const [key,input] of Object.entries(extraInputs))input.value=(key==='color'&&v[key]==='inherit')?'#222222':(key==='background_color'&&v[key]==='transparent')?'#ffffff':(v[key]??extraDefaults[key]);
+ }));
+ [size,line,space,...Object.values(extraInputs)].forEach(input=>input.addEventListener('input',apply));
+ slider.addEventListener('input',()=>{size.value=slider.value;apply()});
+ document.getElementById('ff-type-select-box').addEventListener('click',()=>{
+  if(!selected){alert('Najpierw wybierz nagłówek lub tekst na stronie.');return;}
+  const block=selected.closest('[data-move-id]');
+  if(!block){alert('Brak osobnego boksu dla tego tekstu.');return;}
+  document.dispatchEvent(new CustomEvent('ff-select-text-box',{detail:{id:block.dataset.moveId}}));
+ });
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  apply();
+  document.getElementById('ff-type-json').value=JSON.stringify(values);
+  const status=document.getElementById('ff-save-status');
+  status.hidden=false;
+  status.textContent='Trwa zapisywanie typografii…';
+  try {
+   const response=await fetch('/admin/foodfoto-canvas/typography',{
+    method:'POST',credentials:'same-origin',redirect:'manual',
+    headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body:new FormData(form)
+   });
+   if(!response.ok){
+    status.textContent='Nie zapisano typografii: HTTP '+response.status;
+    return;
+   }
+   const result=await response.json();
+   const saved=result.typography||{};
+   if(JSON.stringify(saved)!==JSON.stringify(values)){
+    status.textContent='Błąd: zapisane dane różnią się od ustawień edytora.';
+   }else{
+    status.textContent='Zapisano typografię. Wartości pozostaną po odświeżeniu.';
+   }
+  }catch(error){status.textContent='Błąd zapisu typografii: '+error.message}
+ });
+});
+</script>
+<aside id="ff-unified-panel" aria-label="Narzędzia buildera FoodFoto" style="position:fixed;right:18px;top:55px;bottom:18px;width:340px;max-width:calc(100vw - 36px);z-index:110;background:#fff;box-shadow:0 6px 30px #0003;border:1px solid #b7b7b7;padding:14px;overflow:auto;font:13px Arial,sans-serif">
+ <h2 style="font:22px Georgia,serif;margin:0 0 10px">Builder FoodFoto</h2>
+ <p id="ff-unified-selection" role="status">Kliknij tekst lub zdjęcie na stronie, aby je edytować.</p>
+ <form id="ff-save-all-form" method="POST" action="{{ route('foodfoto.canvas.save-all', [], false) }}" style="margin:12px 0;border:1px solid #c9d9ce;padding:10px">
+ @csrf
+ <input name="layout" id="ff-all-layout" type="hidden">
+ <input name="texts" id="ff-all-texts" type="hidden">
+ <input name="typography" id="ff-all-typography" type="hidden">
+ <input name="photos" id="ff-all-photos" type="hidden">
+ <button type="submit" style="padding:12px;width:100%;background:#244e36;color:white;border:0;font-size:15px;cursor:pointer">Zapisz wszystkie zmiany</button>
+</form>
+@if(session('foodfoto_all_saved'))<p role="status" style="color:#216235">Zapisano wszystkie zmiany w wersji roboczej.</p>@endif
+<p id="ff-save-status" role="status" aria-live="polite" hidden style="position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:300;padding:15px 22px;border:2px solid #23613e;background:#e9f6ed;color:#123d25;box-shadow:0 6px 24px #0003;font:bold 15px Arial,sans-serif;max-width:80vw;text-align:center"></p>
+<div id="ff-unified-tools"></div>
+ <p style="color:#666;font-size:11px">Wersja robocza — każdą część zapisuj odpowiednim przyciskiem. Strona publiczna nie zmienia się.</p>
+</aside>
+<div id="ff-photo-panel" style="position:fixed;left:18px;top:55px;z-index:102;background:white;border:1px solid #aaa;padding:12px;font:13px Arial;max-width:330px">
+ <button type="button" id="ff-photo-open">Biblioteka zdjęć <span aria-hidden="true">▦</span></button>
+ <form id="ff-photo-form" action="{{ route('foodfoto.canvas.photos') }}" method="POST" style="display:inline">@csrf<input type="hidden" name="photos" id="ff-photo-json"><button type="submit">Zapisz zdjęcia</button></form>
+ <small style="display:block;margin-top:7px">Kliknij fotografię na stronie, a następnie wybierz miniaturę. Zmiany dotyczą tylko projektu roboczego.</small>
+</div>
+<div id="ff-photo-actions-panel" style="position:fixed;left:18px;top:140px;width:310px;max-width:calc(100vw - 36px);z-index:103;background:white;border:1px solid #aaa;box-shadow:0 4px 18px #0002;padding:12px;font:13px Arial,sans-serif">
+ <strong>Akcja po kliknięciu zdjęcia</strong>
+ <p style="margin:7px 0"><button id="ff-action-choose" type="button">Wybierz zdjęcie do ustawienia ↖</button></p>
+ <div id="ff-action-editor" hidden>
+  <p id="ff-action-selection"></p>
+  <label for="ff-action-mode">Po kliknięciu:</label>
+  <select id="ff-action-mode" style="width:100%;padding:7px">
+   <option value="none">Brak akcji</option>
+   <option value="lightbox">Powiększ zdjęcie</option>
+   <option value="link">Otwórz galerię lub podstronę</option>
+  </select>
+  <label id="ff-action-url-wrap" hidden>Adres podstrony (np. /portfolio/nazwa-galerii)
+   <input id="ff-action-url" type="text" placeholder="/portfolio/nazwa-galerii" style="width:100%;padding:7px;box-sizing:border-box">
+  </label>
+  <button id="ff-action-save" type="button" style="margin-top:8px">Zapisz akcję zdjęcia</button>
+ </div>
+ <p id="ff-action-status" role="status" style="font-size:12px"></p>
+</div>
+<div id="ff-photo-lightbox" hidden role="dialog" aria-label="Powiększenie zdjęcia" style="position:fixed;inset:0;background:#000e;z-index:350;align-items:center;justify-content:center;padding:40px;box-sizing:border-box">
+ <button type="button" id="ff-lightbox-close" aria-label="Zamknij powiększenie" style="position:absolute;top:16px;right:24px;color:white;background:none;border:0;font:36px Arial;cursor:pointer">×</button>
+ <img id="ff-lightbox-image" alt="" style="max-width:100%;max-height:90vh;object-fit:contain">
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const saved={...@json($canvasPhotoActions)};
+ const images=[...document.querySelectorAll('img[data-canvas-photo]')];
+ const chooser=document.getElementById('ff-action-choose');
+ const editor=document.getElementById('ff-action-editor');
+ const mode=document.getElementById('ff-action-mode');
+ const url=document.getElementById('ff-action-url');
+ const urlWrap=document.getElementById('ff-action-url-wrap');
+ const status=document.getElementById('ff-action-status');
+ const box=document.getElementById('ff-photo-lightbox');
+ const zoom=document.getElementById('ff-lightbox-image');
+ let selecting=false, selected=null;
+ function choose(img){
+  selected=img;
+  const slot=img.dataset.canvasPhoto;
+  const action=saved[slot]||{mode:'none',url:''};
+  document.getElementById('ff-action-selection').textContent='Zdjęcie: '+slot;
+  mode.value=action.mode||'none';
+  url.value=action.url||'';
+  urlWrap.hidden=mode.value!=='link';
+  editor.hidden=false;
+  status.textContent='';
+  selecting=false;
+  chooser.textContent='Wybierz inne zdjęcie ↖';
+ }
+ chooser.addEventListener('click',()=>{selecting=true;chooser.textContent='Kliknij zdjęcie na stronie…';});
+ mode.addEventListener('change',()=>urlWrap.hidden=mode.value!=='link');
+ images.forEach(img=>img.addEventListener('click',event=>{
+  if(document.body.classList.contains('ff-layout-editing')||document.getElementById('ff-photo-panel').dataset.choosing)return;
+  if(selecting){event.preventDefault();event.stopPropagation();choose(img);return;}
+  const action=saved[img.dataset.canvasPhoto];
+  if(!action||action.mode==='none')return;
+  if(action.mode==='lightbox'){
+   event.preventDefault();event.stopPropagation();
+   zoom.src=img.currentSrc||img.src;zoom.alt=img.alt;
+   box.hidden=false;box.style.display='flex';
+  }else if(action.mode==='link'&&action.url){
+   event.preventDefault();event.stopPropagation();
+   window.location.assign(action.url);
+  }
+ },true));
+ function close(){box.hidden=true;box.style.display='none';zoom.removeAttribute('src');}
+ document.getElementById('ff-lightbox-close').addEventListener('click',close);
+ box.addEventListener('click',event=>{if(event.target===box)close()});
+ document.addEventListener('keydown',event=>{if(event.key==='Escape'&&!box.hidden)close()});
+ document.getElementById('ff-action-save').addEventListener('click',async()=>{
+  if(!selected){status.textContent='Najpierw wybierz zdjęcie.';return;}
+  const action={mode:mode.value,url:mode.value==='link'?url.value.trim():''};
+  if(action.mode==='link'&&!/^\/(?!\/)[a-zA-Z0-9/_?=&%.#-]*$/.test(action.url)){
+   status.textContent='Podaj adres wewnętrzny zaczynający się od /, np. /portfolio/nazwa.';return;
+  }
+  const slot=selected.dataset.canvasPhoto;
+  const next={...saved,[slot]:action};
+  const body=new FormData();
+  body.append('_token',document.querySelector('#ff-save-all-form input[name="_token"]').value);
+  body.append('actions',JSON.stringify(next));
+  status.textContent='Trwa zapisywanie…';
+  try{
+   const response=await fetch('/admin/foodfoto-canvas/photo-actions',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok){status.textContent='Błąd zapisu HTTP '+response.status;return;}
+   const result=await response.json();
+   if(!result.success){status.textContent='Nie potwierdzono zapisu.';return;}
+   Object.assign(saved,result.actions);
+   status.textContent='Zapisano akcję zdjęcia.';
+  }catch(error){status.textContent='Błąd połączenia: '+error.message;}
+ });
+});
+</script>
+<style>
+ body.ff-canvas-compact #ff-unified-panel{right:0!important;top:0!important;bottom:0!important;max-height:100vh!important;width:345px!important;max-width:min(345px,90vw)!important;padding:14px!important;box-sizing:border-box!important;z-index:115!important;overflow-y:auto!important}
+ #ff-unified-panel .ff-tool-section{border:1px solid #d5ddd7;border-radius:7px;margin:10px 0;background:#fff}
+ #ff-unified-panel .ff-tool-section>summary{cursor:pointer;font:bold 14px Arial;padding:12px;background:#f3f6f3}
+ #ff-unified-panel .ff-tool-section>div{padding:12px;max-width:100%;box-sizing:border-box}
+ #ff-unified-panel .ff-tool-section input,#ff-unified-panel .ff-tool-section select{max-width:100%;box-sizing:border-box}
+ body.ff-canvas-compact #ff-layout-toolbar,body.ff-canvas-compact #ff-type-panel,body.ff-canvas-compact #ff-text-toolbar,body.ff-canvas-compact #ff-photo-panel,body.ff-canvas-compact #ff-photo-actions-panel{position:static!important;top:auto!important;left:auto!important;right:auto!important;bottom:auto!important;z-index:auto!important;display:block!important;width:100%!important;max-width:100%!important;max-height:none!important;box-shadow:none!important;border:none!important;padding:0!important;margin:0!important;box-sizing:border-box!important;background:transparent!important;transform:none!important}
+ body.ff-canvas-compact #ff-layout-toolbar{flex-direction:column;align-items:stretch}
+ body.ff-canvas-compact #ff-layout-controls{flex-direction:column;align-items:stretch}
+ body.ff-canvas-compact #ff-unified-panel.ff-hidden{transform:translateX(101%)!important;overflow:visible!important}
+ #ff-sidebar-toggle{position:fixed;right:355px;top:12px;z-index:160;background:#244e36;color:white;border:0;border-radius:6px 0 0 6px;padding:12px;cursor:pointer;font:13px Arial}
+ body.ff-canvas-compact #ff-unified-panel.ff-hidden~#ff-sidebar-toggle{right:0}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const panel=document.getElementById('ff-unified-panel');
+ if(!panel)return;
+ document.body.classList.add('ff-canvas-compact');
+ const groups=[
+  ['ff-layout-toolbar','Układ i prowadnice'],
+  ['ff-type-panel','Typografia'],
+  ['ff-text-toolbar','Treść i teksty'],
+  ['ff-photo-panel','Biblioteka fotografii'],
+  ['ff-photo-actions-panel','Kliknięcie zdjęcia'],
+ ];
+ // Move the original functional controls, keeping IDs, state and event handlers.
+ const holder=document.createElement('div');
+ holder.id='ff-organized-tools';
+ for(const [id,title] of groups){
+  const existing=document.getElementById(id);
+  if(!existing)continue;
+  const details=document.createElement('details');
+  details.className='ff-tool-section';
+  const summary=document.createElement('summary');
+  summary.textContent=title;
+  const inside=document.createElement('div');
+  inside.appendChild(existing);
+  details.append(summary,inside);
+  holder.appendChild(details);
+ }
+ panel.appendChild(holder);
+ const toggle=document.createElement('button');
+ toggle.id='ff-sidebar-toggle';toggle.type='button';toggle.textContent='Ukryj narzędzia ◀';
+ panel.after(toggle);
+ toggle.addEventListener('click',()=>{
+  const hidden=panel.classList.toggle('ff-hidden');
+  toggle.textContent=hidden?'Pokaż narzędzia ▶':'Ukryj narzędzia ◀';
+  toggle.style.right=hidden?'0':'min(345px,90vw)';
+ });
+});
+</script>
+<style>
+#ff-element-palette{position:fixed;z-index:112;left:0;top:0;bottom:0;width:205px;box-sizing:border-box;padding:18px 12px;background:#fff;border-right:1px solid #cbd3ce;overflow:auto;font:13px Arial,sans-serif}
+#ff-element-palette h3{font:bold 13px Arial;margin:5px 0 14px}
+#ff-element-palette button{display:block;width:100%;padding:11px 8px;margin:7px 0;background:white;border:1px solid #d2d9d3;border-radius:5px;text-align:left;cursor:pointer;font:13px Arial}
+#ff-element-palette button:hover{background:#edf5ed}
+#ff-added-props{border:1px solid #d9dfd9;padding:12px;margin-top:12px;background:#fff}
+#ff-added-props label{display:block;margin:10px 0}
+#ff-added-props input,#ff-added-props textarea,#ff-added-props select{display:block;box-sizing:border-box;width:100%;padding:7px;margin-top:4px}
+#ff-added-props button{padding:9px;margin:4px 0}
+body.ff-canvas-compact #ff-element-palette~#ff-added-element-toggle{position:fixed;bottom:14px;left:12px;z-index:116}
+</style>
+<aside id="ff-element-palette" aria-label="Dodawanie elementów">
+ <h3>ELEMENTY</h3>
+ <button type="button" data-add-ff="text">+ Tekst</button>
+ <button type="button" data-add-ff="heading">+ Nagłówek</button>
+ <button type="button" data-add-ff="image">+ Zdjęcie</button>
+ <button type="button" data-add-ff="thumbnail_gallery">+ Galeria miniaturek</button>
+ <button type="button" data-add-ff="gallery">+ Galeria</button>
+ <button type="button" data-add-ff="button">+ Przycisk</button>
+ <button type="button" data-add-ff="separator">+ Separator</button>
+ <p style="font-size:11px;color:#777;line-height:1.5">Nowe elementy są dodawane do szkicu na końcu strony. Możesz je przesuwać i zmieniać ich rozmiary.</p>
+ <p id="ff-add-status" role="status"></p>
+</aside>
+<button id="ff-added-element-toggle" type="button" style="display:none">Elementy</button>
+<div id="ff-added-props" hidden>
+ <strong>Właściwości nowego elementu</strong>
+ <p id="ff-added-selected"></p>
+ <label>Treść / podpis<textarea id="ff-added-content" rows="4" maxlength="2000"></textarea></label>
+ <label>Zdjęcie z biblioteki<select id="ff-added-photo"></select></label>
+ <label>Galeria<select id="ff-added-gallery"></select></label>
+ <label>Adres przycisku (np. /portfolio)<input id="ff-added-url" type="text"></label>
+ <button type="button" id="ff-added-save">Zapisz element</button>
+ <button type="button" id="ff-added-remove">Usuń element</button>
+ <p id="ff-added-status" role="status"></p>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const elements=[...@json($canvasElements)], photos=@json($photoPickerOptions), galleries=@json($canvasGalleryOptions);
+ const props=document.getElementById('ff-added-props'),label=document.getElementById('ff-added-selected');
+ let selected=null;
+ const fields={content:document.getElementById('ff-added-content'),
+  photo_id:document.getElementById('ff-added-photo'),
+  gallery_id:document.getElementById('ff-added-gallery'),
+  url:document.getElementById('ff-added-url')};
+ const csrf=document.querySelector('#ff-save-all-form input[name="_token"]').value;
+ for(const [select,list] of [[fields.photo_id,photos],[fields.gallery_id,galleries]]){
+  const empty=document.createElement('option');empty.value='0';empty.textContent='Wybierz';select.appendChild(empty);
+  list.forEach(item=>{const option=document.createElement('option');option.value=item.id;option.textContent=item.title;select.appendChild(option)});
+ }
+ async function persist(status){
+  status.textContent='Zapisywanie szkicu…';
+  try{
+   const body=new FormData();body.append('_token',csrf);body.append('elements',JSON.stringify(elements));
+   const response=await fetch('/admin/foodfoto-canvas/elements',{
+    method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},body
+   });
+   if(!response.ok)throw Error('HTTP '+response.status);
+   const result=await response.json();
+   if(!result.success)throw Error('Brak potwierdzenia');
+   window.location.reload();
+  }catch(error){status.textContent='Błąd zapisu: '+error.message}
+ }
+ document.querySelectorAll('[data-add-ff]').forEach(button=>button.addEventListener('click',()=>{
+  const type=button.dataset.addFf;
+  const id='ffel_'+(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).slice(0,20);
+  elements.push({id,type,content:({heading:'Nowy nagłówek',text:'Nowy tekst',button:'Zobacz więcej'}[type]||''),photo_id:0,gallery_id:0,url:'#portfolio'});
+  persist(document.getElementById('ff-add-status'));
+ }));
+ function choose(id){
+  selected=elements.find(el=>el.id===id)||null;
+  if(!selected)return;
+  props.hidden=false;label.textContent='Typ: '+selected.type;
+  fields.content.value=selected.content||'';
+  fields.photo_id.value=selected.photo_id||0;
+  fields.gallery_id.value=selected.gallery_id||0;
+  fields.url.value=selected.url||'';
+  fields.photo_id.parentElement.hidden=selected.type!=='image';
+  fields.gallery_id.parentElement.hidden=!['gallery','thumbnail_gallery'].includes(selected.type);
+  fields.url.parentElement.hidden=selected.type!=='button';
+  fields.content.parentElement.hidden=!['heading','text','button'].includes(selected.type);
+ }
+ document.querySelectorAll('[data-added-element]').forEach(el=>el.addEventListener('click',()=>choose(el.dataset.addedElement)));
+ document.getElementById('ff-added-save').addEventListener('click',()=>{
+  if(!selected)return;
+  selected.content=fields.content.value;selected.photo_id=Number(fields.photo_id.value);
+  selected.gallery_id=Number(fields.gallery_id.value);selected.url=fields.url.value;
+  persist(document.getElementById('ff-added-status'));
+ });
+ document.getElementById('ff-added-remove').addEventListener('click',()=>{
+  if(!selected)return;
+  const ix=elements.findIndex(el=>el.id===selected.id);if(ix>=0)elements.splice(ix,1);
+  persist(document.getElementById('ff-added-status'));
+ });
+ const right=document.getElementById('ff-unified-panel');
+ if(right)right.appendChild(props);
+});
+</script>
+@if($canvas)
+<style>
+ #ff-canvas-viewport{position:fixed;left:205px;right:345px;top:50px;bottom:0;overflow:auto;background:repeating-conic-gradient(#f3f3f3 0 25%,#fff 0 50%) 50%/20px 20px;z-index:1}
+ #ff-canvas-stage{position:relative;margin:0 auto;min-height:1px}
+ #ff-canvas-viewport>.wrap{margin:0!important;max-width:none!important;width:1400px!important;transform-origin:top left;background:#fff;box-shadow:0 0 12px #0002}
+ #ff-zoom-toolbar{position:fixed;top:0;left:205px;right:345px;z-index:120;background:#fff;border-bottom:1px solid #ccc;height:50px;display:flex;align-items:center;justify-content:center;gap:8px;font:13px Arial,sans-serif}
+ #ff-zoom-toolbar button{padding:7px 12px;cursor:pointer;border:1px solid #ccd3cc;background:white;border-radius:4px}
+ #ff-zoom-toolbar output{min-width:48px;text-align:center;font-variant-numeric:tabular-nums}
+</style>
+<div id="ff-zoom-toolbar" aria-label="Skala podglądu strony">
+ <button id="ff-zoom-out" type="button" aria-label="Zmniejsz podgląd">−</button>
+ <output id="ff-zoom-percent">100%</output>
+ <button id="ff-zoom-in" type="button" aria-label="Powiększ podgląd">+</button>
+ <button id="ff-zoom-fit" type="button">Dopasuj</button>
+ <button id="ff-zoom-full" type="button">100%</button>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const root=document.querySelector('.wrap[data-foodfoto-layout]');
+ if(!root)return;
+ const viewport=document.createElement('div');viewport.id='ff-canvas-viewport';
+ const stage=document.createElement('div');stage.id='ff-canvas-stage';
+ root.parentNode.insertBefore(viewport,root);viewport.appendChild(stage);stage.appendChild(root);
+ const percent=document.getElementById('ff-zoom-percent');
+ const clamp=n=>Math.max(.25,Math.min(1.5,Math.round(n*20)/20));
+ let zoom=.5,autoFit=true;
+ function fit(){return clamp((viewport.clientWidth-24)/1400);}
+ function apply(){
+  root.style.transform='scale('+zoom+')';
+  stage.style.width=(1400*zoom)+'px';
+  stage.style.height=(root.offsetHeight*zoom)+'px';
+  percent.textContent=Math.round(zoom*100)+'%';
+ }
+ function set(n){autoFit=false;zoom=clamp(n);apply();}
+ document.getElementById('ff-zoom-out').addEventListener('click',()=>set(zoom-.1));
+ document.getElementById('ff-zoom-in').addEventListener('click',()=>set(zoom+.1));
+ document.getElementById('ff-zoom-full').addEventListener('click',()=>set(1));
+ document.getElementById('ff-zoom-fit').addEventListener('click',()=>{autoFit=true;zoom=fit();apply();});
+ window.addEventListener('resize',()=>{if(autoFit)zoom=fit();apply()});
+ if(typeof ResizeObserver!=='undefined')new ResizeObserver(()=>apply()).observe(root);
+ zoom=fit();apply();
+});
+</script>
+@endif
+<div id="ff-photo-library" hidden role="dialog" aria-modal="true" aria-label="Biblioteka zdjęć" style="position:fixed;inset:7% 10%;background:#fff;z-index:200;box-shadow:0 0 0 200vmax #0008;padding:20px;overflow:auto;font:14px Arial">
+ <button type="button" id="ff-photo-close">Zamknij ×</button>
+ <label style="margin-left:15px">Znajdź fotografię <input type="search" id="ff-photo-search" placeholder="Wpisz nazwę lub numer" style="padding:8px"></label>
+ <div id="ff-photo-results" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:12px;margin-top:20px"></div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const photos=@json($photoPickerOptions);
+ const saved=@json($canvasPhotos);
+ const choices={...saved};
+ const nodes=[...document.querySelectorAll('img[data-canvas-photo]')];
+ const byId=new Map(photos.map(p=>[String(p.id),p]));
+ let selected=null;
+ const modal=document.getElementById('ff-photo-library'),grid=document.getElementById('ff-photo-results');
+ function usePhoto(slot,id){const item=byId.get(String(id));if(!item)return;const el=nodes.find(img=>img.dataset.canvasPhoto===slot);if(el){el.src=item.url;el.alt=item.title;}choices[slot]=id;}
+ Object.entries(choices).forEach(([slot,id])=>usePhoto(slot,id));
+ function results(search=''){
+  const query=search.toLocaleLowerCase('pl').trim();grid.replaceChildren();
+  photos.filter(p=>!query||(String(p.id)+' '+p.title).toLocaleLowerCase('pl').includes(query)).slice(0,200).forEach(p=>{
+   const button=document.createElement('button');button.type='button';button.style.cssText='padding:6px;border:1px solid #ccc;background:#fff;text-align:left;cursor:pointer';
+   const img=document.createElement('img');img.src=p.url;img.alt=p.title;img.loading='lazy';img.style.cssText='width:100%;height:100px;object-fit:cover';
+   const label=document.createElement('span');label.textContent='#'+p.id+' — '+p.title;label.style.cssText='display:block;font-size:11px';
+   button.append(img,label);button.addEventListener('click',()=>{if(selected)usePhoto(selected.dataset.canvasPhoto,p.id);modal.hidden=true});
+   grid.append(button);
+  });
+ }
+ nodes.forEach(img=>{img.addEventListener('click',e=>{if(!document.getElementById('ff-photo-panel').dataset.choosing)return;e.preventDefault();selected=img;modal.hidden=false;results(document.getElementById('ff-photo-search').value)})});
+ document.getElementById('ff-photo-open').addEventListener('click',()=>{
+  const panel=document.getElementById('ff-photo-panel');panel.dataset.choosing=panel.dataset.choosing?'':'yes';
+  document.getElementById('ff-photo-open').textContent=panel.dataset.choosing?'Wybierz zdjęcie na stronie ↖':'Biblioteka zdjęć ▦';
+ });
+ document.getElementById('ff-photo-close').addEventListener('click',()=>modal.hidden=true);
+ document.getElementById('ff-photo-search').addEventListener('input',e=>results(e.target.value));
+ document.getElementById('ff-photo-form').addEventListener('submit',()=>document.getElementById('ff-photo-json').value=JSON.stringify(choices));
+});
+</script>
+<div id="ff-text-toolbar" style="position:fixed;right:18px;top:55px;z-index:100;background:#fff;border:1px solid #bbb;padding:12px;font:13px Arial;max-width:330px">
+ <label for="ff-selected-text-content" style="display:block;margin-bottom:12px">Treść zaznaczonego tekstu
+  <textarea id="ff-selected-text-content" rows="5" placeholder="Kliknij tekst na stronie…" style="display:block;box-sizing:border-box;width:100%;padding:8px" disabled></textarea>
+ </label>
+ <label for="ff-hero-button-label" style="display:block;margin-bottom:12px">Tekst przycisku głównego
+  <input id="ff-hero-button-label" type="text" maxlength="80" style="display:block;width:100%;box-sizing:border-box;margin-top:5px;padding:8px" value="{{ $canvasTexts['preview_hero_button_label'] ?? ($previewDecorations['preview_hero_button_label'] ?? 'Zobacz portfolio') }}">
+ </label>
+ <button type="button" id="ff-text-enable">Edytuj teksty ✎</button>
+ <form action="{{ route('foodfoto.canvas.texts') }}" id="ff-text-form" method="POST" style="display:inline">@csrf<input type="hidden" name="texts" id="ff-text-json"><button type="submit">Zapisz teksty</button></form>
+ <small style="display:block;margin-top:8px">Po kliknięciu „Edytuj teksty” możesz zmienić zawartość zaznaczonych nagłówków i opisów bezpośrednio na stronie. Ten zapis dotyczy tylko wersji roboczej.</small>
+</div>
+@if(session('foodfoto_texts_saved'))<p role="status" style="position:fixed;right:20px;top:180px;background:#e6f3e6;z-index:99;padding:8px">Teksty zapisane w wersji roboczej.</p>@endif
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const btn=document.getElementById('ff-text-enable');
+ const form=document.getElementById('ff-text-form');
+ const nodes=[...document.querySelectorAll('[data-canvas-text]')];
+ const contentField=document.getElementById('ff-selected-text-content');
+ let activeText=null;
+ nodes.forEach(node=>node.addEventListener('click',()=>{
+   activeText=node;
+   contentField.disabled=false;
+   contentField.value=node.innerText;
+ },false));
+ contentField.addEventListener('input',()=>{
+  if(!activeText)return;
+  activeText.textContent=contentField.value;
+  const buttonLabel=document.getElementById('ff-hero-button-label');
+  if(activeText.dataset.canvasText==='preview_hero_button_label'&&buttonLabel)buttonLabel.value=contentField.value;
+ });
+ const heroButtonLabel=document.getElementById('ff-hero-button-label');
+ const heroButtonText=document.querySelector('[data-canvas-text="preview_hero_button_label"]');
+ if(heroButtonLabel&&heroButtonText){
+  heroButtonLabel.addEventListener('input',()=>{heroButtonText.textContent=heroButtonLabel.value;});
+  heroButtonText.addEventListener('input',()=>{heroButtonLabel.value=heroButtonText.textContent;});
+ }
+ let active=false;
+ // Clicking a text field inside a link edits its label rather than following its URL.
+ document.querySelectorAll('a:has([data-canvas-text])').forEach(link=>{
+  link.addEventListener('click',event=>{
+   if(!active)return;
+   event.preventDefault();
+   event.stopPropagation();
+   const span=link.querySelector('[data-canvas-text]');
+   if(span)span.focus();
+  },true);
+ });
+ btn.addEventListener('click',function(){
+  active=!active;
+  nodes.forEach(el=>{el.contentEditable=active?'true':'false';el.style.outline=active?'1px dashed #42774a':'';if(el.closest('a'))el.setAttribute('tabindex','0');});
+  btn.textContent=active?'Zakończ edycję tekstów':'Edytuj teksty ✎';
+ });
+ form.addEventListener('submit',function(){
+  const values={};nodes.forEach(el=>values[el.dataset.canvasText]=el.innerText);
+  if(heroButtonLabel)values.preview_hero_button_label=heroButtonLabel.value;
+  document.getElementById('ff-text-json').value=JSON.stringify(values);
+ });
+});
+</script>
+@endif
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+ const tools=document.getElementById('ff-unified-tools');
+ const label=document.getElementById('ff-unified-selection');
+ if(!tools)return;
+ const typography=document.getElementById('ff-type-panel');
+ const photo=document.getElementById('ff-photo-panel');
+ const text=document.getElementById('ff-text-toolbar');
+ [text,typography,photo].forEach(panel=>{
+  if(!panel)return;
+  tools.append(panel);
+  panel.style.position='static';panel.style.width='100%';panel.style.maxWidth='none';
+  panel.style.border='0';panel.style.borderTop='1px solid #ddd';
+  panel.style.padding='12px 0';panel.style.boxShadow='none';
+ });
+ const all=[...document.querySelectorAll('[data-canvas-text],img[data-canvas-photo]')];
+ function select(el){
+  const isPhoto=el.matches('img[data-canvas-photo]');
+  label.textContent=(isPhoto?'Zdjęcie: ':'Tekst: ')+(isPhoto?(el.alt||el.dataset.canvasPhoto):(el.innerText||'').slice(0,65));
+  typography.hidden=isPhoto;
+  text.hidden=isPhoto;
+  photo.hidden=!isPhoto;
+  if(isPhoto){
+    // Activate the existing photo-selection flow when the user clicks an image.
+    const picker=document.getElementById('ff-photo-open');
+    if(!photo.dataset.choosing)picker.click();
+  }
+ }
+ all.forEach(el=>el.addEventListener('click',()=>select(el)));
+ photo.hidden=true;
+});
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+ const form=document.getElementById('ff-save-all-form');
+ if(!form)return;
+ form.addEventListener('submit',async event=>{
+  event.preventDefault();
+  const status=document.getElementById('ff-save-status');
+  status.hidden=false;
+  status.textContent='Trwa zapisywanie…';
+  for(const [source,target] of [
+   ['ff-layout-form','ff-all-layout'],
+   ['ff-text-form','ff-all-texts'],
+   ['ff-type-form','ff-all-typography'],
+   ['ff-photo-form','ff-all-photos'],
+  ]){
+   const child=document.getElementById(source);
+   if(!child){event.preventDefault();alert('Brak narzędzia edycji: '+source);return}
+   const collectOnly=new Event('submit',{bubbles:false,cancelable:true});
+   collectOnly.preventDefault(); // Run each form's serializer without submitting that form.
+   child.dispatchEvent(collectOnly);
+   const value=child.querySelector('input[type="hidden"][name]:not([name="_token"])');
+   if(!value || !value.value){event.preventDefault();alert('Nie udało się zebrać danych: '+source);return}
+   document.getElementById(target).value=value.value;
+  }
+  const button=form.querySelector('button[type="submit"]');
+  button.disabled=true;
+  try {
+   const response=await fetch('/admin/foodfoto-canvas/save-all',{
+    method:'POST',
+    credentials:'same-origin',
+    redirect:'manual',
+    headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+    body:new FormData(form)
+   });
+   if(response.status===0 || (response.status>=300&&response.status<400)){
+    status.textContent='Serwer żąda przekierowania — sprawdź logowanie lub adres aplikacji. Zmiany nie zostały potwierdzone.';
+   }else if(response.ok){
+    status.textContent='Zapisano wszystkie zmiany w wersji roboczej. Możesz teraz odświeżyć stronę.';
+   }else{
+    let message='';
+    try { const data=await response.json(); message=data.message||''; } catch(_){}
+    status.textContent='Błąd zapisu HTTP '+response.status+(message?' — '+message:'');
+   }
+  }catch(error){
+   status.textContent='Błąd połączenia podczas zapisu: '+error.message;
+  }finally{button.disabled=false}
+ });
+});
+</script>
 <div id="ff-layout-toolbar" aria-label="Edytor położenia elementów">
  <button id="ff-layout-toggle" type="button" aria-pressed="false">Przesuwaj elementy ↔</button>
  <div id="ff-layout-controls" hidden>
   <button type="button" id="ff-layout-undo">Cofnij ↶</button>
   <button type="button" id="ff-layout-discard">Odrzuć zmiany</button>
   <label for="ff-size">Szerokość px</label><input id="ff-size" type="number" min="0" max="1200" step="1" value="0" title="0 = wymiar oryginalny" style="width:72px"><button type="button" id="ff-size-apply">Ustaw</button>
+  <label for="ff-height">Wysokość px</label><input id="ff-height" type="number" min="0" max="1200" step="1" value="0" title="0 = wysokość automatyczna" style="width:72px"><button type="button" id="ff-height-apply">Ustaw wysokość</button>
   <button type="button" id="ff-layer-up">Warstwa +</button><button type="button" id="ff-layer-down">Warstwa −</button>
 
   <button type="button" id="ff-layout-reset">Reset pozycji</button>
   <label><input id="ff-layout-snap" type="checkbox" checked> Przyciąganie i prowadnice</label>
-  <form id="ff-layout-form" method="POST" action="{{ route('foodfoto.home.preview.layout') }}">
+  <form id="ff-layout-form" method="POST" action="{{ $canvas ? route('foodfoto.canvas.layout') : route('foodfoto.home.preview.layout') }}">
    @csrf
    <input id="ff-layout-json" type="hidden" name="layout">
    <button class="primary" type="submit">Zapisz układ</button>
@@ -253,8 +994,8 @@
  <span id="ff-layout-status" role="status"></span>
 </div>
 @if(session('foodfoto_layout_saved'))<p style="position:fixed;top:40px;left:20px;background:#e5f5e9;padding:8px;z-index:90;font:14px Arial,sans-serif">Pozycje zapisane.</p>@endif
-<button id="foodfoto-edit-open" type="button" aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
-<aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony">
+<button id="foodfoto-edit-open" type="button" @if($canvas) hidden @endif aria-controls="foodfoto-editor" aria-expanded="false">Edytuj stronę ✎</button>
+<aside id="foodfoto-editor" aria-label="Edycja tekstów nowej strony" @if($canvas) hidden @endif>
  <button class="close" type="button" id="foodfoto-edit-close">Zamknij ×</button>
  <h2 style="margin:0 0 12px;font:26px Georgia,serif;">Edytor nowej strony</h2>
  <p>Teksty i proporcje aktualizują się na żywo. Zdjęcia z biblioteki zmienią się po zapisaniu. Wszystko dotyczy wyłącznie niepublicznego podglądu.</p>

@@ -119,6 +119,17 @@ Route::get("/strona/{page:slug}", function (\App\Models\Page $page) {
 })->name("page.public");
 
 Route::middleware(["auth"])->group(function () {
+    Route::get('/admin/foodfoto-canvas', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'canvas'])->name('foodfoto.canvas');
+    Route::post('/admin/foodfoto-canvas/save-all', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasAll'])->name('foodfoto.canvas.save-all');
+    Route::post('/admin/foodfoto-canvas/photo-actions', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasPhotoActions'])->name('foodfoto.canvas.photo-actions');
+    Route::post('/admin/foodfoto-canvas/photos', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasPhotos'])->name('foodfoto.canvas.photos');
+    Route::post('/admin/foodfoto-canvas/elements', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasElements'])->name('foodfoto.canvas.elements');
+    Route::post('/admin/foodfoto-canvas/fonts', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'uploadCanvasFont'])->name('foodfoto.canvas.fonts');
+    Route::post('/admin/foodfoto-canvas/typography', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasTypography'])->name('foodfoto.canvas.typography');
+    Route::post('/admin/foodfoto-canvas/texts', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasTexts'])->name('foodfoto.canvas.texts');
+    Route::post('/admin/foodfoto-canvas/layout', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'saveCanvasLayout'])->name('foodfoto.canvas.layout');
+    Route::get('/admin/foodfoto-builder', [\App\Http\Controllers\Admin\FoodfotoUnifiedBuilderController::class, 'edit'])->name('foodfoto.builder.edit');
+    Route::post('/admin/foodfoto-builder', [\App\Http\Controllers\Admin\FoodfotoUnifiedBuilderController::class, 'save'])->name('foodfoto.builder.save');
     Route::get('/admin/foodfoto-preview', \App\Http\Controllers\Admin\FoodfotoPreviewController::class)->name('foodfoto.home.preview');
     Route::post('/admin/foodfoto-preview/content', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateContent'])->name('foodfoto.home.preview.content');
     Route::post('/admin/foodfoto-preview/blocks', [\App\Http\Controllers\Admin\FoodfotoPreviewController::class, 'updateBlocks'])->name('foodfoto.home.preview.blocks');

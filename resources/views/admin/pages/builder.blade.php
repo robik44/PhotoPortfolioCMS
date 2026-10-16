@@ -43,6 +43,13 @@
         });
         window.FoodfotoProcess.attachTypography(window.builderTypography);
     </script>
+    @if(!empty($isFoodfotoDraft))
+       <p role="status" style="margin:16px 24px;padding:14px;background:#fff8e6;border:1px solid #d1b56b;font:14px Arial,sans-serif">
+         <strong>Roboczy builder FoodFoto.</strong> Zachowuje oryginalny projekt i pozwala korzystać z pełnej typografii,
+         przeciągania elementów, linijek i prowadnic. Ten widok nie odtwarza jeszcze dokładnie nowego szablonu.
+         Zapis tutaj nie zmienia publicznej strony. <a href="{{ route('foodfoto.home.preview') }}">Wróć do aktualnego wyglądu</a>.
+       </p>
+    @endif
     @if (!empty($preparedStaticContent))
         <p class="cms-alert">To propozycja układu na podstawie dotychczasowej treści. Publiczna strona zmieni się dopiero po zapisaniu buildera.</p>
     @endif
