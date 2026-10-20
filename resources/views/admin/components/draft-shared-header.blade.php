@@ -4,6 +4,14 @@ $logo = $p['brand-image'] ?? []; $name = $p['brand-text'] ?? []; $line = $p['bra
 $radius = implode(' ', array_map(static fn($n) => max(0,min(120,(int)$n)).'px', [$menu['rtl']??10,$menu['rtr']??10,$menu['rbr']??24,$menu['rbl']??40]));
 $photo = $draftPreviewImage ?: ($builderHeaderSettings['preview_hero_image'] ?? null);
 $full = $headerVariantValue === 'full';
+$brand = $p['brand'] ?? [];
+$eyebrow = $p['eyebrow'] ?? [];
+$headline = $p['headline'] ?? [];
+$description = $p['description'] ?? [];
+$cta = $p['cta'] ?? [];
+$font = static fn ($item, $default) => max(8,min(120,(float)($item['font'] ?? $default)));
+$xy = static fn ($item,$axis) => max(-400,min(400,(int)($item[$axis] ?? 0)));
+
 $blocks = ['eyebrow' => $p['eyebrow'] ?? [], 'headline' => $p['headline'] ?? [], 'description' => $p['description'] ?? [], 'cta' => $p['cta'] ?? []];
 $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
   $x = max(-400,min(400,(int)($item['x']??0)));
@@ -16,7 +24,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 };
 @endphp
 <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
-<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" style="--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px">
+<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" style="--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
 <div class="ff-shared-bar">
 <div class="ff-shared-brand">
@@ -31,6 +39,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 <span class="ff-shared-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
 </div></div>
 <div class="ff-shared-hero">
+
 <div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE' }}</div>
 <h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności" }}</h1>
 <p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $builderHeaderSettings['draft_header_hero_description'] ?? '' }}</p>
@@ -44,21 +53,21 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-photo{display:none}
 #fve-header-variant-preview .ff-full .ff-shared-photo{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
 #fve-header-variant-preview .ff-full:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#f8f7f3d9,#f8f7f355 48%,transparent 90%);z-index:-1}
-#fve-header-variant-preview .ff-shared-bar{display:flex;justify-content:space-between;align-items:center;gap:25px;padding:23px 4%}
-#fve-header-variant-preview .ff-shared-brand{display:flex;align-items:center;gap:15px;transform:translate(var(--ff-brand-x),var(--ff-brand-y));flex-shrink:0}
-#fve-header-variant-preview .ff-shared-brand img{width:var(--ff-logo);height:auto}
+#fve-header-variant-preview .ff-shared-bar{display:flex;justify-content:space-between;align-items:center;gap:30px;padding:12px 4vw;min-height:84px}
+#fve-header-variant-preview .ff-shared-brand{display:flex;align-items:center;gap:14px;padding:8px 4px 8px 0;transform:translate(var(--ff-brand-x),var(--ff-brand-y));flex-shrink:0}
+#fve-header-variant-preview .ff-shared-brand img{width:var(--ff-logo);height:auto;transform:translate(var(--ff-logo-x),var(--ff-logo-y))}
 #fve-header-variant-preview .ff-shared-brand>strong{font:900 32px/.8 Arial}
-#fve-header-variant-preview .ff-shared-rule{height:var(--ff-line);width:2px;background:#aaa}
-#fve-header-variant-preview .ff-shared-name strong{display:block;font:normal var(--ff-name) Georgia,serif;white-space:nowrap}
+#fve-header-variant-preview .ff-shared-rule{height:var(--ff-line);width:22px;position:relative;flex-shrink:0;transform:translate(var(--ff-line-x),var(--ff-line-y))}.ff-shared-rule:before{content:"";position:absolute;left:50%;top:0;height:100%;width:1px;background:#aaa}
+#fve-header-variant-preview .ff-shared-name{transform:translate(var(--ff-name-x),var(--ff-name-y))}.ff-shared-name strong{display:block;font:normal var(--ff-name) Georgia,serif;white-space:nowrap}
 #fve-header-variant-preview .ff-shared-name small{display:block;font:11px Arial;letter-spacing:.12em;white-space:nowrap}
-#fve-header-variant-preview .ff-shared-menu{display:flex;align-items:center;gap:15px;padding:11px 17px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
-#fve-header-variant-preview .ff-shared-menu span{font:12px Arial;letter-spacing:.04em}
-#fve-header-variant-preview .ff-shared-contact{border:1px solid #344639;border-radius:40px;padding:13px 16px}
-#fve-header-variant-preview .ff-shared-hero{position:absolute;left:5%;top:150px;max-width:900px}
-#fve-header-variant-preview .ff-eyebrow{font:13px Arial;letter-spacing:4px;color:#596656}
-#fve-header-variant-preview .ff-shared-hero h1{white-space:pre-line;font:normal 80px/1 Georgia,serif;margin:20px 0 18px}
-#fve-header-variant-preview .ff-shared-hero p{font:20px/1.4 Arial;max-width:730px}
-#fve-header-variant-preview .ff-cta{display:inline-block;background:#597649;border-radius:40px;padding:18px 30px;color:white;font:14px Arial;letter-spacing:.1em;margin-top:12px}
+#fve-header-variant-preview .ff-shared-menu{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
+#fve-header-variant-preview .ff-shared-menu span{font:11px Arial;letter-spacing:.1em}
+#fve-header-variant-preview .ff-shared-contact{border:1px solid #344639;border-radius:999px;padding:14px 22px;font-size:11px!important;letter-spacing:.12em!important}
+#fve-header-variant-preview .ff-shared-hero{position:relative;margin:62px 0 0 4%;left:auto;top:auto;max-width:820px}
+#fve-header-variant-preview .ff-eyebrow{font:11px/1.4 Arial;letter-spacing:.38em;color:#4f584b;margin:0 0 20px}
+#fve-header-variant-preview .ff-shared-hero h1{white-space:pre-line;font:normal 83px/1.04 Georgia,serif;letter-spacing:-.04em;margin:0 0 24px}
+#fve-header-variant-preview .ff-shared-hero p{font:16px/1.65 Arial;max-width:560px}
+#fve-header-variant-preview .ff-cta{display:inline-block;background:#597649;border-radius:100px;padding:17px 32px;color:white;font:12px Arial;letter-spacing:.12em;margin-top:19px}
 #fve-header-variant-preview .ff-eyebrow{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,11px);letter-spacing:var(--ls,4px)}
 #fve-header-variant-preview .ff-shared-hero h1{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,0px);max-width:var(--lw,850px)}
 #fve-header-variant-preview .ff-shared-hero p{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px)}
