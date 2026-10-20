@@ -78,7 +78,7 @@ class DraftHeaderController extends Controller
             'positions.*.spacing' => ['sometimes', 'numeric', 'between:-2,20'],
             'positions.*.line' => ['sometimes', 'numeric', 'between:0.7,3'],
         ]);
-        $allowed = ['brand', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
+        $allowed = ['brand', 'brand-image', 'brand-divider', 'brand-text', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
         $positions = array_intersect_key($data['positions'], array_flip($allowed));
         SiteSetting::updateOrCreate(
             ['key' => 'draft_header_builder_positions'],
