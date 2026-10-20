@@ -81,11 +81,11 @@ for(const id of ['hero-header','sticky-demo']){
 const heroHeader=document.getElementById('hero-header');
 const brand=heroHeader.querySelector('.draft-brand'),menu=heroHeader.querySelector('.draft-menu');
 const brandPart=hp['brand-image']||{},textPart=hp['brand-text']||{},linePart=hp['brand-divider']||{},menuPart=hp['menu-panel']||{};
-if(brandPart.w)brand.querySelector('img').style.width=brandPart.w+'px';
+if(brandPart.w&&brand.querySelector('img'))brand.querySelector('img').style.width=brandPart.w+'px';
 if(textPart.font)brand.querySelector('.name strong').style.fontSize=textPart.font+'px';
 if(linePart.h)brand.querySelector('.rule').style.height=linePart.h+'px';
 if(menuPart.w)menu.style.zoom=Math.max(.55,Math.min(1.8,menuPart.w/1050));
-if(menuPart.rtl!==undefined)menu.style.borderRadius=[menuPart.rtl,menuPart.rtr,menuPart.rbr,menuPart.rbl].map(v=>(v||0)+'px').join(' ');
+if(['rtl','rtr','rbr','rbl'].some(k=>menuPart[k]!==undefined))menu.style.borderRadius=[menuPart.rtl??12,menuPart.rtr??12,menuPart.rbr??34,menuPart.rbl??40].map(v=>v+'px').join(' ');
 const sticky=document.getElementById('sticky-demo');
 const updateSticky=()=>sticky.classList.toggle('shown',window.scrollY>160);
 window.addEventListener('scroll',updateSticky,{passive:true});updateSticky();
