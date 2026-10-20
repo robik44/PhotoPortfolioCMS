@@ -696,8 +696,8 @@
                 <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
-                    <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
-<div class="fve-unified-draft-header" style="position:relative;min-height:{{ $headerVariantValue === 'full' ? '430px' : '100px' }};background:{{ $headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3' }};{{ $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
+                    <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
+<div class="fve-unified-draft-header" style="position:relative;min-height:{{ ($isHomeBuilder ?? false) ? '0' : ($headerVariantValue === 'full' ? '430px' : '100px') }};background:{{ ($isHomeBuilder ?? false) ? 'transparent' : ($headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3') }};{{ !($isHomeBuilder ?? false) && $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
 <div style="display:flex;align-items:center;gap:18px;flex-shrink:0">
 @if(is_file(storage_path('app/public/branding/foodfoto-transparent-v2.png')))
@@ -713,7 +713,7 @@
 <span style="font:11px Arial;letter-spacing:.08em;border:1px solid #344639;border-radius:40px;padding:12px 17px;white-space:nowrap">POROZMAWIAJMY</span>
 </div>
 </div>
-<div class="fve-draft-hero-copy" style="display:{{ $headerVariantValue === 'full' ? 'block' : 'none' }};margin:80px 0 0 20px;max-width:760px">
+<div class="fve-draft-hero-copy" style="display:{{ ($isHomeBuilder ?? false) ? 'none' : ($headerVariantValue === 'full' ? 'block' : 'none') }};margin:80px 0 0 20px;max-width:760px">
 <div style="font:12px Arial;letter-spacing:.25em;color:#667366;margin-bottom:15px">APETYT NA PIĘKNE HISTORIE</div>
 <div style="font:normal 64px/1 Georgia,serif">Fotografia i stylizacja żywności</div>
 <div style="font:16px/1.5 Arial;margin-top:18px">Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.</div>
@@ -721,6 +721,15 @@
 </div>
 </div>
 
+                    @if($isHomeBuilder ?? false)
+                    <style>
+                    #fve-page{position:relative}
+                    #fve-header-variant-preview.fve-home-shared-header{position:absolute;top:0;left:0;right:0;z-index:20;pointer-events:none}
+                    #fve-header-variant-preview.fve-home-shared-header .fve-unified-draft-header{padding:18px 24px!important;min-height:0!important;background:none!important;background-image:none!important}
+                    #fve-header-variant-preview.fve-home-shared-header .fve-unified-draft-header>div:first-child{pointer-events:auto}
+                    #fve-header-variant-preview.fve-home-shared-header .fve-draft-hero-copy{display:none!important}
+                    </style>
+                    @endif
                     <main
                         class="fve-content"
                         id="fve-content"
@@ -769,9 +778,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const headerPreview=document.getElementById('fve-header-variant-preview');
         const banner=headerPreview.querySelector('.fve-unified-draft-header');
         const copy=headerPreview.querySelector('.fve-draft-hero-copy');
-        banner.style.minHeight=selection==='full'?'430px':'100px';
-        copy.style.display=selection==='full'?'block':'none';
-        banner.style.backgroundImage=selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none';
+        banner.style.minHeight=@json($isHomeBuilder ?? false)?'0':(selection==='full'?'430px':'100px');
+        copy.style.display=@json($isHomeBuilder ?? false)?'none':(selection==='full'?'block':'none');
+        banner.style.backgroundImage=@json($isHomeBuilder ?? false)?'none':(selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none');
         status.textContent='Zapisywanie…';
         try{
             const response=await fetch(@json(route('draft-page-header-variant.save')),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||''},body:JSON.stringify({page_id:@json($headerVariantPageId),variant:selection})});
