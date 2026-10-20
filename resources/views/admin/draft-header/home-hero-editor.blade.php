@@ -19,7 +19,7 @@
 [data-id="hero-text"]{top:61%;font:19px/1.45 Arial,sans-serif;width:700px}
 [data-id="hero-portfolio-cta"]{top:78%;background:#597649;color:white;padding:19px 35px;border-radius:60px;letter-spacing:2px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:7px;align-items:center}
-#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below iframe{display:block;width:100%;height:750px;border:1px solid #d2d2cc;background:#fff}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}
+#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below a{display:inline-block;padding:13px 18px;background:#fff;border:1px solid #bbc9b8;border-radius:6px;color:#244a38;font-weight:bold}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}
 
 /* Shared draft header visual, isolated to the private homepage staging view */
 .hero-header{position:absolute;z-index:12;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 4%;gap:24px;pointer-events:none}
@@ -68,7 +68,7 @@
 <div class="below">
 <h2>Pozostałe sekcje strony głównej — podgląd pomocniczy</h2>
 <p>Podgląd istniejącej strony jest tylko do porównania. Ustawienia powyższego roboczego banera nie są jeszcze automatycznie przenoszone do tego widoku ani na stronę publiczną.</p>
-<iframe src="{{ route('foodfoto.home.preview') }}" title="Podgląd dotychczasowej strony głównej" loading="lazy"></iframe>
+<p><a href="{{ route('foodfoto.home.preview') }}" target="_blank" rel="noopener">Otwórz podgląd pozostałych sekcji w osobnej karcie ↗</a></p>
 </div>
 <script>
 (()=>{
@@ -84,7 +84,7 @@ const brandPart=hp['brand-image']||{},textPart=hp['brand-text']||{},linePart=hp[
 if(brandPart.w&&brand.querySelector('img'))brand.querySelector('img').style.width=brandPart.w+'px';
 if(textPart.font)brand.querySelector('.name strong').style.fontSize=textPart.font+'px';
 if(linePart.h)brand.querySelector('.rule').style.height=linePart.h+'px';
-if(menuPart.w)menu.style.zoom=Math.max(.55,Math.min(1.8,menuPart.w/1050));
+if(menuPart.w)menu.style.zoom=Math.max(.8,Math.min(1.8,menuPart.w/menu.getBoundingClientRect().width));
 if(['rtl','rtr','rbr','rbl'].some(k=>menuPart[k]!==undefined))menu.style.borderRadius=[menuPart.rtl??12,menuPart.rtr??12,menuPart.rbr??34,menuPart.rbl??40].map(v=>v+'px').join(' ');
 const sticky=document.getElementById('sticky-demo');
 const updateSticky=()=>sticky.classList.toggle('shown',window.scrollY>160);
