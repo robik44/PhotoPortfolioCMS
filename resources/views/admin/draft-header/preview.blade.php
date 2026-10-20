@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="pl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="robots" content="noindex,nofollow,noarchive"><title>Testowy nagłówek FoodFoto</title>
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="csrf-token" content="{{ csrf_token() }}"><title>Testowy nagłówek FoodFoto</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#26241f;font-family:Georgia,serif}
 .preview-alert{padding:12px 4vw;background:#233b30;color:#fff;font:14px/1.4 Arial,sans-serif;display:flex;gap:24px;justify-content:space-between;align-items:center}
@@ -17,6 +17,26 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .hero-copy p{font:16px/1.65 Arial,sans-serif;max-width:420px}
 @media(max-width:1050px){.site-head{gap:12px;flex-wrap:wrap}.brand{padding:9px}.brand strong{font-size:20px}nav{gap:12px;padding:14px}.hero-copy{margin:70px 6vw}}
 @media(max-width:600px){.site-head{background:rgba(255,255,255,.94)}.brand strong{font-size:17px}nav{width:100%;justify-content:center}nav a{font-size:10px}.scene{min-height:700px}.hero-copy{margin-top:80px}.hero-copy h1{font-size:48px}}
+
+.builder-tools{position:relative;z-index:20;background:#fff;padding:10px 4vw;display:flex;gap:12px;align-items:center;font:13px Arial,sans-serif;flex-wrap:wrap;border-bottom:1px solid #ddd}
+.builder-tools button{padding:9px 14px;background:#223e2f;color:white;border:0;border-radius:7px;cursor:pointer}.builder-tools button.secondary{background:#eee;color:#222}
+.builder-tools output{font-weight:600}
+[data-drag]{position:relative;cursor:move;touch-action:none}
+[data-drag].selected{outline:1px dashed #76985f;outline-offset:5px}
+.alignment-guide{position:fixed;z-index:100;pointer-events:none;background:#72a164;display:none}.alignment-guide.vertical{width:1px;top:0;bottom:0}.alignment-guide.horizontal{height:1px;left:0;right:0}
+.site-head{justify-content:space-between;gap:30px}
+.brand{padding:8px 4px 8px 0}.brand img{mix-blend-mode:normal}
+.brand .divider{margin:0 5px}.brand strong{font-size:25px;font-weight:400}
+.header-actions{display:flex;align-items:center;gap:8px;background:var(--menu-bg);border-radius:var(--radius);padding:8px 10px 8px 26px;margin-left:auto}
+.header-actions nav{background:transparent;padding:12px 6px;gap:22px;border-radius:0}
+.header-actions .contact-button{white-space:nowrap;display:block;border:1px solid #343b34;padding:14px 22px;border-radius:999px;font:11px Arial,sans-serif;letter-spacing:.12em;text-decoration:none;color:#333}
+.hero-copy{margin:62px 0 0 4%;max-width:820px}
+.hero-copy .eyebrow{font:11px/1.4 Arial,sans-serif;letter-spacing:.38em;color:#4f584b;margin:0 0 20px}
+.hero-copy h1{white-space:pre-line;font-size:clamp(51px,5.2vw,88px);line-height:1.04}
+.hero-copy p{max-width:560px}
+.hero-cta{display:inline-block;background:#597649;color:#fff;text-decoration:none;border-radius:100px;padding:17px 32px;font:12px Arial,sans-serif;letter-spacing:.12em;margin-top:19px}
+@media(max-width:1100px){.header-actions{flex-wrap:wrap}.hero-copy{max-width:80%}}
+@media(max-width:650px){.header-actions{width:100%;margin:0;flex-wrap:wrap;justify-content:center}.hero-copy{max-width:90%;margin:60px 5%}.hero-copy h1{font-size:clamp(42px,9vw,65px)}}
 </style></head>
 <body>
 <div class="preview-alert"><span>WERSJA TESTOWA — widoczna tylko po zalogowaniu. Strona publiczna nie jest zmieniona.</span><a href="{{ route('draft-header.edit') }}">← Edytuj nagłówek</a></div>
@@ -24,14 +44,90 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
     $logoHex = ltrim($settings['draft_header_logo_background'], '#');
     $logoRgb = implode(',', array_map('hexdec', str_split($logoHex, 2)));
 @endphp
+<div class="builder-tools">
+<strong>BUILDER NAGŁÓWKA</strong>
+<span>Przeciągaj zaznaczone elementy • linie pomagają wyrównywać</span>
+<button type="button" id="save-layout">Zapisz pozycje</button>
+<button type="button" class="secondary" id="reset-layout">Wyzeruj przesunięcia</button>
+<output id="builder-status" role="status">Gotowy</output>
+</div>
+<div class="alignment-guide vertical" id="guide-x"></div><div class="alignment-guide horizontal" id="guide-y"></div>
+@php
+$draftPositions = json_decode($settings['draft_header_builder_positions'] ?? '{}', true) ?: [];
+$draftLogo = 'branding/foodfoto-transparent-v2.png';
+@endphp
 <div class="scene" style="--hero-x:{{ (int)$settings['draft_header_hero_x'] }}%;--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
 <img src="{{ $heroUrl }}" alt="Zdjęcie górnego banera">
-<header class="site-head"><div class="brand">
-@if(!empty($header['header_brand_image']))<img src="{{ asset('storage/'.$header['header_brand_image']) }}" alt="FoodFoto"><span class="divider"></span>@else <strong>food<br>foto</strong><span class="divider"></span>@endif
-<span><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span></div>
-<nav aria-label="Menu (podgląd)">
-@forelse($menuItems as $item)<a href="#" onclick="return false">{{ $item->label ?? $item->title ?? 'Menu' }}</a>@empty<a href="#">Portfolio</a><a href="#">O mnie</a><a href="#">Kontakt</a>@endforelse
-</nav></header>
-<div class="hero-copy"><h1>Fotografia<br>i stylizacja żywności</h1><p>Tworzę apetyczne obrazy, które budują marki i opowiadają historie.</p></div>
+<header class="site-head">
+<div class="brand" data-drag="brand">
+@if(file_exists(storage_path('app/public/'.$draftLogo)))
+<img src="{{ asset('storage/'.$draftLogo) }}" alt="FoodFoto">
+@elseif(!empty($header['header_brand_image']))
+<img src="{{ asset('storage/'.$header['header_brand_image']) }}" alt="FoodFoto">
+@else<strong>food<br>foto</strong>@endif
+<span class="divider"></span><span><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span>
 </div>
-</body></html>
+<div class="header-actions">
+<nav data-drag="navlinks" aria-label="Menu (podgląd)">
+@forelse($menuItems as $item)
+<a href="#" onclick="return false">{{ $item->label ?? $item->title ?? 'Menu' }}</a>
+@empty<a href="#">Portfolio</a><a href="#">O mnie</a><a href="#">Kontakt</a>@endforelse
+</nav>
+<a class="contact-button" data-drag="contact" href="#" onclick="return false">{{ $settings['draft_header_contact_text'] }}</a>
+</div></header>
+<div class="hero-copy">
+<div class="eyebrow" data-drag="eyebrow">{{ $settings['draft_header_eyebrow'] }}</div>
+<h1 data-drag="headline">{{ $settings['draft_header_hero_title'] }}</h1>
+<p data-drag="description">{{ $settings['draft_header_hero_description'] }}</p>
+<a href="#" onclick="return false" class="hero-cta" data-drag="cta">{{ $settings['draft_header_cta_text'] }}　 →</a>
+</div>
+</div>
+<script>
+(() => {
+const stored = @json($draftPositions);
+const elements = [...document.querySelectorAll('[data-drag]')];
+const positions = {};
+const guideX=document.getElementById('guide-x'),guideY=document.getElementById('guide-y');
+const status=document.getElementById('builder-status');
+let active=null;
+function setPos(el,p) {positions[el.dataset.drag]={x:p.x|0,y:p.y|0};el.style.transform='translate('+p.x+'px,'+p.y+'px)'}
+elements.forEach(el=>setPos(el,stored[el.dataset.drag]||{x:0,y:0}));
+elements.forEach(el=>{
+el.addEventListener('pointerdown',e=>{
+if(e.button!==0)return;
+e.preventDefault(); active={el,id:e.pointerId,sx:e.clientX,sy:e.clientY,x:positions[el.dataset.drag].x,y:positions[el.dataset.drag].y};
+elements.forEach(n=>n.classList.toggle('selected',n===el));el.setPointerCapture(e.pointerId);
+});
+el.addEventListener('pointermove',e=>{
+if(!active||active.el!==el)return;
+let x=Math.max(-400,Math.min(400,Math.round(active.x+e.clientX-active.sx)));
+let y=Math.max(-300,Math.min(300,Math.round(active.y+e.clientY-active.sy)));
+setPos(el,{x,y});
+const box=el.getBoundingClientRect();const centerX=box.left+box.width/2,centerY=box.top+box.height/2;
+let matchX=null,matchY=null;
+for(const other of elements){if(other===el)continue;const b=other.getBoundingClientRect();
+const ox=b.left+b.width/2,oy=b.top+b.height/2;
+if(Math.abs(centerX-ox)<8)matchX=ox;
+if(Math.abs(centerY-oy)<8)matchY=oy;
+}
+guideX.style.display=matchX===null?'none':'block';guideX.style.left=matchX+'px';
+guideY.style.display=matchY===null?'none':'block';guideY.style.top=matchY+'px';
+status.textContent=el.dataset.drag+'  X: '+x+'  Y: '+y;
+});
+const end=()=>{active=null;guideX.style.display='none';guideY.style.display='none'};
+el.addEventListener('pointerup',end);el.addEventListener('pointercancel',end);
+});
+document.getElementById('reset-layout').addEventListener('click',()=>{elements.forEach(el=>setPos(el,{x:0,y:0}));status.textContent='Pozycje wyzerowane — zapisz, aby zachować';});
+document.getElementById('save-layout').addEventListener('click',async()=>{
+status.textContent='Zapisywanie…';
+try {
+const res=await fetch(@json(route('draft-header.positions')),{
+method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},
+body:JSON.stringify({positions})
+});
+if(!res.ok)throw Error('HTTP '+res.status);
+status.textContent='Zapisano pozycje ✓';
+}catch(e){status.textContent='Nie zapisano: '+e.message}
+});
+})();
+</script></body></html>
