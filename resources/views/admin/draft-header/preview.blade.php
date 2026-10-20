@@ -54,7 +54,7 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .compact-header.visible{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
 .compact-header .brand{background:transparent!important;transform:none!important;scale:none!important;padding:0!important;gap:14px}
 .compact-header .brand img{max-height:58px}.compact-header .brand strong{font-size:25px}.compact-header .brand small{font-size:9px}
-.compact-header .header-actions{transform:none!important;border:1px solid #dedbd5;background:#fff;padding:7px 15px;border-radius:8px 8px 24px 40px}
+.compact-header .header-actions{transform:none!important;border:1px solid #dedbd5;background:#fff;padding:7px 15px;border-radius:8px 8px 24px 40px;zoom:1!important}
 .compact-header .header-actions nav{transform:none!important;gap:17px;padding:10px 5px}
 .compact-header .header-actions nav a{font-size:11px}
 .compact-header .contact-button{transform:none!important;padding:12px 17px;font-size:11px}
@@ -98,6 +98,13 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 <span>Przeciągaj zaznaczone elementy • linie pomagają wyrównywać</span>
 <label>Strona <select id="page-variant"><option value="home">Strona główna</option><option value="inner">Podstrony (jasne tło)</option></select></label>
 <button type="button" id="compact-demo" class="secondary">Pokaż kompaktowy</button>
+<span id="menu-corners" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
+<b>Narożniki menu</b>
+<label>↖ <input data-corner="tl" aria-label="Lewy górny" type="number" min="0" max="120" step="1" value="8" style="width:55px"></label>
+<label>↗ <input data-corner="tr" aria-label="Prawy górny" type="number" min="0" max="120" step="1" value="8" style="width:55px"></label>
+<label>↘ <input data-corner="br" aria-label="Prawy dolny" type="number" min="0" max="120" step="1" value="24" style="width:55px"></label>
+<label>↙ <input data-corner="bl" aria-label="Lewy dolny" type="number" min="0" max="120" step="1" value="40" style="width:55px"></label>
+</span>
 <button type="button" id="save-layout">Zapisz układ</button>
 <button type="button" id="undo-layout" class="secondary">↶ Cofnij</button>
 <button type="button" id="redo-layout" class="secondary">↷ Ponów</button>
@@ -149,6 +156,19 @@ const pos={}, selected=new Set(), history=[], future=[];
 const status=document.getElementById('builder-status'), gx=document.getElementById('guide-x'),gy=document.getElementById('guide-y');
 const size=document.getElementById('font-size'),spacing=document.getElementById('letter-space'),line=document.getElementById('line-height');
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const menu=document.querySelector('#draft-main-header .header-actions');
+const menuBaseWidth=menu.getBoundingClientRect().width;
+const cornerPanel=document.getElementById('menu-corners');
+const cornerKeys=['tl','tr','br','bl'];
+function menuRadii(p){
+return cornerKeys.map(k=>clamp(Number(p['r'+k]??({tl:8,tr:8,br:24,bl:40}[k])),0,120));
+}
+function setMenuAppearance(p){
+const rs=menuRadii(p);
+menu.style.borderRadius=rs.map(n=>n+'px').join(' ');
+menu.style.zoom=(p.w?clamp(p.w/menuBaseWidth,.55,1.8):1);
+}
+
 const stage=document.getElementById('viewport-stage');
 const pageSelect=document.getElementById('page-variant');
 const compact=document.createElement('div');compact.className='compact-header';compact.setAttribute('aria-label','Podgląd kompaktowego nagłówka');
@@ -167,10 +187,10 @@ updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}if(id==='menu-panel'){el.style.width='';setMenuAppearance(p)}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
-function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));const id=[...selected][0],p=pos[id]||{};
+function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));cornerPanel.style.display=selected.size===1&&selected.has('menu-panel')?'flex':'none';if(selected.has('menu-panel')){const p=pos['menu-panel']||{};cornerKeys.forEach((k,i)=>cornerPanel.querySelector('[data-corner="'+k+'"]').value=menuRadii(p)[i]);}const id=[...selected][0],p=pos[id]||{};
  for(const f of [size,spacing,line])f.disabled=selected.size!==1;
  size.value=p.font|| (id?parseFloat(getComputedStyle(byId[id]).fontSize):'');
  spacing.value=p.spacing??0;line.value=p.line||1.2;
@@ -193,6 +213,9 @@ e.addEventListener('pointerdown',ev=>{
   if(resizing){
     if(id==='brand-divider'){
       apply(e,{...pos[id],w:clamp(Math.round((initial[id]?.w||1)+dx*.08),1,12),h:clamp(Math.round((initial[id]?.h||52)+dy),15,180)});
+    }else if(id==='menu-panel'){
+      const delta=Math.abs(dy)>Math.abs(dx)?dy:dx;
+      apply(e,{...pos[id],w:clamp(Math.round((initial[id]?.w||menuBaseWidth)+delta),Math.round(menuBaseWidth*.55),Math.round(menuBaseWidth*1.8))});
     }else if(id==='brand-text'){
       const base=Number(initial[id]?.font||25);
       const delta=Math.abs(dy)>Math.abs(dx)?dy:dx;
@@ -210,6 +233,10 @@ e.addEventListener('pointerdown',ev=>{
 });
 });
 checkpoint();history.length=0;sync();
+cornerPanel.querySelectorAll('[data-corner]').forEach(input=>{
+input.addEventListener('focus',()=>checkpoint());
+input.addEventListener('change',()=>{const key='r'+input.dataset.corner;apply(menu,{...pos['menu-panel'],[key]:clamp(Math.round(Number(input.value)||0),0,120)});sync();status.textContent='Zmieniono narożniki menu — zapisz';});
+});
 document.getElementById('undo-layout').onclick=()=>{if(!history.length)return;future.push(snapshot());restore(history.pop());status.textContent='Cofnięto'};
 document.getElementById('redo-layout').onclick=()=>{if(!future.length)return;history.push(snapshot());restore(future.pop());status.textContent='Ponowiono'};
 document.getElementById('reset-layout').onclick=()=>{checkpoint();els.forEach(e=>apply(e,{x:0,y:0}));status.textContent='Wyzerowano — zapisz'};
