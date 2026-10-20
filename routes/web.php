@@ -144,6 +144,8 @@ Route::middleware(["auth"])->group(function () {
     Route::put('/admin/header-draft', [DraftHeaderController::class, 'update'])->name('draft-header.update');
     Route::put('/admin/header-draft/positions', [DraftHeaderController::class, 'savePositions'])->name('draft-header.positions');
     Route::post('/admin/header-draft/export-hero', [DraftHeaderController::class, 'exportHeroDraft'])->name('draft-header.export-hero');
+    Route::get('/admin/home-hero-draft', [DraftHeaderController::class, 'homeHeroEditor'])->name('home-hero-draft.edit');
+    Route::put('/admin/home-hero-draft', [DraftHeaderController::class, 'saveHomeHero'])->name('home-hero-draft.save');
     Route::get('/admin/header-draft/preview', [DraftHeaderController::class, 'preview'])->name('draft-header.preview');
 
     Route::get('/admin/header-settings', [HeaderSettingController::class, 'edit'])
