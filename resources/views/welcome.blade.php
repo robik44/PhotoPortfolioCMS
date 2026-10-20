@@ -491,12 +491,24 @@
 
 <body style="background: {{ $settings['background_color'] ?? '#ffffff' }};">
 
+@php
+    // Only change which elements are rendered when the separately approved
+    // header toggle is enabled. The stored home PageBuilder is never modified.
+    $renderNewFoodfotoHeader = (string) ($settings['foodfoto_draft_header_live'] ?? '0') === '1';
+    $publicHomeSections = collect($homeSections ?? []);
+    if ($renderNewFoodfotoHeader) {
+        $oldHeroIds = ['hero-image', 'hero-heading', 'hero-text', 'hero-eyebrow', 'hero-portfolio-cta'];
+        $publicHomeSections = $publicHomeSections
+            ->reject(static fn ($section) => in_array($section['id'] ?? null, $oldHeroIds, true))
+            ->values();
+    }
+@endphp
 @include("components.site-header", ["settings" => $settings, "menuItems" => $menuItems])
 
 @include('components.site-typography')
 <main class="site-typography">
     @include('components.public-builder-canvas', [
-        'sections' => $homeSections ?? collect(),
+        'sections' => $publicHomeSections,
         'settings' => $settings,
         'canvasSettings' => $homeBuilderSettings ?? [],
         'fontCatalog' => $fontCatalog,
