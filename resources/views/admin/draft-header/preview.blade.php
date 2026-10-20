@@ -45,6 +45,26 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .ruler-vertical{position:absolute;left:0;z-index:10;width:20px;height:650px;background:repeating-linear-gradient(180deg,#c4c9c0 0 1px,transparent 1px 10px),#f3f5f1;background-size:9px auto;background-repeat:repeat-y;pointer-events:none}
 .resize-handle{position:absolute;width:13px;height:13px;right:-8px;bottom:-8px;background:#507446;border:2px solid #fff;box-shadow:0 0 0 1px #507446;cursor:nwse-resize;touch-action:none;display:none;z-index:30}
 [data-drag].selected>.resize-handle{display:block}
+
+/* Sticky compact version is a separate visual clone; no edit handles or live links. */
+.preview-content{min-height:1000px;padding:95px 7%;background:#f8f7f3;color:#333}
+.preview-content h2{font:400 44px Georgia,serif}.preview-content p{font:16px/1.6 Arial,sans-serif}
+.preview-content-spacer{height:650px}
+.compact-header{position:fixed;top:0;left:0;right:0;z-index:90;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:6px 4vw;background:#f8f7f3;border-bottom:1px solid #dedbd5;box-shadow:0 3px 12px rgba(0,0,0,.04);opacity:0;visibility:hidden;transform:translateY(-100%);transition:transform .25s,opacity .25s,visibility .25s;pointer-events:none}
+.compact-header.visible{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
+.compact-header .brand{background:transparent!important;transform:none!important;padding:0!important;gap:10px}
+.compact-header .brand img{max-height:38px}.compact-header .brand strong{font-size:18px}.compact-header .brand small{font-size:7px}
+.compact-header .header-actions{transform:none!important;border:1px solid #dedbd5;background:#fff;padding:3px 12px;border-radius:8px 8px 24px 40px}
+.compact-header .header-actions nav{transform:none!important;gap:14px;padding:8px 4px}
+.compact-header .header-actions nav a{font-size:10px}
+.compact-header .contact-button{transform:none!important;padding:10px 14px;font-size:10px}
+.compact-header [data-drag]{cursor:default;touch-action:auto}.compact-header .resize-handle,.compact-header .menu-drag-handle{display:none!important}
+#viewport-stage.inner-page .scene{min-height:180px;background:#f8f7f3}
+#viewport-stage.inner-page .scene>img,#viewport-stage.inner-page .scene:after,#viewport-stage.inner-page .hero-copy{display:none}
+#viewport-stage.inner-page .site-head{background:#f8f7f3;align-items:center;padding-top:20px;padding-bottom:20px}
+#viewport-stage.inner-page .site-head .header-actions{border:1px solid #dedbd5;background:#fff;border-radius:8px 8px 24px 40px;box-shadow:0 3px 12px rgba(0,0,0,.03)}
+@media(max-width:900px){.compact-header{flex-wrap:wrap}.compact-header .header-actions{flex-wrap:wrap;max-width:100%}.compact-header nav{flex-wrap:wrap}}
+@media(prefers-reduced-motion:reduce){.compact-header{transition:none}}
 </style></head>
 <body>
 <div class="preview-alert"><span>WERSJA TESTOWA — widoczna tylko po zalogowaniu. Strona publiczna nie jest zmieniona.</span><a href="{{ route('draft-header.edit') }}">← Edytuj nagłówek</a></div>
@@ -55,6 +75,8 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 <div class="builder-tools">
 <strong>BUILDER NAGŁÓWKA</strong>
 <span>Przeciągaj zaznaczone elementy • linie pomagają wyrównywać</span>
+<label>Strona <select id="page-variant"><option value="home">Strona główna</option><option value="inner">Podstrony (jasne tło)</option></select></label>
+<button type="button" id="compact-demo" class="secondary">Pokaż kompaktowy</button>
 <button type="button" id="save-layout">Zapisz układ</button>
 <button type="button" id="undo-layout" class="secondary">↶ Cofnij</button>
 <button type="button" id="redo-layout" class="secondary">↷ Ponów</button>
@@ -73,7 +95,7 @@ $draftLogo = 'branding/foodfoto-transparent-v2.png';
 @endphp
 <div id="viewport-stage"><div class="scene" style="--hero-x:{{ (int)$settings['draft_header_hero_x'] }}%;--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
 <img src="{{ $heroUrl }}" alt="Zdjęcie górnego banera">
-<header class="site-head">
+<header class="site-head" id="draft-main-header">
 <div class="brand" data-drag="brand">
 @if(file_exists(storage_path('app/public/'.$draftLogo)))
 <img src="{{ asset('storage/'.$draftLogo) }}" alt="FoodFoto">
@@ -98,6 +120,7 @@ $draftLogo = 'branding/foodfoto-transparent-v2.png';
 <a href="#" onclick="return false" class="hero-cta" data-drag="cta">{{ $settings['draft_header_cta_text'] }}　 →</a>
 </div>
 </div></div>
+<div class="preview-content"><h2>Dalsza część strony — podgląd przewijania</h2><p>Przewiń w dół, aby sprawdzić kompaktowy, jasny nagłówek. Ta sekcja jest widoczna tylko w builderze.</p><div class="preview-content-spacer"></div></div>
 <script>
 (() => {
 const stored=@json($draftPositions), els=[...document.querySelectorAll('[data-drag]')], byId=Object.fromEntries(els.map(e=>[e.dataset.drag,e]));
@@ -105,6 +128,21 @@ const pos={}, selected=new Set(), history=[], future=[];
 const status=document.getElementById('builder-status'), gx=document.getElementById('guide-x'),gy=document.getElementById('guide-y');
 const size=document.getElementById('font-size'),spacing=document.getElementById('letter-space'),line=document.getElementById('line-height');
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const stage=document.getElementById('viewport-stage');
+const pageSelect=document.getElementById('page-variant');
+const compact=document.createElement('div');compact.className='compact-header';compact.setAttribute('aria-label','Podgląd kompaktowego nagłówka');
+const originalHeader=document.getElementById('draft-main-header');
+const logoClone=originalHeader.querySelector('.brand').cloneNode(true);
+const menuClone=originalHeader.querySelector('.header-actions').cloneNode(true);
+compact.append(logoClone,menuClone);
+compact.querySelectorAll('[data-drag],.selected,.resize-handle').forEach(el=>{el.removeAttribute('data-drag');el.classList.remove('selected');if(el.classList.contains('resize-handle'))el.remove();else{el.style.transform='';el.style.width='';el.style.fontSize='';el.style.letterSpacing='';el.style.lineHeight='';}});
+document.body.appendChild(compact);
+let forceCompact=false;
+function updateCompact(){const shouldShow=forceCompact||pageSelect.value==='inner'||window.scrollY>120;compact.classList.toggle('visible',shouldShow);}
+pageSelect.onchange=()=>{stage.classList.toggle('inner-page',pageSelect.value==='inner');forceCompact=false;updateCompact()};
+document.getElementById('compact-demo').onclick=()=>{forceCompact=!forceCompact;updateCompact();};
+window.addEventListener('scroll',updateCompact,{passive:true});
+updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
