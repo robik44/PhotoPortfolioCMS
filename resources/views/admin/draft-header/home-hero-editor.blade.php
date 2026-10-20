@@ -20,6 +20,21 @@
 [data-id="hero-portfolio-cta"]{top:78%;background:#597649;color:white;padding:19px 35px;border-radius:60px;letter-spacing:2px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:7px;align-items:center}
 #editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below iframe{display:block;width:100%;height:750px;border:1px solid #d2d2cc;background:#fff}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}
+
+/* Shared draft header visual, isolated to the private homepage staging view */
+.hero-header{position:absolute;z-index:12;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 4%;gap:24px;pointer-events:none}
+.hero-header>*{pointer-events:auto}
+.draft-brand{display:flex;align-items:center;gap:15px;transform-origin:top left}
+.draft-brand img{width:85px;height:auto;display:block}.draft-brand .rule{height:85px;width:2px;background:#a9aaa6;flex-shrink:0}
+.draft-brand .name strong{display:block;font:400 35px Georgia,serif;white-space:nowrap}
+.draft-brand .name small{display:block;font:11px Arial,sans-serif;letter-spacing:.16em;margin-top:5px;white-space:nowrap}
+.draft-menu{display:flex;align-items:center;gap:16px;background:#fff;padding:13px 17px;border-radius:12px 12px 34px 40px;transform-origin:top right;white-space:nowrap}
+.draft-menu nav{display:flex;gap:20px;align-items:center}.draft-menu nav a{font:11px Arial,sans-serif;letter-spacing:.08em;color:#252525;text-decoration:none}
+.draft-menu .contact{border:1px solid #293b30;border-radius:40px;padding:14px 20px;font:11px Arial,sans-serif;letter-spacing:.08em;text-decoration:none;color:#252525}
+.sticky-demo{position:fixed;top:0;left:0;right:0;z-index:40;display:flex;align-items:center;justify-content:space-between;gap:20px;background:#f8f7f3;padding:10px 4%;box-shadow:0 2px 10px #0001;border-bottom:1px solid #ddd;visibility:hidden;transform:translateY(-100%);transition:transform .2s,visibility .2s}
+.sticky-demo.shown{visibility:visible;transform:translateY(0)}.sticky-demo .draft-brand img{width:55px}.sticky-demo .draft-brand .rule{height:55px}.sticky-demo .draft-brand .name strong{font-size:25px}.sticky-demo .draft-brand .name small{font-size:9px}
+.sticky-demo .draft-menu{border:1px solid #dedbd5;padding:6px 10px}.sticky-demo .draft-menu nav{gap:14px}.sticky-demo .draft-menu .contact{padding:10px 14px}
+@media(max-width:1000px){.hero-header,.sticky-demo{gap:10px}.draft-brand img{width:60px}.draft-brand .rule{height:60px}.draft-brand .name strong{font-size:25px}.draft-menu{gap:8px}.draft-menu nav{gap:9px}.draft-menu nav a{font-size:9px}.draft-menu .contact{font-size:9px;padding:10px}}
 </style></head><body>
 <div class="notice">WERSJA ROBOCZA — tylko dla administratora. Zapis nie zmienia publicznej strony ani istniejącego buildera.</div>
 <div class="top"><strong>BUILDER BANERA STRONY GŁÓWNEJ</strong>
@@ -28,7 +43,22 @@
 <form id="photo-form" class="photo-form"><label>Zdjęcie banera <input id="hero-photo-input" name="hero_photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button type="submit">Zmień zdjęcie</button></form>
 <button id="save" type="button">Zapisz roboczy baner</button><span id="status">Wybierz element</span>
 </div>
+
+@php($draftLogo = 'branding/foodfoto-transparent-v2.png')
+@php($brandSrc = is_file(storage_path('app/public/'.$draftLogo)) ? asset('storage/'.$draftLogo) : (!empty($header['header_brand_image']) ? asset('storage/'.$header['header_brand_image']) : null))
+<template id="draft-header-template">
+<div class="draft-brand">
+@if($brandSrc)<img src="{{ $brandSrc }}" alt="FoodFoto">@else<strong>food<br>foto</strong>@endif
+<span class="rule"></span><span class="name"><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span>
+</div>
+<div class="draft-menu">
+<nav>@foreach($menuItems as $item)<a href="#" onclick="return false">{{ $item->label ?? $item->title ?? 'Menu' }}</a>@endforeach</nav>
+<a class="contact" href="#" onclick="return false">{{ $settings['draft_header_contact_text'] }}</a>
+</div>
+</template>
+<div id="sticky-demo" class="sticky-demo" aria-label="Testowy nagłówek po przewinięciu"></div>
 <section class="stage" id="stage">
+<div id="hero-header" class="hero-header" aria-label="Podgląd testowego nagłówka"></div>
 @php($photo = $draft['preview_image'] ?? '')
 @if($photo)<img class="photo" src="{{ asset('storage/'.$photo) }}" alt="Zdjęcie tła roboczego banera">@endif
 @foreach($draft['sections'] ?? [] as $block)
@@ -43,6 +73,23 @@
 <script>
 (()=>{
 const raw=@json($draft['sections'] ?? []);
+const hp=@json($headerPositions);
+for(const id of ['hero-header','sticky-demo']){
+ const target=document.getElementById(id);
+ target.append(document.getElementById('draft-header-template').content.cloneNode(true));
+}
+const heroHeader=document.getElementById('hero-header');
+const brand=heroHeader.querySelector('.draft-brand'),menu=heroHeader.querySelector('.draft-menu');
+const brandPart=hp['brand-image']||{},textPart=hp['brand-text']||{},linePart=hp['brand-divider']||{},menuPart=hp['menu-panel']||{};
+if(brandPart.w)brand.querySelector('img').style.width=brandPart.w+'px';
+if(textPart.font)brand.querySelector('.name strong').style.fontSize=textPart.font+'px';
+if(linePart.h)brand.querySelector('.rule').style.height=linePart.h+'px';
+if(menuPart.w)menu.style.zoom=Math.max(.55,Math.min(1.8,menuPart.w/1050));
+if(menuPart.rtl!==undefined)menu.style.borderRadius=[menuPart.rtl,menuPart.rtr,menuPart.rbr,menuPart.rbl].map(v=>(v||0)+'px').join(' ');
+const sticky=document.getElementById('sticky-demo');
+const updateSticky=()=>sticky.classList.toggle('shown',window.scrollY>160);
+window.addEventListener('scroll',updateSticky,{passive:true});updateSticky();
+
 const items=new Map([...document.querySelectorAll('.item')].map(el=>[el.dataset.id,el]));
 const data=new Map(raw.map(s=>[s.id,{...s,draft_geometry:{x:0,y:0,...(s.draft_geometry||{})}}]));
 const input=document.getElementById('editor-text'),font=document.getElementById('font-size'),status=document.getElementById('status');let active=null;
