@@ -21,7 +21,7 @@ class DraftHeaderController extends Controller
         'draft_header_eyebrow' => 'APETYT NA PIĘKNE HISTORIE',
         'draft_header_cta_text' => 'ZOBACZ PORTFOLIO',
         'draft_header_contact_text' => 'POROZMAWIAJMY',
-        'draft_header_hero_title' => 'Fotografia\\ni stylizacja żywności',
+        'draft_header_hero_title' => "Fotografia\ni stylizacja żywności",
         'draft_header_hero_description' => 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.',
     ];
 
