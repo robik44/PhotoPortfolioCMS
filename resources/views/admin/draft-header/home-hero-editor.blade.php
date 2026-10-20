@@ -19,12 +19,13 @@
 [data-id="hero-text"]{top:61%;font:19px/1.45 Arial,sans-serif;width:700px}
 [data-id="hero-portfolio-cta"]{top:78%;background:#597649;color:white;padding:19px 35px;border-radius:60px;letter-spacing:2px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:7px;align-items:center}
-#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}
+#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below iframe{display:block;width:100%;height:750px;border:1px solid #d2d2cc;background:#fff}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}
 </style></head><body>
 <div class="notice">WERSJA ROBOCZA — tylko dla administratora. Zapis nie zmienia publicznej strony ani istniejącego buildera.</div>
 <div class="top"><strong>BUILDER BANERA STRONY GŁÓWNEJ</strong>
 <a href="{{ route('draft-header.edit') }}">← Nagłówek testowy</a>
 <div class="controls"><label>Treść <input id="editor-text" aria-label="Treść zaznaczonego elementu"></label><label>Pismo <input id="font-size" type="number" min="8" max="120"></label></div>
+<form id="photo-form" class="photo-form"><label>Zdjęcie banera <input id="hero-photo-input" name="hero_photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button type="submit">Zmień zdjęcie</button></form>
 <button id="save" type="button">Zapisz roboczy baner</button><span id="status">Wybierz element</span>
 </div>
 <section class="stage" id="stage">
@@ -34,6 +35,11 @@
 <div class="item" data-id="{{ $block['id'] }}"><span class="value">{{ $block['content'] }}</span><span class="handle" title="Zmień rozmiar"></span></div>
 @endforeach
 </section>
+<div class="below">
+<h2>Pozostałe sekcje strony głównej — podgląd pomocniczy</h2>
+<p>Podgląd istniejącej strony jest tylko do porównania. Ustawienia powyższego roboczego banera nie są jeszcze automatycznie przenoszone do tego widoku ani na stronę publiczną.</p>
+<iframe src="{{ route('foodfoto.home.preview') }}" title="Podgląd dotychczasowej strony głównej" loading="lazy"></iframe>
+</div>
 <script>
 (()=>{
 const raw=@json($draft['sections'] ?? []);
@@ -51,6 +57,12 @@ el.addEventListener('pointermove',move);el.addEventListener('pointerup',end,{onc
 })});
 input.oninput=()=>{if(!active)return;data.get(active).content=input.value;paint(active)};
 font.onchange=()=>{if(!active)return;data.get(active).draft_geometry.font=Math.max(8,Math.min(120,Number(font.value)||16));paint(active)};
+document.getElementById('photo-form').onsubmit=async e=>{
+e.preventDefault();const file=document.getElementById('hero-photo-input').files[0];if(!file){status.textContent='Najpierw wybierz zdjęcie';return}
+status.textContent='Wysyłanie zdjęcia…';
+try{const body=new FormData();body.append('hero_photo',file);const res=await fetch(@json(route('home-hero-draft.photo')),{method:'POST',credentials:'same-origin',headers:{'Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body});
+if(!res.ok)throw Error('HTTP '+res.status);const json=await res.json();let img=document.querySelector('.stage .photo');if(!img){img=document.createElement('img');img.className='photo';img.alt='Zdjęcie tła roboczego banera';document.getElementById('stage').prepend(img)}img.src=json.image_url;status.textContent='Zapisano nowe zdjęcie wersji roboczej ✓'}catch(error){status.textContent='Błąd zdjęcia: '+error.message}
+};
 document.getElementById('save').onclick=async()=>{status.textContent='Zapisywanie…';try{const res=await fetch(@json(route('home-hero-draft.save')),{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({sections:[...data.values()].map(s=>({id:s.id,content:s.content,draft_geometry:s.draft_geometry}))})});if(!res.ok)throw Error('HTTP '+res.status);status.textContent='Zapisano wersję roboczą ✓'}catch(e){status.textContent='Błąd zapisu: '+e.message}};
 })();
 </script></body></html>
