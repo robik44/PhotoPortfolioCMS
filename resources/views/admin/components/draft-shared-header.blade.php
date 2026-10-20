@@ -41,10 +41,10 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 </div></div>
 <div class="ff-shared-hero">
 
-<div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE' }}</div>
-<h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności" }}</h1>
-<p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.' }}</p>
-<span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">{{ $builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO' }}　→</span>
+<div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $pageBannerDraft['eyebrow'] ?? ($builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE') }}</div>
+<h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $pageBannerDraft['title'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności") }}</h1>
+<p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $pageBannerDraft['description'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.') }}</p>
+<span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→</span>
 </div>
 </section>
 </div>
