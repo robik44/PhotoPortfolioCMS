@@ -119,7 +119,14 @@ class DraftHeaderController extends Controller
     public function homeHeroEditor()
     {
         $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
-        return view('admin.draft-header.home-hero-editor', ['draft' => $draft->content ?: []]);
+        $settings = $this->settings();
+        $header = \App\Support\HeaderSettings::resolve(SiteSetting::pluck('value', 'key')->all());
+        $menuItems = \App\Models\MenuItem::whereNull('parent_id')->where('published', true)->orderBy('sort_order')->get();
+        $headerPositions = json_decode($settings['draft_header_builder_positions'] ?? '{}', true) ?: [];
+        return view('admin.draft-header.home-hero-editor', [
+            'draft' => $draft->content ?: [], 'settings' => $settings, 'header' => $header,
+            'menuItems' => $menuItems, 'headerPositions' => $headerPositions,
+        ]);
     }
 
     public function uploadHomeHeroPhoto(Request $request)
