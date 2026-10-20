@@ -581,6 +581,9 @@
 </div>
 
 
+@if($isHomeBuilder ?? false)
+<a href="{{ route('home-hero-draft.edit') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj roboczy baner ↗</a>
+@endif
 @if(!($isHomeBuilder ?? false))
 <div class="fve-banner-draft-settings">
 <button type="button" class="fve-button" id="fve-banner-settings-toggle" aria-expanded="false" aria-controls="fve-banner-settings-panel">Edytuj baner</button>
@@ -749,96 +752,48 @@
 
                     @if($isHomeBuilder ?? false)
                     @php
-                        $draftPositions = json_decode($builderHeaderSettings['draft_header_builder_positions'] ?? '{}', true) ?: [];
-                        $bp = $draftPositions['brand-image'] ?? [];
-                        $bt = $draftPositions['brand-text'] ?? [];
-                        $bd = $draftPositions['brand-divider'] ?? [];
-                        $mp = $draftPositions['menu-panel'] ?? [];
-                        $bg = $draftPositions['brand'] ?? [];
-                        $draftHero = \App\Models\PageBuilder::whereNull('page_id')->where('type','home_hero_draft')->first()?->content ?? [];
-                        $draftHeroBlocks = collect($draftHero['sections'] ?? [])->keyBy('id');
-                        $biWidth = max(30, min(180, (int)($bp['w'] ?? 64)));
-                        $btSize = max(12, min(80, (float)($bt['font'] ?? 27)));
-                        $bdHeight = max(15, min(180, (int)($bd['h'] ?? 57)));
-                        $bdStroke = max(1, min(12, (int)($bd['w'] ?? 1)));
-                        $menuScale = max(.65, min(1.9, ((int)($mp['w'] ?? 780)) / 780));
-                        $menuX = max(-400, min(400,(int)($mp['x'] ?? 0)));
-                        $menuY = max(-300, min(300,(int)($mp['y'] ?? 0)));
-                        $brandX = max(-400, min(400,(int)($bg['x'] ?? 0)));
-                        $brandY = max(-300, min(300,(int)($bg['y'] ?? 0)));
-                        $menuRadii = implode(' ', array_map(static fn($v) => max(0, min(120, (int)$v)).'px', [$mp['rtl'] ?? 10, $mp['rtr'] ?? 10, $mp['rbr'] ?? 27, $mp['rbl'] ?? 35]));
-                        $draftBrand = 'branding/foodfoto-transparent-v2.png';
-                        $draftBrandUrl = is_file(storage_path('app/public/'.$draftBrand)) ? asset('storage/'.$draftBrand) : null;
+                        // Preview-only. The published homepage elements remain stored
+                        // untouched in the existing PageBuilder and can be restored.
+                        $homeDraftContent = \App\Models\PageBuilder::query()
+                            ->whereNull('page_id')
+                            ->where('type', 'home_hero_draft')
+                            ->first()?->content ?? [];
+                        $homeDraftSections = collect($homeDraftContent['sections'] ?? [])->keyBy('id');
+                        $pageBannerDraft = [
+                            'eyebrow' => $homeDraftSections->get('hero-eyebrow')['content'] ?? ($builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE'),
+                            'title' => $homeDraftSections->get('hero-heading')['content'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności"),
+                            'description' => $homeDraftSections->get('hero-text')['content'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? ''),
+                            'button' => $homeDraftSections->get('hero-portfolio-cta')['content'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO'),
+                        ];
+                        $draftPreviewImage = ($homeDraftContent['preview_image'] ?? null)
+                            ?: ($builderHeaderSettings['draft_header_preview_image'] ?? null);
                     @endphp
-                    <div class="fve-test-brand-overlay" aria-label="Nowy nagłówek testowy" style="--ff-logo-size:{{ $biWidth }}px;--ff-name-size:{{ $btSize }}px;--ff-rule-height:{{ $bdHeight }}px;--ff-rule-width:{{ $bdStroke }}px;--ff-menu-radius:{{ $menuRadii }};--ff-menu-scale:{{ $menuScale }};--ff-menu-x:{{ $menuX }}px;--ff-menu-y:{{ $menuY }}px;--ff-brand-x:{{ $brandX }}px;--ff-brand-y:{{ $brandY }}px">
-                        <div class="fve-test-brand">
-                            @if($draftBrandUrl)<img src="{{ $draftBrandUrl }}" alt="FoodFoto">@else<strong>food<br>foto</strong>@endif
-                            <span class="fve-test-rule"></span>
-                            <span class="fve-test-name"><strong>Magda Gugała</strong><small>FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
-                        </div>
-                        <div class="fve-test-menu">
-                            @foreach($builderHeaderMenuItems as $item)
-                            <span>{{ $item->label ?? $item->title ?? 'Menu' }}</span>
-                            @endforeach
-                            <span class="fve-test-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
-                        </div>
+                    <div class="fve-home-draft-hero" id="fve-home-draft-hero" aria-label="Roboczy nagłówek i baner strony głównej">
+                        @include('admin.components.draft-shared-header')
                     </div>
                     <style>
-                    #fve-page{position:relative}
-                    #fve-page .fve-test-brand-overlay{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 27px;pointer-events:none;overflow:visible}
-                    #fve-page .fve-test-brand{transform:translate(var(--ff-brand-x),var(--ff-brand-y));display:flex;align-items:center;gap:13px;min-width:0}
-                    #fve-page .fve-test-brand img{width:var(--ff-logo-size,64px);height:auto}
-                    #fve-page .fve-test-brand>strong{font:900 28px/.82 Arial}
-                    #fve-page .fve-test-rule{width:var(--ff-rule-width,1px);height:var(--ff-rule-height,57px);background:#aaa;flex-shrink:0}
-                    #fve-page .fve-test-name strong{display:block;font:normal var(--ff-name-size,27px) Georgia,serif;white-space:nowrap}
-                    #fve-page .fve-test-name small{display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap;margin-top:5px}
-                    #fve-page .fve-test-menu{zoom:1;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale,1));flex-shrink:0;display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:var(--ff-menu-radius,10px 10px 27px 35px);padding:8px 12px;white-space:nowrap}
-                    #fve-page .fve-test-menu>span{font:12px Arial;letter-spacing:.06em}
-                    #fve-page .fve-test-contact{padding:12px 17px;border:1px solid #344639;border-radius:40px}
-                    </style>
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        const overlay = document.querySelector('#fve-page .fve-test-brand-overlay');
-                        if (!overlay) return;
-                        const menu = overlay.querySelector('.fve-test-menu');
-                        const brand = overlay.querySelector('.fve-test-brand');
-                        let raf = 0;
-                        function fitDraftMenu() {
-                            if (!menu || !brand) return;
-                            const style = getComputedStyle(overlay);
-                            const wanted = Number(style.getPropertyValue('--ff-menu-scale')) || 1;
-                            const moveX = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
-                            const moveY = Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0;
-                            menu.style.transform = 'none';
-                            const rawWidth = menu.getBoundingClientRect().width;
-                            const frame = overlay.getBoundingClientRect();
-                            const brandRight = brand.getBoundingClientRect().right;
-                            const available = Math.max(0, frame.right - 12 - Math.max(brandRight + 12, frame.left));
-                            const maxScale = rawWidth > 0 ? available / rawWidth : 1;
-                            const scale = Math.max(.1, Math.min(wanted, maxScale));
-                            const maxRight = frame.right - 12;
-                            const shiftX = Math.min(moveX, Math.max(0, maxRight - menu.getBoundingClientRect().right));
-                            menu.style.transform = 'translate(' + shiftX + 'px,' + moveY + 'px) scale(' + scale + ')';
+                        /* Replace only the builder's visual presentation.
+                           Legacy hero records still exist and retain their
+                           geometry in the editor data and public database. */
+                        #fve-page .fve-home-draft-hero {
+                            position:absolute;top:0;left:0;width:100%;z-index:4900;
+                            pointer-events:none;overflow:hidden;
                         }
-                        function requestFit(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fitDraftMenu)}
-                        requestFit();
-                        window.addEventListener('resize',requestFit);
-                    });
-                    </script>
-                    @endif
-                    @unless($isHomeBuilder ?? false)
-                    @include('admin.components.draft-shared-header')
-                    @endunless
-
-                    @if($isHomeBuilder ?? false)
-                    <style>
-                    #fve-page{position:relative}
-                    #fve-header-variant-preview.fve-home-shared-header{position:absolute;top:0;left:0;right:0;z-index:20;pointer-events:none}
-                    #fve-header-variant-preview.fve-home-shared-header .fve-unified-draft-header{padding:18px 24px!important;min-height:0!important;background:none!important;background-image:none!important}
-                    #fve-header-variant-preview.fve-home-shared-header .fve-unified-draft-header>div:first-child{pointer-events:auto}
-                    #fve-header-variant-preview.fve-home-shared-header .fve-draft-hero-copy{display:none!important}
+                        #fve-page .fve-home-draft-hero .ff-shared-stage.ff-full {
+                            height:540px;
+                        }
+                        #fve-page .fve-content .fve-element[data-id="hero-image"],
+                        #fve-page .fve-content .fve-element[data-id="hero-heading"],
+                        #fve-page .fve-content .fve-element[data-id="hero-text"],
+                        #fve-page .fve-content .fve-element[data-id="hero-eyebrow"],
+                        #fve-page .fve-content .fve-element[data-id="hero-portfolio-cta"] {
+                            visibility:hidden!important;pointer-events:none!important;
+                        }
                     </style>
+                    @else
+                        @include('admin.components.draft-shared-header')
                     @endif
+
                     <main
                         class="fve-content"
                         id="fve-content"
