@@ -66,15 +66,15 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-menu-links span{font:11px Arial;letter-spacing:.1em;white-space:nowrap}
 #fve-header-variant-preview .ff-menu-grip{font:20px Arial;color:#7c8379;letter-spacing:0}
 #fve-header-variant-preview .ff-shared-contact{border:1px solid #344639;border-radius:999px;padding:14px 22px;font-size:11px!important;letter-spacing:.12em!important}
-#fve-header-variant-preview .ff-shared-hero{position:relative;margin:62px 0 0 4%;left:auto;top:auto;max-width:820px}
+#fve-header-variant-preview .ff-shared-hero{position:absolute;left:4%;top:177px;margin:0;max-width:820px;z-index:2}
 #fve-header-variant-preview .ff-eyebrow{font:11px/1.4 Arial;letter-spacing:.38em;color:#4f584b;margin:0 0 20px}
-#fve-header-variant-preview .ff-shared-hero h1{white-space:pre-line;font:normal 83px/1.04 Georgia,serif;letter-spacing:-.04em;margin:0 0 24px}
+#fve-header-variant-preview .ff-shared-hero h1{white-space:pre-line;font:normal 83px/1.04 Georgia,serif;letter-spacing:-.04em;margin:0 0 18px}
 #fve-header-variant-preview .ff-shared-hero p{font:16px/1.65 Arial;max-width:560px}
 #fve-header-variant-preview .ff-cta{display:inline-block;background:#597649;border-radius:100px;padding:17px 32px;color:white;font:12px Arial;letter-spacing:.12em;margin-top:19px}
-#fve-header-variant-preview .ff-eyebrow{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,11px);letter-spacing:var(--ls,4px)}
-#fve-header-variant-preview .ff-shared-hero h1{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,0px);max-width:var(--lw,850px)}
-#fve-header-variant-preview .ff-shared-hero p{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px)}
-#fve-header-variant-preview .ff-cta{position:relative;transform:translate(var(--dx,0px),var(--dy,0px));font-size:var(--fs,14px)}
+#fve-header-variant-preview .ff-eyebrow{position:relative;font-size:var(--fs,11px);letter-spacing:var(--ls,4px)}
+#fve-header-variant-preview .ff-shared-hero h1{position:relative;font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,0px);max-width:var(--lw,850px)}
+#fve-header-variant-preview .ff-shared-hero p{position:relative;font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px);margin:0 0 8px}
+#fve-header-variant-preview .ff-cta{position:relative;font-size:var(--fs,14px);margin-top:8px}
 #fve-header-variant-preview .ff-simple .ff-shared-hero{display:none}
 #fve-header-variant-preview .ff-simple .ff-shared-bar{padding-top:12px;padding-bottom:12px}
 #fve-header-variant-preview .ff-simple .ff-shared-brand img{width:55px}
@@ -83,23 +83,52 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
 </style>
 <script>
-document.addEventListener('DOMContentLoaded',function(){
- const root=document.getElementById('fve-header-variant-preview');
- if(!root)return;
- const menu=root.querySelector('.ff-shared-menu'),stage=root.querySelector('.ff-shared-stage'),brand=root.querySelector('.ff-shared-brand');
- if(!menu||!stage||!brand)return;
- function fitMenu(){
-   const wanted=Number(getComputedStyle(stage).getPropertyValue('--ff-menu-scale'))||1;
-   menu.style.transform='none';
-   const natural=menu.getBoundingClientRect().width;
-   const bounds=stage.getBoundingClientRect();
-   const brandBounds=brand.getBoundingClientRect();
-   const free=Math.max(0,bounds.right-Math.max(brandBounds.right+14,bounds.left)-22);
-   const scale=Math.min(wanted,free/Math.max(natural,1));
-   const x=Number.parseFloat(getComputedStyle(stage).getPropertyValue('--ff-menu-x'))||0;
-   const y=Number.parseFloat(getComputedStyle(stage).getPropertyValue('--ff-menu-y'))||0;
-   menu.style.transform='translate('+Math.min(0,x)+'px,'+y+'px) scale('+Math.max(.1,scale)+')';
- }
- fitMenu();window.addEventListener('resize',fitMenu);
+document.addEventListener('DOMContentLoaded', function() {
+    const root = document.getElementById('fve-header-variant-preview');
+    if (!root) return;
+    const menu = root.querySelector('.ff-shared-menu');
+    const stage = root.querySelector('.ff-shared-stage');
+    const brand = root.querySelector('.ff-shared-brand');
+    if (!menu || !stage || !brand) return;
+
+    // The visual editor is initially hidden and opens after page load.
+    // Never calculate a scale from zero-sized rectangles (this caused the tiny menu).
+    let queued = false;
+    function fitMenu() {
+        queued = false;
+        const bounds = stage.getBoundingClientRect();
+        if (bounds.width < 500 || bounds.height < 70) return;
+        const css = getComputedStyle(stage);
+        const wanted = Number.parseFloat(css.getPropertyValue('--ff-menu-scale')) || 1;
+        const x = Number.parseFloat(css.getPropertyValue('--ff-menu-x')) || 0;
+        const y = Number.parseFloat(css.getPropertyValue('--ff-menu-y')) || 0;
+        menu.style.transform = 'none';
+        const natural = menu.getBoundingClientRect().width;
+        const brandRight = brand.getBoundingClientRect().right;
+        if (natural < 100) {
+            menu.style.transform = '';
+            return;
+        }
+        const free = bounds.right - Math.max(brandRight + 14, bounds.left) - 18;
+        // If the editor is still arranging its layout, preserve the CSS scale
+        // and wait for a ResizeObserver measurement rather than shrinking to 10%.
+        if (free < 160) {
+            menu.style.transform = '';
+            return;
+        }
+        const scale = Math.max(0.55, Math.min(wanted, free / natural));
+        menu.style.transform = 'translate(' + Math.min(0,x) + 'px,' + y + 'px) scale(' + scale + ')';
+    }
+    function requestFit() {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(fitMenu);
+    }
+    const observer = new ResizeObserver(requestFit);
+    observer.observe(stage);
+    observer.observe(brand);
+    window.addEventListener('resize', requestFit);
+    window.addEventListener('load', requestFit);
+    requestFit();
 });
 </script>
