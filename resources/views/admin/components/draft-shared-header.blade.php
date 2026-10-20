@@ -34,9 +34,9 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 <span class="ff-shared-rule"></span>
 <span class="ff-shared-name"><strong>Magda Gugała</strong><small>FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
 </div>
-<div class="ff-shared-menu">
+<div class="ff-shared-menu"><span class="ff-menu-grip" aria-hidden="true">⠿</span><nav class="ff-menu-links">
 @foreach($builderHeaderMenuItems as $item)<span>{{ $item->label ?? $item->title ?? 'Menu' }}</span>@endforeach
-<span class="ff-shared-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
+</nav><span class="ff-shared-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
 </div></div>
 <div class="ff-shared-hero">
 
@@ -62,6 +62,9 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-name small{display:block;font:11px Arial;letter-spacing:.12em;white-space:nowrap}
 #fve-header-variant-preview .ff-shared-menu{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
 #fve-header-variant-preview .ff-shared-menu span{font:11px Arial;letter-spacing:.1em}
+#fve-header-variant-preview .ff-menu-links{display:flex;align-items:center;gap:22px;margin:0;padding:12px 6px;background:transparent;border:0;flex-wrap:nowrap}
+#fve-header-variant-preview .ff-menu-links span{font:11px Arial;letter-spacing:.1em;white-space:nowrap}
+#fve-header-variant-preview .ff-menu-grip{font:20px Arial;color:#7c8379;letter-spacing:0}
 #fve-header-variant-preview .ff-shared-contact{border:1px solid #344639;border-radius:999px;padding:14px 22px;font-size:11px!important;letter-spacing:.12em!important}
 #fve-header-variant-preview .ff-shared-hero{position:relative;margin:62px 0 0 4%;left:auto;top:auto;max-width:820px}
 #fve-header-variant-preview .ff-eyebrow{font:11px/1.4 Arial;letter-spacing:.38em;color:#4f584b;margin:0 0 20px}
@@ -79,3 +82,24 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-name strong{font-size:25px}
 #fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
 </style>
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+ const root=document.getElementById('fve-header-variant-preview');
+ if(!root)return;
+ const menu=root.querySelector('.ff-shared-menu'),stage=root.querySelector('.ff-shared-stage'),brand=root.querySelector('.ff-shared-brand');
+ if(!menu||!stage||!brand)return;
+ function fitMenu(){
+   const wanted=Number(getComputedStyle(stage).getPropertyValue('--ff-menu-scale'))||1;
+   menu.style.transform='none';
+   const natural=menu.getBoundingClientRect().width;
+   const bounds=stage.getBoundingClientRect();
+   const brandBounds=brand.getBoundingClientRect();
+   const free=Math.max(0,bounds.right-Math.max(brandBounds.right+14,bounds.left)-22);
+   const scale=Math.min(wanted,free/Math.max(natural,1));
+   const x=Number.parseFloat(getComputedStyle(stage).getPropertyValue('--ff-menu-x'))||0;
+   const y=Number.parseFloat(getComputedStyle(stage).getPropertyValue('--ff-menu-y'))||0;
+   menu.style.transform='translate('+Math.min(0,x)+'px,'+y+'px) scale('+Math.max(.1,scale)+')';
+ }
+ fitMenu();window.addEventListener('resize',fitMenu);
+});
+</script>
