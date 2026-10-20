@@ -122,6 +122,21 @@ class DraftHeaderController extends Controller
         return view('admin.draft-header.home-hero-editor', ['draft' => $draft->content ?: []]);
     }
 
+    public function uploadHomeHeroPhoto(Request $request)
+    {
+        $data = $request->validate([
+            'hero_photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:10240'],
+        ]);
+        $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
+        $path = $data['hero_photo']->store('home-hero-draft', 'public');
+        $content = $draft->content ?: [];
+        $content['preview_image'] = $path;
+        $draft->content = $content;
+        $draft->published = false;
+        $draft->save();
+        return response()->json(['ok' => true, 'image_url' => asset('storage/'.$path)]);
+    }
+
     public function saveHomeHero(Request $request)
     {
         $data = $request->validate([
