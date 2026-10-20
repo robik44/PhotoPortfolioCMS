@@ -217,6 +217,9 @@ Route::middleware(["auth"])->group(function () {
         return response()->json(['ok' => true, 'variant' => $data['variant']]);
     })->name('draft-page-header-variant.save');
 
+    Route::post('/admin/draft-page-banner/{page}', [\App\Http\Controllers\Admin\DraftPageBannerController::class, 'save'])
+        ->name('draft-page-banner.save');
+
     Route::get("/pages/{page}/builder", [PageController::class, "builder"])
         ->name("pages.builder");
 
