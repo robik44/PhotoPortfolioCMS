@@ -142,6 +142,7 @@ Route::middleware(["auth"])->group(function () {
 
     Route::get('/admin/header-draft', [DraftHeaderController::class, 'edit'])->name('draft-header.edit');
     Route::put('/admin/header-draft', [DraftHeaderController::class, 'update'])->name('draft-header.update');
+    Route::put('/admin/header-draft/positions', [DraftHeaderController::class, 'savePositions'])->name('draft-header.positions');
     Route::get('/admin/header-draft/preview', [DraftHeaderController::class, 'preview'])->name('draft-header.preview');
 
     Route::get('/admin/header-settings', [HeaderSettingController::class, 'edit'])
