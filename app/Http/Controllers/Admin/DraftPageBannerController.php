@@ -41,7 +41,7 @@ class DraftPageBannerController extends Controller
             ['value' => json_encode($draft, JSON_UNESCAPED_UNICODE | JSON_THROW_ON_ERROR)]
         );
 
-        $photo = $draft['photo'] ?: SiteSetting::where('key', 'draft_header_preview_image')->value('value');
+        $photo = ($draft['photo'] ?? null) ?: SiteSetting::where('key', 'draft_header_preview_image')->value('value');
 
         return response()->json([
             'ok' => true,
