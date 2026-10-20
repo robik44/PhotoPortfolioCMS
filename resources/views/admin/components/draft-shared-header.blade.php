@@ -4,6 +4,7 @@ $logo = $p['brand-image'] ?? []; $name = $p['brand-text'] ?? []; $line = $p['bra
 $radius = implode(' ', array_map(static fn($n) => max(0,min(120,(int)$n)).'px', [$menu['rtl']??10,$menu['rtr']??10,$menu['rbr']??24,$menu['rbl']??40]));
 $photo = $draftPreviewImage ?: ($builderHeaderSettings['preview_hero_image'] ?? null);
 $full = $headerVariantValue === 'full';
+$isPublicDraftHeader = (bool) ($isPublicDraftHeader ?? false);
 $brand = $p['brand'] ?? [];
 $eyebrow = $p['eyebrow'] ?? [];
 $headline = $p['headline'] ?? [];
@@ -24,27 +25,84 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
   return "--dx:{$x}px;--dy:{$y}px;--fs:{$font}px;--lw:{$w}px;{$optional}";
 };
 @endphp
-<div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
+<div id="fve-header-variant-preview" class="{{ $isPublicDraftHeader ? 'ff-public-header' : 'ff-private-header' }}" data-variant="{{ $headerVariantValue }}">
 <section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
 <div class="ff-shared-bar">
+@if($isPublicDraftHeader)
+<a class="ff-shared-brand" href="{{ url('/') }}" aria-label="FoodFoto — strona główna">
+@else
 <div class="ff-shared-brand">
+@endif
 @if(is_file(storage_path('app/public/branding/foodfoto-transparent-v2.png')))
 <img src="{{ asset('storage/branding/foodfoto-transparent-v2.png') }}" alt="FoodFoto">
 @else<strong>food<br>foto</strong>@endif
 <span class="ff-shared-rule"></span>
 <span class="ff-shared-name"><strong>Magda Gugała</strong><small>FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
+@if($isPublicDraftHeader)
+</a>
+@else
 </div>
-<div class="ff-shared-menu"><span class="ff-menu-grip" aria-hidden="true">⠿</span><nav class="ff-menu-links">
-@foreach($builderHeaderMenuItems as $item)<span>{{ $item->label ?? $item->title ?? 'Menu' }}</span>@endforeach
-</nav><span class="ff-shared-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
+@endif
+<div class="ff-shared-menu">
+@if(!$isPublicDraftHeader)<span class="ff-menu-grip" aria-hidden="true">⠿</span>@endif
+<nav class="ff-menu-links" aria-label="Menu główne">
+@forelse($builderHeaderMenuItems as $item)
+    @php
+        if ($item->type === 'page' && $item->page) {
+            $draftMenuUrl = \App\Support\Seo::pageUrl($item->page);
+        } elseif ($item->type === 'gallery' && $item->gallery) {
+            $draftMenuUrl = route('portfolio.gallery', $item->gallery);
+        } elseif ($item->type === 'url' && $item->url) {
+            $draftMenuUrl = \App\Support\BuilderButton::href($item->url) ?? '#';
+        } else {
+            $draftMenuUrl = '#';
+        }
+    @endphp
+    @if($isPublicDraftHeader)
+        <span class="ff-nav-item"><a href="{{ $draftMenuUrl }}">{{ $item->title }}</a>
+        @if($item->children?->count())
+            <span class="ff-subnav">
+                @foreach($item->children as $child)
+                    @php
+                        $childDraftUrl = $child->type === 'page' && $child->page
+                            ? \App\Support\Seo::pageUrl($child->page)
+                            : ($child->type === 'gallery' && $child->gallery
+                                ? route('portfolio.gallery', $child->gallery)
+                                : ($child->type === 'url' && $child->url
+                                    ? (\App\Support\BuilderButton::href($child->url) ?? '#') : '#'));
+                    @endphp
+                    <a href="{{ $childDraftUrl }}">{{ $child->title }}</a>
+                @endforeach
+            </span>
+        @endif
+        </span>
+    @else
+        <span>{{ $item->title }}</span>
+    @endif
+@empty
+    @if($isPublicDraftHeader)
+        <a href="{{ url('/') }}">Start</a><a href="{{ url('/#portfolio') }}">Portfolio</a>
+        <a href="{{ route('about') }}">O mnie</a><a href="{{ route('contact') }}">Kontakt</a>
+    @endif
+@endforelse
+</nav>
+@if($isPublicDraftHeader)
+<a class="ff-shared-contact" href="{{ route('contact') }}">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</a>
+@else
+<span class="ff-shared-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
+@endif
 </div></div>
 <div class="ff-shared-hero">
 
 <div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $pageBannerDraft['eyebrow'] ?? ($builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE') }}</div>
 <h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $pageBannerDraft['title'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności") }}</h1>
 <p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $pageBannerDraft['description'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.') }}</p>
-<span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→</span>
+@if($isPublicDraftHeader)
+<a href="{{ url('/#portfolio') }}" class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
+@else
+<span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
+@endif{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→@if($isPublicDraftHeader)</a>@else</span>@endif
 </div>
 </section>
 </div>
@@ -82,6 +140,37 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-rule{height:55px}
 #fve-header-variant-preview .ff-simple .ff-shared-name strong{font-size:25px}
 #fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
+#fve-header-variant-preview .ff-shared-brand{color:inherit;text-decoration:none}
+#fve-header-variant-preview .ff-shared-menu a{color:#222;text-decoration:none;font:11px Arial,sans-serif;letter-spacing:.1em}
+#fve-header-variant-preview .ff-shared-menu a:hover{opacity:.65}
+#fve-header-variant-preview .ff-shared-menu .ff-shared-contact{display:inline-flex;align-items:center;white-space:nowrap}
+#fve-header-variant-preview .ff-cta{color:#fff;text-decoration:none}
+#fve-header-variant-preview .ff-nav-item{position:relative;display:inline-flex;align-items:center}
+#fve-header-variant-preview .ff-subnav{position:absolute;top:100%;left:0;min-width:180px;z-index:20;display:none;flex-direction:column;gap:10px;background:#fff;padding:12px 16px;box-shadow:0 8px 24px #0002;border:1px solid #ddd;border-radius:8px}
+#fve-header-variant-preview .ff-nav-item:hover .ff-subnav,#fve-header-variant-preview .ff-nav-item:focus-within .ff-subnav{display:flex}
+#fve-header-variant-preview.ff-public-header .ff-menu-grip{display:none}
+#fve-header-variant-preview.ff-public-header .ff-shared-brand{cursor:pointer}
+#fve-header-variant-preview.ff-public-header .ff-shared-stage{overflow:visible}
+#fve-header-variant-preview.ff-public-header .ff-full .ff-shared-photo{object-position:center}
+#fve-header-variant-preview.ff-public-header .ff-full{overflow:hidden}
+@media(max-width:900px) {
+ #fve-header-variant-preview.ff-public-header .ff-shared-stage.ff-full{height:auto;min-height:720px;overflow:hidden}
+ #fve-header-variant-preview.ff-public-header .ff-shared-bar{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px;padding:14px 4%;min-height:0}
+ #fve-header-variant-preview.ff-public-header .ff-shared-brand{gap:7px;max-width:100%;transform:none}
+ #fve-header-variant-preview.ff-public-header .ff-shared-brand img{width:54px;transform:none}
+ #fve-header-variant-preview.ff-public-header .ff-shared-rule{height:50px;transform:none}
+ #fve-header-variant-preview.ff-public-header .ff-shared-name{transform:none}
+ #fve-header-variant-preview.ff-public-header .ff-shared-name strong{font-size:clamp(18px,5vw,25px)}
+ #fve-header-variant-preview.ff-public-header .ff-shared-name small{font-size:8px}
+ #fve-header-variant-preview.ff-public-header .ff-shared-menu{margin:4px 0 0!important;zoom:1!important;transform:none!important;flex:1 1 100%;flex-wrap:wrap;gap:5px;padding:10px!important;max-width:100%;justify-content:space-between;box-sizing:border-box}
+ #fve-header-variant-preview.ff-public-header .ff-menu-links{flex-wrap:wrap;gap:12px;padding:6px 0}
+ #fve-header-variant-preview.ff-public-header .ff-menu-links a{font-size:10px}
+ #fve-header-variant-preview.ff-public-header .ff-shared-contact{padding:9px!important;font-size:9px!important}
+ #fve-header-variant-preview.ff-public-header .ff-shared-hero{position:relative;top:auto;left:auto;margin:60px 5% 50px;max-width:90%}
+ #fve-header-variant-preview.ff-public-header .ff-shared-hero h1{font-size:clamp(36px,8vw,65px);width:auto;max-width:100%;overflow-wrap:break-word}
+ #fve-header-variant-preview.ff-public-header .ff-shared-hero p{font-size:16px;max-width:95%}
+ #fve-header-variant-preview.ff-public-header .ff-simple .ff-shared-bar{padding:10px 4%}
+}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -101,6 +190,9 @@ document.addEventListener('DOMContentLoaded', function () {
         queued = false;
         const stageRect = stage.getBoundingClientRect();
         if (stageRect.width < 350 || stageRect.height < 40) return;
+        if (root.classList.contains('ff-public-header') && window.matchMedia('(max-width:900px)').matches) {
+            menu.style.zoom = '1'; menu.style.transform = 'none'; return;
+        }
 
         const style = getComputedStyle(stage);
         const x = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
