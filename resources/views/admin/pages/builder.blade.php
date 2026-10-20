@@ -703,15 +703,23 @@
                         $bt = $draftPositions['brand-text'] ?? [];
                         $bd = $draftPositions['brand-divider'] ?? [];
                         $mp = $draftPositions['menu-panel'] ?? [];
+                        $bg = $draftPositions['brand'] ?? [];
+                        $draftHero = \App\Models\PageBuilder::whereNull('page_id')->where('type','home_hero_draft')->first()?->content ?? [];
+                        $draftHeroBlocks = collect($draftHero['sections'] ?? [])->keyBy('id');
                         $biWidth = max(30, min(180, (int)($bp['w'] ?? 64)));
                         $btSize = max(12, min(80, (float)($bt['font'] ?? 27)));
                         $bdHeight = max(15, min(180, (int)($bd['h'] ?? 57)));
                         $bdStroke = max(1, min(12, (int)($bd['w'] ?? 1)));
+                        $menuScale = max(.65, min(1.9, ((int)($mp['w'] ?? 780)) / 780));
+                        $menuX = max(-400, min(400,(int)($mp['x'] ?? 0)));
+                        $menuY = max(-300, min(300,(int)($mp['y'] ?? 0)));
+                        $brandX = max(-400, min(400,(int)($bg['x'] ?? 0)));
+                        $brandY = max(-300, min(300,(int)($bg['y'] ?? 0)));
                         $menuRadii = implode(' ', array_map(static fn($v) => max(0, min(120, (int)$v)).'px', [$mp['rtl'] ?? 10, $mp['rtr'] ?? 10, $mp['rbr'] ?? 27, $mp['rbl'] ?? 35]));
                         $draftBrand = 'branding/foodfoto-transparent-v2.png';
                         $draftBrandUrl = is_file(storage_path('app/public/'.$draftBrand)) ? asset('storage/'.$draftBrand) : null;
                     @endphp
-                    <div class="fve-test-brand-overlay" aria-label="Nowy nagłówek testowy" style="--ff-logo-size:{{ $biWidth }}px;--ff-name-size:{{ $btSize }}px;--ff-rule-height:{{ $bdHeight }}px;--ff-rule-width:{{ $bdStroke }}px;--ff-menu-radius:{{ $menuRadii }}">
+                    <div class="fve-test-brand-overlay" aria-label="Nowy nagłówek testowy" style="--ff-logo-size:{{ $biWidth }}px;--ff-name-size:{{ $btSize }}px;--ff-rule-height:{{ $bdHeight }}px;--ff-rule-width:{{ $bdStroke }}px;--ff-menu-radius:{{ $menuRadii }};--ff-menu-scale:{{ $menuScale }};--ff-menu-x:{{ $menuX }}px;--ff-menu-y:{{ $menuY }}px;--ff-brand-x:{{ $brandX }}px;--ff-brand-y:{{ $brandY }}px">
                         <div class="fve-test-brand">
                             @if($draftBrandUrl)<img src="{{ $draftBrandUrl }}" alt="FoodFoto">@else<strong>food<br>foto</strong>@endif
                             <span class="fve-test-rule"></span>
@@ -727,15 +735,15 @@
                     <style>
                     #fve-page{position:relative}
                     #fve-page .fve-test-brand-overlay{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 27px;pointer-events:none}
-                    #fve-page .fve-test-brand{display:flex;align-items:center;gap:13px;min-width:0}
+                    #fve-page .fve-test-brand{transform:translate(var(--ff-brand-x),var(--ff-brand-y));display:flex;align-items:center;gap:13px;min-width:0}
                     #fve-page .fve-test-brand img{width:var(--ff-logo-size,64px);height:auto}
                     #fve-page .fve-test-brand>strong{font:900 28px/.82 Arial}
                     #fve-page .fve-test-rule{width:var(--ff-rule-width,1px);height:var(--ff-rule-height,57px);background:#aaa;flex-shrink:0}
                     #fve-page .fve-test-name strong{display:block;font:normal var(--ff-name-size,27px) Georgia,serif;white-space:nowrap}
                     #fve-page .fve-test-name small{display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap;margin-top:5px}
-                    #fve-page .fve-test-menu{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:var(--ff-menu-radius,10px 10px 27px 35px);padding:8px 12px;white-space:nowrap}
-                    #fve-page .fve-test-menu>span{font:10px Arial;letter-spacing:.06em}
-                    #fve-page .fve-test-contact{padding:10px 12px;border:1px solid #344639;border-radius:40px}
+                    #fve-page .fve-test-menu{zoom:var(--ff-menu-scale,1);transform:translate(var(--ff-menu-x),var(--ff-menu-y));display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:var(--ff-menu-radius,10px 10px 27px 35px);padding:8px 12px;white-space:nowrap}
+                    #fve-page .fve-test-menu>span{font:12px Arial;letter-spacing:.06em}
+                    #fve-page .fve-test-contact{padding:12px 17px;border:1px solid #344639;border-radius:40px}
                     </style>
                     @endif
                     @unless($isHomeBuilder ?? false)
