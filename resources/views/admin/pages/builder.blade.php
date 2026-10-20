@@ -547,6 +547,20 @@
     <div class="fve-topbar">
 
         <div class="fve-topbar-left">
+@php
+  $headerVariantPageId = ($isHomeBuilder ?? false) ? null : ($page->id ?? null);
+  $headerVariantKey = $headerVariantPageId ? 'draft_page_header_variant_'.$headerVariantPageId : 'draft_page_header_variant_home';
+  $headerVariantValue = \App\Models\SiteSetting::where('key', $headerVariantKey)->value('value') ?: (($isHomeBuilder ?? false) ? 'full' : 'simple');
+  $draftPreviewImage = \App\Models\SiteSetting::where('key', 'draft_header_preview_image')->value('value');
+@endphp
+<div class="fve-header-choice" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:#edf1eb;border-radius:7px">
+<label for="fve-header-variant" style="font-size:12px;font-weight:600;color:#233a2b">Nagłówek:</label>
+<select id="fve-header-variant" style="padding:7px;border:1px solid #c7d1c4;border-radius:5px;background:#fff;font-size:12px">
+<option value="simple" @selected($headerVariantValue === 'simple')>Tylko logo i menu</option>
+<option value="full" @selected($headerVariantValue === 'full')>Pełny — z banerem</option>
+</select>
+<span id="fve-header-variant-status" style="font-size:11px;color:#426049">Wersja testowa</span>
+</div>
 
             <button
                 type="button"
@@ -682,7 +696,13 @@
                 <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
-                    <div class="fve-public-header-preview">
+                    <div id="fve-header-variant-preview" class="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
+<div style="padding:5px 12px;background:#f0f5ec;color:#426049;font-size:11px">Podgląd wariantu nagłówka — wybór zapisywany tylko testowo</div>
+<div class="fve-header-variant-banner" style="{{ $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.86),transparent),url('".asset('storage/'.$draftPreviewImage)."');" : 'background:#eee9e0;' }}background-position:center;background-size:cover;min-height:240px;display:{{ $headerVariantValue === 'full' ? 'block' : 'none' }};padding:22px 20px;color:#252522">
+<p style="font:36px Georgia,serif;margin:50px 0 6px">Fotografia i stylizacja żywności</p><small>Wersja demonstracyjna — baner tej strony będzie miał osobne zdjęcie i treść</small>
+</div>
+</div>
+<div class="fve-public-header-preview">
                         @include('components.site-header', [
                             'settings' => $builderHeaderSettings,
                             'menuItems' => $builderHeaderMenuItems,
@@ -730,6 +750,18 @@
 
 document.addEventListener("DOMContentLoaded", function () {
 
+    const headerChoice=document.getElementById('fve-header-variant');
+    if(headerChoice)headerChoice.addEventListener('change',async()=>{
+        const status=document.getElementById('fve-header-variant-status');
+        const selection=headerChoice.value;
+        document.querySelector('.fve-header-variant-banner').style.display=selection==='full'?'block':'none';
+        status.textContent='Zapisywanie…';
+        try{
+            const response=await fetch(@json(route('draft-page-header-variant.save')),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||''},body:JSON.stringify({page_id:@json($headerVariantPageId),variant:selection})});
+            if(!response.ok)throw Error('HTTP '+response.status);
+            status.textContent='Wybór zapisany ✓';
+        }catch(error){status.textContent='Błąd zapisu: '+error.message}
+    });
     const openButton =
         document.getElementById("full-visual-editor-button");
 
