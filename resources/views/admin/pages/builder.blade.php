@@ -776,39 +776,8 @@
                     </script>
                     @endif
                     @unless($isHomeBuilder ?? false)
-@php
-$innerPositions = json_decode($builderHeaderSettings['draft_header_builder_positions'] ?? '{}', true) ?: [];
-$innerLogo = $innerPositions['brand-image'] ?? [];
-$innerText = $innerPositions['brand-text'] ?? [];
-$innerLine = $innerPositions['brand-divider'] ?? [];
-$innerMenu = $innerPositions['menu-panel'] ?? [];
-$innerRadii = implode(' ', array_map(static fn($v) => max(0,min(120,(int)$v)).'px', [$innerMenu['rtl']??10,$innerMenu['rtr']??10,$innerMenu['rbr']??27,$innerMenu['rbl']??35]));
-@endphp
-<div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
-<div class="fve-unified-draft-header" style="--inner-logo:{{ max(30,min(180,(int)($innerLogo['w']??64))) }}px;--inner-name:{{ max(12,min(80,(float)($innerText['font']??27))) }}px;--inner-rule:{{ max(15,min(180,(int)($innerLine['h']??57))) }}px;--inner-radius:{{ $innerRadii }};position:relative;min-height:{{ ($isHomeBuilder ?? false) ? '0' : ($headerVariantValue === 'full' ? '430px' : '100px') }};background:{{ ($isHomeBuilder ?? false) ? 'transparent' : ($headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3') }};{{ !($isHomeBuilder ?? false) && $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
-<div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
-<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">
-@if(is_file(storage_path('app/public/branding/foodfoto-transparent-v2.png')))
-<img src="{{ asset('storage/branding/foodfoto-transparent-v2.png') }}" alt="FoodFoto" style="width:var(--inner-logo);height:auto">
-@else
-<strong style="font:900 29px/.76 Arial;letter-spacing:-.08em">food<br>foto</strong>
-@endif
-<span style="width:1px;height:var(--inner-rule);background:#aaa"></span>
-<span><strong style="display:block;font:normal var(--inner-name) Georgia,serif;white-space:nowrap">Magda Gugała</strong><small style="display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap">FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
-</div>
-<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid #dedbd5;border-radius:var(--inner-radius);background:#fff;padding:10px 15px">
-@foreach($builderHeaderMenuItems as $item)<span style="font:11px Arial;letter-spacing:.05em;white-space:nowrap">{{ $item->label ?? $item->title ?? 'Menu' }}</span>@endforeach
-<span style="font:11px Arial;letter-spacing:.08em;border:1px solid #344639;border-radius:40px;padding:12px 17px;white-space:nowrap">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
-</div>
-</div>
-<div class="fve-draft-hero-copy" style="display:{{ ($isHomeBuilder ?? false) ? 'none' : ($headerVariantValue === 'full' ? 'block' : 'none') }};margin:80px 0 0 20px;max-width:760px">
-<div style="font:12px Arial;letter-spacing:.25em;color:#667366;margin-bottom:15px">APETYT NA PIĘKNE HISTORIE</div>
-<div style="font:normal 64px/1 Georgia,serif">Fotografia i stylizacja żywności</div>
-<div style="font:16px/1.5 Arial;margin-top:18px">Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.</div>
-</div>
-</div>
-</div>
-@endunless
+                    @include('admin.components.draft-shared-header')
+                    @endunless
 
                     @if($isHomeBuilder ?? false)
                     <style>
@@ -875,13 +844,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const status = document.getElementById('fve-header-variant-status');
         const selection = headerChoice.value;
         const headerPreview = document.getElementById('fve-header-variant-preview');
-        const banner = headerPreview?.querySelector('.fve-unified-draft-header');
-        const copy = headerPreview?.querySelector('.fve-draft-hero-copy');
-        if (banner) {
-            banner.style.minHeight = selection === 'full' ? '430px' : '100px';
-            banner.style.backgroundImage = selection === 'full' ? variantBackground : 'none';
+        const stage = headerPreview?.querySelector('.ff-shared-stage');
+        if (stage) {
+            stage.classList.toggle('ff-full', selection === 'full');
+            stage.classList.toggle('ff-simple', selection !== 'full');
         }
-        if (copy) copy.style.display = selection === 'full' ? 'block' : 'none';
         status.textContent = 'Zapisywanie…';
         try {
             const response = await fetch(variantSaveUrl, {
