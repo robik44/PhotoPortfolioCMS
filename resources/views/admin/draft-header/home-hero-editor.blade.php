@@ -7,8 +7,8 @@
 .top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #ddd;padding:13px 25px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .top a{color:#244a38}.top button{background:#213d2e;color:white;border:0;border-radius:7px;padding:13px 20px;cursor:pointer}
 .top input{width:75px;padding:7px}.notice{background:#e8f0e6;padding:12px 25px}
-.stage{position:relative;min-height:690px;overflow:hidden;background:#e9e6dd}
-.stage .photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.stage{position:relative;height:540px;min-height:540px;overflow:hidden;background:#e9e6dd}
+.stage .photo{position:absolute;top:0;left:0;width:100%;height:690px;object-fit:cover;object-position:center top}
 .stage:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(249,247,244,.9),rgba(249,247,244,.5) 44%,transparent 80%);pointer-events:none}
 .item{position:absolute;z-index:2;left:6%;cursor:move;touch-action:none;padding:3px;max-width:90%}
 .item.active{outline:1px dashed #3f754f}
