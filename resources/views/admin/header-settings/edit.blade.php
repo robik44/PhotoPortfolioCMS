@@ -141,8 +141,13 @@
                 <option value="left" @selected(old('header_layout', $settings['header_layout']) === 'left')>Logo po lewej / menu po prawej</option>
                 <option value="center" @selected(old('header_layout', $settings['header_layout']) === 'center')>Logo wyśrodkowane / menu poniżej</option>
                 <option value="right" @selected(old('header_layout', $settings['header_layout']) === 'right')>Menu po lewej / logo po prawej</option>
+                <option value="split" @selected(old('header_layout', $settings['header_layout']) === 'split')>Premium: logo / prześwit na baner / zaokrąglone menu</option>
             </select>
-            <p>Na małych ekranach elementy mogą układać się jeden pod drugim.</p>
+            <p>Wariant Premium pozwala zobaczyć zdjęcie banera między logo a zaokrąglonym menu. Na podstronach pozostaje jasne tło, a na telefonie układ automatycznie się upraszcza.</p>
+            <div class="header-settings-grid">
+                <div><label for="header_split_gap">Prześwit między logo i menu (px)</label><input id="header_split_gap" name="header_split_gap" type="number" min="0" max="240" step="1" value="{{ old('header_split_gap', $settings['header_split_gap']) }}" required></div>
+                <div><label for="header_split_radius">Zaokrąglenie menu (px)</label><input id="header_split_radius" name="header_split_radius" type="number" min="0" max="100" step="1" value="{{ old('header_split_radius', $settings['header_split_radius']) }}" required></div>
+            </div>
 
             <div class="header-settings-grid">
                 @foreach (['header_padding_top' => 'Odstęp nad logo i menu (px)', 'header_padding_bottom' => 'Odstęp pod logo i menu (px)'] as $key => $label)
@@ -183,6 +188,10 @@
         .header-live-preview[data-layout="center"] .header-preview-menu { justify-content: center; }
         .header-live-preview[data-layout="right"] .header-preview-menu { order: -1; }
         .header-live-preview[data-layout="right"] .header-preview-brand { margin-left: auto; text-align: right; }
+        .header-live-preview[data-layout="split"] {background:linear-gradient(115deg,#ede7de,#9b9c7c 54%,#5d654b);gap:var(--preview-split-gap,70px);flex-wrap:nowrap;}
+        .header-live-preview[data-layout="split"] .header-preview-brand-row {background:white;padding:14px;border-radius:8px;}
+        .header-live-preview[data-layout="split"] .header-preview-menu {background:white;border-radius:var(--preview-split-radius,36px);padding:18px;flex-shrink:0;}
     </style>
+    <script>document.addEventListener("DOMContentLoaded",function(){const form=document.getElementById("header-settings-form");const preview=document.getElementById("header-live-preview");function sync(){preview.style.setProperty("--preview-split-gap",(form.elements.header_split_gap.value||70)+"px");preview.style.setProperty("--preview-split-radius",(form.elements.header_split_radius.value||36)+"px");}form.addEventListener("input",sync);sync();});</script>
     <script src="{{ asset('js/header-settings.js') }}?v={{ filemtime(public_path('js/header-settings.js')) }}" defer></script>
 </x-app-layout>
