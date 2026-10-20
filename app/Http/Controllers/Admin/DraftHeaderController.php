@@ -116,6 +116,39 @@ class DraftHeaderController extends Controller
             ->with('success','Zapisano osobną roboczą kopię hero. Publiczna strona i obecny builder pozostały bez zmian.');
     }
 
+    public function homeHeroEditor()
+    {
+        $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
+        return view('admin.draft-header.home-hero-editor', ['draft' => $draft->content ?: []]);
+    }
+
+    public function saveHomeHero(Request $request)
+    {
+        $data = $request->validate([
+            'sections' => ['required', 'array', 'size:4'],
+            'sections.*.id' => ['required', 'in:hero-eyebrow,hero-heading,hero-text,hero-portfolio-cta'],
+            'sections.*.content' => ['required', 'string', 'max:600'],
+            'sections.*.draft_geometry' => ['required', 'array'],
+            'sections.*.draft_geometry.x' => ['required', 'integer', 'between:-400,400'],
+            'sections.*.draft_geometry.y' => ['required', 'integer', 'between:-300,300'],
+            'sections.*.draft_geometry.w' => ['sometimes', 'integer', 'between:40,1400'],
+            'sections.*.draft_geometry.font' => ['sometimes', 'numeric', 'between:8,120'],
+        ]);
+        $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
+        $content = $draft->content ?: [];
+        $old = collect($content['sections'] ?? [])->keyBy('id');
+        $ids = array_column($data['sections'], 'id');
+        abort_unless(count(array_unique($ids)) === 4, 422);
+        $content['sections'] = array_map(static function ($input) use ($old) {
+            $original = $old->get($input['id'], []);
+            return array_replace($original, ['content' => $input['content'], 'draft_geometry' => $input['draft_geometry']]);
+        }, $data['sections']);
+        $draft->content = $content;
+        $draft->published = false;
+        $draft->save();
+        return response()->json(['ok' => true]);
+    }
+
     public function preview()
     {
         $settings = $this->settings();
