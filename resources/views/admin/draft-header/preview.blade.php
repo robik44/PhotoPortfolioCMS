@@ -71,7 +71,9 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand-name-piece strong,.brand-name-piece small{display:block;white-space:nowrap}
 .brand-name-piece strong{font-size:var(--brand-name-size,25px)!important}
 .brand-name-piece small{font-size:calc(var(--brand-name-size,25px) * .36)!important}
-.brand .divider[data-drag="brand-divider"]{display:block;flex:0 0 auto!important;align-self:center!important;width:1px;min-width:1px;height:52px;min-height:0;margin:0 8px;background:#aaa;cursor:move}
+.brand .divider[data-drag="brand-divider"]{display:block;flex:0 0 auto!important;align-self:center!important;width:22px!important;min-width:22px;height:52px;min-height:0;margin:0 2px;background:transparent!important;cursor:move;position:relative;z-index:6}
+.brand .divider[data-drag="brand-divider"]::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:var(--divider-stroke,1px);transform:translateX(-50%);background:#aaa;pointer-events:none}
+.brand .divider[data-drag="brand-divider"]:hover{background:rgba(80,116,70,.12)!important}
 .brand .divider[data-drag="brand-divider"].selected{outline:1px dashed #507446;outline-offset:6px}
 .brand .divider[data-drag="brand-divider"] .resize-handle{display:none}
 .brand .divider[data-drag="brand-divider"].selected .resize-handle{display:block;right:-10px;bottom:-10px}
@@ -162,7 +164,7 @@ updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width=(p.w||1)+'px';el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
 function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));const id=[...selected][0],p=pos[id]||{};
