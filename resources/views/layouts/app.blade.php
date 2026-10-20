@@ -120,7 +120,12 @@
             <a href="{{ route('header-settings.edit') }}"
                class="cms-nav-item {{ request()->routeIs('header-settings.*') ? 'active' : '' }}">
                 <span>▤</span>
-                <span>Nagłówek</span>
+                <span>Nagłówek — obecny</span>
+            </a>
+
+            <a href="{{ route('draft-header.edit') }}"
+               class="cms-nav-item {{ request()->routeIs('draft-header.*') ? 'active' : '' }}">
+                <span>◫</span><span>Nagłówek — NOWY (testowy)</span>
             </a>
 
             <a href="{{ route("site-settings.edit") }}"
