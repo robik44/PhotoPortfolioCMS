@@ -207,6 +207,16 @@ Route::middleware(["auth"])->group(function () {
 
     Route::resource("pages", PageController::class);
 
+    Route::post('/admin/page-header-variant', function (\Illuminate\Http\Request $request) {
+        $data = $request->validate([
+            'page_id' => ['nullable', 'integer', 'exists:pages,id'],
+            'variant' => ['required', 'in:full,simple'],
+        ]);
+        $key = isset($data['page_id']) ? 'draft_page_header_variant_'.$data['page_id'] : 'draft_page_header_variant_home';
+        \App\Models\SiteSetting::updateOrCreate(['key' => $key], ['value' => $data['variant']]);
+        return response()->json(['ok' => true, 'variant' => $data['variant']]);
+    })->name('draft-page-header-variant.save');
+
     Route::get("/pages/{page}/builder", [PageController::class, "builder"])
         ->name("pages.builder");
 
