@@ -126,6 +126,7 @@ class DraftHeaderController extends Controller
         return view('admin.draft-header.home-hero-editor', [
             'draft' => $draft->content ?: [], 'settings' => $settings, 'header' => $header,
             'menuItems' => $menuItems, 'headerPositions' => $headerPositions,
+            'homeSections' => (PageBuilder::whereNull('page_id')->where('type','home')->first()?->content['sections'] ?? []),
         ]);
     }
 
