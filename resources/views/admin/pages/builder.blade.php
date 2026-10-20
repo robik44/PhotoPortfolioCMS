@@ -696,7 +696,8 @@
                 <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
-                    <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
+                    @unless($isHomeBuilder ?? false)
+<div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
 <div class="fve-unified-draft-header" style="position:relative;min-height:{{ ($isHomeBuilder ?? false) ? '0' : ($headerVariantValue === 'full' ? '430px' : '100px') }};background:{{ ($isHomeBuilder ?? false) ? 'transparent' : ($headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3') }};{{ !($isHomeBuilder ?? false) && $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
 <div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
 <div style="display:flex;align-items:center;gap:18px;flex-shrink:0">
@@ -720,6 +721,7 @@
 </div>
 </div>
 </div>
+@endunless
 
                     @if($isHomeBuilder ?? false)
                     <style>
@@ -776,11 +778,11 @@ document.addEventListener("DOMContentLoaded", function () {
         const status=document.getElementById('fve-header-variant-status');
         const selection=headerChoice.value;
         const headerPreview=document.getElementById('fve-header-variant-preview');
-        const banner=headerPreview.querySelector('.fve-unified-draft-header');
-        const copy=headerPreview.querySelector('.fve-draft-hero-copy');
-        banner.style.minHeight=@json($isHomeBuilder ?? false)?'0':(selection==='full'?'430px':'100px');
-        copy.style.display=@json($isHomeBuilder ?? false)?'none':(selection==='full'?'block':'none');
-        banner.style.backgroundImage=@json($isHomeBuilder ?? false)?'none':(selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none');
+        const banner=headerPreview?.querySelector('.fve-unified-draft-header');
+        const copy=headerPreview?.querySelector('.fve-draft-hero-copy');
+        if(banner)banner.style.minHeight=@json($isHomeBuilder ?? false)?'0':(selection==='full'?'430px':'100px');
+        if(copy)copy.style.display=@json($isHomeBuilder ?? false)?'none':(selection==='full'?'block':'none');
+        if(banner)banner.style.backgroundImage=@json($isHomeBuilder ?? false)?'none':(selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none');
         status.textContent='Zapisywanie…';
         try{
             const response=await fetch(@json(route('draft-page-header-variant.save')),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||''},body:JSON.stringify({page_id:@json($headerVariantPageId),variant:selection})});
