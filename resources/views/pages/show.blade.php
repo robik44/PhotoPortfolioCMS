@@ -320,5 +320,6 @@
 @endif
 <script src="{{ asset('js/builder-gallery-layout.js') }}" defer></script>
 
+<script src="{{ asset('js/email-protect.js') }}?v=1" defer></script>
 </body>
 </html>
