@@ -5,6 +5,12 @@
 <p>Zmiany zapisujesz niezależnie od obecnego nagłówka. <strong>Nie są publikowane na stronie FoodFoto.</strong></p>
 @if($errors->any())<div class="cms-alert cms-alert-error">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 <a class="cms-button cms-button-primary" href="{{ route('draft-header.preview') }}" target="_blank" rel="noopener">Otwórz wizualny builder — przeciągnij elementy ↗</a>
+<form method="POST" action="{{ route('draft-header.export-hero') }}" style="margin:20px 0;padding:16px;border:1px solid #d7ddd5;border-radius:8px">
+@csrf
+<p><strong>Przenieś hero do osobnej wersji roboczej strony głównej</strong></p>
+<p>Zapisze kopię czterech elementów (napis nad tytułem, tytuł, opis, przycisk), ich pozycji i zdjęcia w osobnym, nieopublikowanym zestawie. Nie zastąpi istniejącego buildera strony głównej.</p>
+<button class="cms-button" type="submit">Utwórz / zaktualizuj robocze hero</button>
+</form>
 <form method="POST" enctype="multipart/form-data" action="{{ route('draft-header.update') }}" style="display:grid;gap:16px;max-width:580px;margin-top:24px;">
 @csrf @method('PUT')
 <label>Prześwit między logo a menu (px)
