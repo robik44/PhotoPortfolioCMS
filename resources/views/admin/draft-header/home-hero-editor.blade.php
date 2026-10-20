@@ -4,7 +4,7 @@
 <title>Roboczy builder banera — FoodFoto</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f3f0;color:#262722;font:15px Arial,sans-serif}
-.top{position:sticky;top:0;z-index:50;background:#fff;border-bottom:1px solid #ddd;padding:13px 25px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.top{position:relative;z-index:15;background:#fff;border-bottom:1px solid #ddd;padding:13px 25px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .top a{color:#244a38}.top button{background:#213d2e;color:white;border:0;border-radius:7px;padding:13px 20px;cursor:pointer}
 .top input{width:75px;padding:7px}.notice{background:#e8f0e6;padding:12px 25px}
 .stage{position:relative;height:540px;min-height:540px;overflow:hidden;background:#e9e6dd}
@@ -19,7 +19,7 @@
 [data-id="hero-text"]{top:61%;font:19px/1.45 Arial,sans-serif;width:700px}
 [data-id="hero-portfolio-cta"]{top:78%;background:#597649;color:white;padding:19px 35px;border-radius:60px;letter-spacing:2px}
 .controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.controls label{display:flex;gap:7px;align-items:center}
-#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below a{display:inline-block;padding:13px 18px;background:#fff;border:1px solid #bbc9b8;border-radius:6px;color:#244a38;font-weight:bold}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}
+#editor-text{width:370px;max-width:75vw;padding:8px}#status{font-weight:bold}.below{margin:30px auto;max-width:1400px;padding:20px}.below a{display:inline-block;padding:13px 18px;background:#fff;border:1px solid #bbc9b8;border-radius:6px;color:#244a38;font-weight:bold}.photo-form{display:flex;align-items:center;gap:8px}.photo-form input{max-width:180px}.section-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}.home-block{background:white;border:1px solid #deded7;padding:20px;border-radius:8px;overflow-wrap:anywhere}.home-block p{font:20px/1.35 Georgia,serif}.block-type{font:11px Arial,sans-serif;color:#63806b;text-transform:uppercase;letter-spacing:.1em}.top.tools-closed #tool-content{display:none!important}
 
 /* Shared draft header visual, isolated to the private homepage staging view */
 .hero-header{position:absolute;z-index:12;top:0;left:0;right:0;display:flex;align-items:flex-start;justify-content:space-between;padding:22px 4%;gap:24px;pointer-events:none}
@@ -37,11 +37,11 @@
 @media(max-width:1000px){.hero-header,.sticky-demo{gap:10px}.draft-brand img{width:60px}.draft-brand .rule{height:60px}.draft-brand .name strong{font-size:25px}.draft-menu{gap:8px}.draft-menu nav{gap:9px}.draft-menu nav a{font-size:9px}.draft-menu .contact{font-size:9px;padding:10px}}
 </style></head><body>
 <div class="notice">WERSJA ROBOCZA — tylko dla administratora. Zapis nie zmienia publicznej strony ani istniejącego buildera.</div>
-<div class="top"><strong>BUILDER BANERA STRONY GŁÓWNEJ</strong>
+<div class="top"><strong>BUILDER BANERA STRONY GŁÓWNEJ</strong> <button id="toggle-tools" type="button" aria-expanded="true">Zwiń narzędzia</button><div id="tool-content" style="display:contents">
 <a href="{{ route('draft-header.edit') }}">← Nagłówek testowy</a>
 <div class="controls"><label>Treść <input id="editor-text" aria-label="Treść zaznaczonego elementu"></label><label>Pismo <input id="font-size" type="number" min="8" max="120"></label></div>
 <form id="photo-form" class="photo-form"><label>Zdjęcie banera <input id="hero-photo-input" name="hero_photo" type="file" accept="image/jpeg,image/png,image/webp"></label><button type="submit">Zmień zdjęcie</button></form>
-<button id="save" type="button">Zapisz roboczy baner</button><span id="status">Wybierz element</span>
+<button id="save" type="button">Zapisz roboczy baner</button><span id="status">Wybierz element</span></div>
 </div>
 
 @php($draftLogo = 'branding/foodfoto-transparent-v2.png')
@@ -66,12 +66,29 @@
 @endforeach
 </section>
 <div class="below">
-<h2>Pozostałe sekcje strony głównej — podgląd pomocniczy</h2>
-<p>Podgląd istniejącej strony jest tylko do porównania. Ustawienia powyższego roboczego banera nie są jeszcze automatycznie przenoszone do tego widoku ani na stronę publiczną.</p>
-<p><a href="{{ route('foodfoto.home.preview') }}" target="_blank" rel="noopener">Otwórz podgląd pozostałych sekcji w osobnej karcie ↗</a></p>
+<h2>Pozostałe elementy strony głównej — podgląd treści</h2>
+<p>Treści poniżej są odczytywane z aktualnego buildera bez możliwości ich zapisywania w wersji testowej. Docelowe rozmieszczenie i pełną edycję dodamy w następnym etapie.</p>
+<div class="section-list">
+@forelse($homeSections as $section)
+@if(!in_array($section['id'] ?? '', ['hero-image','hero-heading','hero-text','hero-eyebrow','hero-portfolio-cta']))
+<article class="home-block">
+<span class="block-type">{{ $section['type'] ?? 'element' }}</span>
+@if(isset($section['content']) && is_string($section['content']) && trim($section['content']) !== '')
+<p>{{ $section['content'] }}</p>
+@endif
+@if(!empty($section['photo_id']))
+<small>Zdjęcie w bibliotece: #{{ (int)$section['photo_id'] }}</small>
+@endif
+</article>
+@endif
+@empty
+<p>W aktualnym builderze nie ma zapisanych elementów do wyświetlenia.</p>
+@endforelse
+</div>
 </div>
 <script>
 (()=>{
+const toolbar=document.querySelector('.top'),toggle=document.getElementById('toggle-tools');toggle.onclick=()=>{const closed=toolbar.classList.toggle('tools-closed');toggle.textContent=closed?'Pokaż narzędzia':'Zwiń narzędzia';toggle.setAttribute('aria-expanded',String(!closed));};
 const raw=@json($draft['sections'] ?? []);
 const hp=@json($headerPositions);
 for(const id of ['hero-header','sticky-demo']){
