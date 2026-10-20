@@ -2,13 +2,16 @@
 <html lang="pl">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=1400">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 @if($public)
 @include('components.seo-meta', ['seo' => \App\Support\Seo::meta(null)])
 @else
 <meta name="robots" content="noindex,nofollow,noarchive">
 <title>Podgląd nowego FoodFoto — tylko administrator</title>
 @endif
+@php
+    $foodfotoHeader = \App\Support\HeaderSettings::resolve(\App\Models\SiteSetting::whereIn('key', \App\Support\HeaderSettings::keys())->pluck('value','key')->all());
+@endphp
 <style>
 *{box-sizing:border-box}body{margin:0;background:#fff;color:#202019;font-family:Georgia,'Times New Roman',serif}a{color:inherit;text-decoration:none}
 .preview-top{position:relative;background:#25352a;color:white;z-index:50;padding:12px 38px;font:14px Arial,sans-serif;display:flex;align-items:center;justify-content:space-between}
@@ -86,6 +89,22 @@
 .ff-ruler-left{position:absolute;top:25px;bottom:0;left:0;width:25px;z-index:65;pointer-events:none;background:repeating-linear-gradient(to bottom,#889689 0,#889689 1px,transparent 1px,transparent 10px),#f4f7f2;background-size:7px 100%,100% 100%;background-position:right top;opacity:.7}
 .ff-ruler-top,.ff-ruler-left{display:none}.ff-layout-editing .ff-ruler-top,.ff-layout-editing .ff-ruler-left{display:block}
 #ff-size{padding:5px;border:1px solid #bbb}
+/* Premium homepage header: the hero photograph is visible through its center. */
+.wrap:has(> .header.foodfoto-split) { position:relative; }
+.header.foodfoto-split {position:absolute;top:0;left:0;right:0;z-index:20;border:0;background:transparent;gap:var(--split-gap);padding:16px 3.5%;}
+.header.foodfoto-split .brand {background:#fff;border-radius:8px;padding:12px 18px;flex-shrink:0;}
+.header.foodfoto-split .nav {background:#fff;border-radius:var(--split-radius);padding:18px 24px;flex-shrink:0;justify-content:center;}
+.header.foodfoto-split + .hero {padding-top:100px;}
+@media(max-width:1000px) {
+ .header.foodfoto-split {position:relative;gap:12px;padding:10px 15px;flex-wrap:wrap;background:#fff;}
+ .header.foodfoto-split .brand {padding:4px 0;}
+ .header.foodfoto-split .nav {padding:12px;border-radius:18px;flex-wrap:wrap;gap:12px;}
+ .header.foodfoto-split + .hero {padding-top:0;}
+}
+@media(max-width:600px) {
+ .header.foodfoto-split .brand-name {font-size:18px;}
+ .header.foodfoto-split .nav {font-size:10px;}
+}
 </style>
 @foreach($editorPositions as $id => $pos)
 @if(in_array($id, ['hero-text','hero-photo','hero-basil','editorial-photo','editorial-copy','editorial-basil','process-intro','process-steps','process-basil','experience-photo','experience-copy'], true) && is_array($pos))
@@ -107,7 +126,7 @@
 @unless($public)
 <div class="ff-ruler-top" aria-hidden="true"></div><div class="ff-ruler-left" aria-hidden="true"></div><div id="ff-guide-x" class="ff-guide-x" hidden></div><div id="ff-guide-y" class="ff-guide-y" hidden></div>
 @endunless
-<header class="header">
+<header class="header {{ $foodfotoHeader['header_layout'] === 'split' ? 'foodfoto-split' : '' }}" style="--split-gap:{{ $foodfotoHeader['header_split_gap'] }}px;--split-radius:{{ $foodfotoHeader['header_split_radius'] }}px">
  <a class="brand" href="{{ url('/') }}"><span class="brand-mark"><span>food</span><span>foto</span></span><span class="brand-name">Magda Gugała</span></a>
  <nav class="nav"><a href="{{ url('/') }}">Start</a><a href="{{ url('/o-mnie') }}">O mnie</a><a href="#uslugi">Oferta</a><a href="#portfolio">Portfolio</a><a href="{{ url('/kontakt') }}">Kontakt</a></nav>
 </header>
