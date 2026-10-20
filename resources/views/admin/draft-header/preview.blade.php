@@ -65,6 +65,17 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 #viewport-stage.inner-page .site-head .header-actions{border:1px solid #dedbd5;background:#fff;border-radius:8px 8px 24px 40px;box-shadow:0 3px 12px rgba(0,0,0,.03)}
 @media(max-width:900px){.compact-header{flex-wrap:wrap}.compact-header .header-actions{flex-wrap:wrap;max-width:100%}.compact-header nav{flex-wrap:wrap}}
 @media(prefers-reduced-motion:reduce){.compact-header{transition:none}}
+.brand-image-piece{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:58px;min-width:25px}
+.brand-image-piece img{display:block;width:100%;max-width:none!important;max-height:none!important;height:auto}
+.brand-name-piece{display:flex;flex-direction:column;min-width:max-content}
+.brand-name-piece strong,.brand-name-piece small{display:block;white-space:nowrap}
+.brand .divider{flex:0 0 1px}
+.brand[data-drag="brand"]{min-width:0}
+.brand[data-drag="brand"].selected{outline-offset:8px}
+.brand-image-piece .resize-handle,.brand-name-piece .resize-handle{bottom:-9px}
+.compact-header .brand-image-piece{width:38px!important}
+.compact-header .brand-image-piece img{width:100%}
+.compact-header .brand-name-piece{width:auto!important}
 </style></head>
 <body>
 <div class="preview-alert"><span>WERSJA TESTOWA — widoczna tylko po zalogowaniu. Strona publiczna nie jest zmieniona.</span><a href="{{ route('draft-header.edit') }}">← Edytuj nagłówek</a></div>
@@ -98,11 +109,11 @@ $draftLogo = 'branding/foodfoto-transparent-v2.png';
 <header class="site-head" id="draft-main-header">
 <div class="brand" data-drag="brand">
 @if(file_exists(storage_path('app/public/'.$draftLogo)))
-<img src="{{ asset('storage/'.$draftLogo) }}" alt="FoodFoto">
+<span class="brand-image-piece" data-drag="brand-image"><img src="{{ asset('storage/'.$draftLogo) }}" alt="FoodFoto"></span>
 @elseif(!empty($header['header_brand_image']))
-<img src="{{ asset('storage/'.$header['header_brand_image']) }}" alt="FoodFoto">
+<span class="brand-image-piece" data-drag="brand-image"><img src="{{ asset('storage/'.$header['header_brand_image']) }}" alt="FoodFoto"></span>
 @else<strong>food<br>foto</strong>@endif
-<span class="divider"></span><span><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span>
+<span class="divider" data-drag="brand-divider"></span><span class="brand-name-piece" data-drag="brand-text"><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span>
 </div>
 <div class="header-actions" data-drag="menu-panel" aria-label="Przeciągnij całe menu za tło lub uchwyt">
 <span class="menu-drag-handle" aria-label="Przesuń całą kapsułę" title="Przeciągnij całą kapsułę">⠿</span>
@@ -146,7 +157,7 @@ updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-text')el.style.width=p.w?p.w+'px':'';el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
 function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));const id=[...selected][0],p=pos[id]||{};
