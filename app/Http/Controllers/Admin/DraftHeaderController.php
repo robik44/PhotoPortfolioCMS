@@ -73,6 +73,10 @@ class DraftHeaderController extends Controller
             'positions' => ['required', 'array'],
             'positions.*.x' => ['required', 'integer', 'between:-400,400'],
             'positions.*.y' => ['required', 'integer', 'between:-300,300'],
+            'positions.*.w' => ['sometimes', 'integer', 'between:40,1400'],
+            'positions.*.font' => ['sometimes', 'numeric', 'between:8,120'],
+            'positions.*.spacing' => ['sometimes', 'numeric', 'between:-2,20'],
+            'positions.*.line' => ['sometimes', 'numeric', 'between:0.7,3'],
         ]);
         $allowed = ['brand', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
         $positions = array_intersect_key($data['positions'], array_flip($allowed));
