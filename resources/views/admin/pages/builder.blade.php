@@ -696,18 +696,30 @@
                 <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
-                    <div id="fve-header-variant-preview" class="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
-<div style="padding:5px 12px;background:#f0f5ec;color:#426049;font-size:11px">Podgląd wariantu nagłówka — wybór zapisywany tylko testowo</div>
-<div class="fve-header-variant-banner" style="{{ $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.86),transparent),url('".asset('storage/'.$draftPreviewImage)."');" : 'background:#eee9e0;' }}background-position:center;background-size:cover;min-height:240px;display:{{ $headerVariantValue === 'full' ? 'block' : 'none' }};padding:22px 20px;color:#252522">
-<p style="font:36px Georgia,serif;margin:50px 0 6px">Fotografia i stylizacja żywności</p><small>Wersja demonstracyjna — baner tej strony będzie miał osobne zdjęcie i treść</small>
+                    <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
+<div class="fve-unified-draft-header" style="position:relative;min-height:{{ $headerVariantValue === 'full' ? '430px' : '100px' }};background:{{ $headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3' }};{{ $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
+<div style="display:flex;align-items:center;justify-content:space-between;gap:24px">
+<div style="display:flex;align-items:center;gap:18px;flex-shrink:0">
+@if(is_file(storage_path('app/public/branding/foodfoto-transparent-v2.png')))
+<img src="{{ asset('storage/branding/foodfoto-transparent-v2.png') }}" alt="FoodFoto" style="width:{{ $headerVariantValue === 'full' ? '72' : '54' }}px;height:auto">
+@else
+<strong style="font:900 29px/.76 Arial;letter-spacing:-.08em">food<br>foto</strong>
+@endif
+<span style="width:1px;height:60px;background:#aaa"></span>
+<span><strong style="display:block;font:normal 29px Georgia,serif;white-space:nowrap">Magda Gugała</strong><small style="display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap">FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
+</div>
+<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;border:1px solid #dedbd5;border-radius:12px 12px 32px 38px;background:#fff;padding:10px 15px">
+@foreach($builderHeaderMenuItems as $item)<span style="font:11px Arial;letter-spacing:.05em;white-space:nowrap">{{ $item->label ?? $item->title ?? 'Menu' }}</span>@endforeach
+<span style="font:11px Arial;letter-spacing:.08em;border:1px solid #344639;border-radius:40px;padding:12px 17px;white-space:nowrap">POROZMAWIAJMY</span>
 </div>
 </div>
-<div class="fve-public-header-preview">
-                        @include('components.site-header', [
-                            'settings' => $builderHeaderSettings,
-                            'menuItems' => $builderHeaderMenuItems,
-                        ])
-                    </div>
+<div class="fve-draft-hero-copy" style="display:{{ $headerVariantValue === 'full' ? 'block' : 'none' }};margin:80px 0 0 20px;max-width:760px">
+<div style="font:12px Arial;letter-spacing:.25em;color:#667366;margin-bottom:15px">APETYT NA PIĘKNE HISTORIE</div>
+<div style="font:normal 64px/1 Georgia,serif">Fotografia i stylizacja żywności</div>
+<div style="font:16px/1.5 Arial;margin-top:18px">Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.</div>
+</div>
+</div>
+</div>
 
                     <main
                         class="fve-content"
@@ -754,7 +766,12 @@ document.addEventListener("DOMContentLoaded", function () {
     if(headerChoice)headerChoice.addEventListener('change',async()=>{
         const status=document.getElementById('fve-header-variant-status');
         const selection=headerChoice.value;
-        document.querySelector('.fve-header-variant-banner').style.display=selection==='full'?'block':'none';
+        const headerPreview=document.getElementById('fve-header-variant-preview');
+        const banner=headerPreview.querySelector('.fve-unified-draft-header');
+        const copy=headerPreview.querySelector('.fve-draft-hero-copy');
+        banner.style.minHeight=selection==='full'?'430px':'100px';
+        copy.style.display=selection==='full'?'block':'none';
+        banner.style.backgroundImage=selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none';
         status.textContent='Zapisywanie…';
         try{
             const response=await fetch(@json(route('draft-page-header-variant.save')),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||''},body:JSON.stringify({page_id:@json($headerVariantPageId),variant:selection})});
