@@ -9,7 +9,7 @@
 .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(245,243,238,.84),rgba(245,243,238,.38) 44%,transparent 75%);pointer-events:none}
 .site-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:var(--gap);padding:12px 4vw;min-height:var(--height)}
 .brand{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;color:#171717;background:rgba(var(--logo-rgb),var(--logo-opacity));padding:12px 20px;border-radius:8px}
-.brand img{max-height:56px;width:auto;max-width:80px;object-fit:contain}.brand .divider{width:1px;align-self:stretch;background:#aaa;min-height:36px}.brand strong{font:400 24px Georgia,serif;white-space:nowrap}.brand small{display:block;font:9px Arial,sans-serif;letter-spacing:.16em;margin-top:5px}
+.brand img{max-height:56px;width:auto;max-width:80px;object-fit:contain;mix-blend-mode:multiply}.brand .divider{width:1px;align-self:stretch;background:#aaa;min-height:36px}.brand strong{font:400 24px Georgia,serif;white-space:nowrap}.brand small{display:block;font:9px Arial,sans-serif;letter-spacing:.16em;margin-top:5px}
 nav{display:flex;gap:20px;align-items:center;flex-wrap:wrap;background:var(--menu-bg);padding:21px 28px;border-radius:var(--radius)}
 nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:#222;text-decoration:none;white-space:nowrap}
 .hero-copy{position:relative;z-index:1;margin:75px 0 0 8%;max-width:650px}
