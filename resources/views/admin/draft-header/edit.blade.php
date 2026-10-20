@@ -4,7 +4,7 @@
 <h1 class="cms-dashboard-title">Nowy nagłówek — wersja robocza</h1>
 <p>Zmiany zapisujesz niezależnie od obecnego nagłówka. <strong>Nie są publikowane na stronie FoodFoto.</strong></p>
 @if($errors->any())<div class="cms-alert cms-alert-error">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
-<a class="cms-button cms-button-primary" href="{{ route('draft-header.preview') }}" target="_blank" rel="noopener">Otwórz podgląd całej góry strony ↗</a>
+<a class="cms-button cms-button-primary" href="{{ route('draft-header.preview') }}" target="_blank" rel="noopener">Otwórz wizualny builder — przeciągnij elementy ↗</a>
 <form method="POST" enctype="multipart/form-data" action="{{ route('draft-header.update') }}" style="display:grid;gap:16px;max-width:580px;margin-top:24px;">
 @csrf @method('PUT')
 <label>Prześwit między logo a menu (px)
@@ -32,6 +32,14 @@
 <label><input type="checkbox" name="draft_header_remove_preview_image" value="1"> Przywróć zdjęcie banera i usuń wybór zdjęcia testowego</label>
 @endif
 <small>Zdjęcie testowe nie zmienia banera na publicznej stronie.</small>
+</fieldset>
+<fieldset style="display:grid;gap:12px;border:1px solid #ddd;padding:16px;border-radius:8px">
+<legend>Teksty sekcji hero — wersja testowa</legend>
+<label>Tekst nad tytułem <input style="display:block;width:100%" type="text" name="draft_header_eyebrow" maxlength="120" value="{{ old('draft_header_eyebrow',$settings['draft_header_eyebrow']) }}" required></label>
+<label>Tytuł <textarea style="display:block;width:100%;min-height:75px" name="draft_header_hero_title" maxlength="180" required>{{ old('draft_header_hero_title',$settings['draft_header_hero_title']) }}</textarea></label>
+<label>Opis <textarea style="display:block;width:100%;min-height:100px" name="draft_header_hero_description" maxlength="500" required>{{ old('draft_header_hero_description',$settings['draft_header_hero_description']) }}</textarea></label>
+<label>Tekst zielonego przycisku <input style="display:block;width:100%" name="draft_header_cta_text" maxlength="80" value="{{ old('draft_header_cta_text',$settings['draft_header_cta_text']) }}" required></label>
+<label>Tekst przycisku kontaktowego <input style="display:block;width:100%" name="draft_header_contact_text" maxlength="80" value="{{ old('draft_header_contact_text',$settings['draft_header_contact_text']) }}" required></label>
 </fieldset>
 <button class="cms-button cms-button-primary" type="submit">Zapisz wersję testową</button>
 </form>
