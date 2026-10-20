@@ -15,6 +15,9 @@
 <input style="display:block;width:100%" type="number" name="draft_header_height" min="60" max="180" value="{{ old('draft_header_height',$settings['draft_header_height']) }}" required></label>
 <label>Tło pod logo
 <input type="color" name="draft_header_logo_background" value="{{ old('draft_header_logo_background',$settings['draft_header_logo_background']) }}"></label>
+<label for="draft_header_logo_opacity">Krycie tła pod logo: <output id="draft-header-opacity-value">{{ old('draft_header_logo_opacity',$settings['draft_header_logo_opacity']) }}%</output>
+<input id="draft_header_logo_opacity" style="display:block;width:100%" type="range" name="draft_header_logo_opacity" min="0" max="100" step="1" value="{{ old('draft_header_logo_opacity',$settings['draft_header_logo_opacity']) }}" oninput="document.getElementById('draft-header-opacity-value').textContent=this.value+'%'">
+<small>100% — pełne tło; 90% — subtelny prześwit; 0% — całkowicie przezroczyste. Logo i tekst pozostają nieprzezroczyste.</small></label>
 <label>Tło pod menu
 <input type="color" name="draft_header_menu_background" value="{{ old('draft_header_menu_background',$settings['draft_header_menu_background']) }}"></label>
 <button class="cms-button cms-button-primary" type="submit">Zapisz wersję testową</button>
