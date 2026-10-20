@@ -13,6 +13,7 @@ class DraftHeaderController extends Controller
         'draft_header_radius' => 36,
         'draft_header_height' => 84,
         'draft_header_logo_background' => '#ffffff',
+        'draft_header_logo_opacity' => 90,
         'draft_header_menu_background' => '#ffffff',
     ];
 
@@ -34,6 +35,7 @@ class DraftHeaderController extends Controller
             'draft_header_radius' => ['required', 'integer', 'between:0,100'],
             'draft_header_height' => ['required', 'integer', 'between:60,180'],
             'draft_header_logo_background' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'draft_header_logo_opacity' => ['required', 'integer', 'between:0,100'],
             'draft_header_menu_background' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
         ]);
         foreach ($data as $key => $value) {
