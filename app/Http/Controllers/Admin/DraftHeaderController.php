@@ -37,6 +37,32 @@ class DraftHeaderController extends Controller
         return view('admin.draft-header.edit', ['settings' => $this->settings()]);
     }
 
+    public function publicationReview()
+    {
+        // Read-only publication checklist. No public templates or flags are changed.
+        $saved = SiteSetting::pluck('value', 'key')->all();
+        $homeDraft = PageBuilder::query()->whereNull('page_id')
+            ->where('type', 'home_hero_draft')->first();
+        $pages = \App\Models\Page::query()->orderBy('sort_order')
+            ->orderBy('title')->get()->map(function ($page) use ($saved) {
+                $variant = $saved['draft_page_header_variant_'.$page->id] ?? 'simple';
+                $raw = $saved['draft_page_banner_'.$page->id] ?? null;
+                $draft = is_string($raw) ? json_decode($raw, true) : null;
+                return [
+                    'id' => $page->id,
+                    'title' => $page->title,
+                    'variant' => $variant === 'full' ? 'full' : 'simple',
+                    'has_own_banner' => is_array($draft) && count($draft) > 0,
+                    'published' => (bool) $page->published,
+                ];
+            });
+        return view('admin.draft-header.publication-review', [
+            'pages' => $pages,
+            'home_variant' => ($saved['draft_page_header_variant_home'] ?? 'full') === 'simple' ? 'simple' : 'full',
+            'home_draft_ready' => $homeDraft !== null && count($homeDraft->content['sections'] ?? []) > 0,
+        ]);
+    }
+
     public function update(Request $request)
     {
         $data = $request->validate([
