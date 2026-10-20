@@ -90,6 +90,20 @@
     /* Brand stays at the left edge and menu at the right on desktop. */
     .site-header .header-inner { justify-content: space-between; }
     .site-header .main-menu { margin-left: auto; justify-content: flex-end; }
+    /* The split layout remains a normal-flow header outside the hero page. */
+    .site-header.header-layout-split { background: #f8f7f3 !important; border-bottom: 0; }
+    .site-header.header-layout-split .header-inner { gap: var(--header-split-gap,70px); }
+    .site-header.header-layout-split .logo { background: #fff; padding: 12px 20px; border-radius: 8px; }
+    .site-header.header-layout-split .main-menu { background: #fff; border-radius: var(--header-split-radius,36px); padding: 12px 24px; }
+    @media (min-width: 521px) and (max-width: 1300px) {
+        .site-header.header-layout-split .header-inner { gap: 12px; }
+        .site-header.header-layout-split .main-menu { width: auto; margin-left: auto; }
+    }
+    @media (max-width: 520px) {
+        .site-header.header-layout-split .header-inner { gap: 5px; }
+        .site-header.header-layout-split .logo { padding: 6px 8px; }
+        .site-header.header-layout-split .main-menu { padding: 8px; border-radius: 16px; }
+    }
     @media (min-width: 521px) and (max-width: 1300px) {
         .site-header .header-inner { flex-wrap: wrap; justify-content: space-between; row-gap: 14px; }
         .site-header .main-menu { width: 100%; justify-content: flex-end; flex-wrap: wrap; }
@@ -147,7 +161,7 @@
     }
 </style>
 
-<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}" style="--header-padding-top: {{ $headerSettings['header_padding_top'] }}px; --header-padding-bottom: {{ $headerSettings['header_padding_bottom'] }}px; --header-logo-subtitle-gap: {{ $headerSettings['header_logo_subtitle_gap'] }}px;">
+<header class="site-header header-layout-{{ $headerSettings['header_layout'] }}" style="--header-padding-top: {{ $headerSettings['header_padding_top'] }}px; --header-padding-bottom: {{ $headerSettings['header_padding_bottom'] }}px; --header-logo-subtitle-gap: {{ $headerSettings['header_logo_subtitle_gap'] }}px; --header-split-gap: {{ $headerSettings['header_split_gap'] }}px; --header-split-radius: {{ $headerSettings['header_split_radius'] }}px;">
     <div class="header-inner">
 
         <a href="{{ url('/') }}" class="logo">
