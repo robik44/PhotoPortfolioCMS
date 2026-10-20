@@ -28,6 +28,7 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand{padding:8px 4px 8px 0}.brand img{mix-blend-mode:normal}
 .brand .divider{margin:0 5px}.brand strong{font-size:25px;font-weight:400}
 .header-actions{display:flex;align-items:center;gap:8px;background:var(--menu-bg);border-radius:var(--radius);padding:8px 10px 8px 26px;margin-left:auto}
+.header-actions .menu-drag-handle{font:20px Arial,sans-serif;color:#7c8379;cursor:grab;touch-action:none;user-select:none;flex-shrink:0}
 .header-actions nav{background:transparent;padding:12px 6px;gap:22px;border-radius:0}
 .header-actions .contact-button{white-space:nowrap;display:block;border:1px solid #343b34;padding:14px 22px;border-radius:999px;font:11px Arial,sans-serif;letter-spacing:.12em;text-decoration:none;color:#333}
 .hero-copy{margin:62px 0 0 4%;max-width:820px}
@@ -67,7 +68,8 @@ $draftLogo = 'branding/foodfoto-transparent-v2.png';
 @else<strong>food<br>foto</strong>@endif
 <span class="divider"></span><span><strong>{{ $header['logo'] }}</strong><small>{{ $header['logo_subtitle'] }}</small></span>
 </div>
-<div class="header-actions">
+<div class="header-actions" data-drag="menu-panel" aria-label="Przeciągnij całe menu za tło lub uchwyt">
+<span class="menu-drag-handle" aria-label="Przesuń całą kapsułę" title="Przeciągnij całą kapsułę">⠿</span>
 <nav data-drag="navlinks" aria-label="Menu (podgląd)">
 @forelse($menuItems as $item)
 <a href="#" onclick="return false">{{ $item->label ?? $item->title ?? 'Menu' }}</a>
@@ -95,7 +97,7 @@ elements.forEach(el=>setPos(el,stored[el.dataset.drag]||{x:0,y:0}));
 elements.forEach(el=>{
 el.addEventListener('pointerdown',e=>{
 if(e.button!==0)return;
-e.preventDefault(); active={el,id:e.pointerId,sx:e.clientX,sy:e.clientY,x:positions[el.dataset.drag].x,y:positions[el.dataset.drag].y};
+e.stopPropagation();e.preventDefault(); active={el,id:e.pointerId,sx:e.clientX,sy:e.clientY,x:positions[el.dataset.drag].x,y:positions[el.dataset.drag].y};
 elements.forEach(n=>n.classList.toggle('selected',n===el));el.setPointerCapture(e.pointerId);
 });
 el.addEventListener('pointermove',e=>{
