@@ -773,22 +773,45 @@
 
 document.addEventListener("DOMContentLoaded", function () {
 
-    const headerChoice=document.getElementById('fve-header-variant');
-    if(headerChoice)headerChoice.addEventListener('change',async()=>{
-        const status=document.getElementById('fve-header-variant-status');
-        const selection=headerChoice.value;
-        const headerPreview=document.getElementById('fve-header-variant-preview');
-        const banner=headerPreview?.querySelector('.fve-unified-draft-header');
-        const copy=headerPreview?.querySelector('.fve-draft-hero-copy');
-        if(banner)banner.style.minHeight=@json($isHomeBuilder ?? false)?'0':(selection==='full'?'430px':'100px');
-        if(copy)copy.style.display=@json($isHomeBuilder ?? false)?'none':(selection==='full'?'block':'none');
-        if(banner)banner.style.backgroundImage=@json($isHomeBuilder ?? false)?'none':(selection==='full'?@json($draftPreviewImage ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')" : 'none'):'none');
-        status.textContent='Zapisywanie…';
-        try{
-            const response=await fetch(@json(route('draft-page-header-variant.save')),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content||''},body:JSON.stringify({page_id:@json($headerVariantPageId),variant:selection})});
-            if(!response.ok)throw Error('HTTP '+response.status);
-            status.textContent='Wybór zapisany ✓';
-        }catch(error){status.textContent='Błąd zapisu: '+error.message}
+    @php
+        $variantIsHome = (bool) ($isHomeBuilder ?? false);
+        $variantBackground = $draftPreviewImage
+            ? "linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."')"
+            : 'none';
+    @endphp
+    const variantIsHome = @json($variantIsHome);
+    const variantBackground = @json($variantBackground);
+    const variantPageId = @json($headerVariantPageId);
+    const variantSaveUrl = @json(route('draft-page-header-variant.save'));
+    const headerChoice = document.getElementById('fve-header-variant');
+    if (headerChoice) headerChoice.addEventListener('change', async () => {
+        const status = document.getElementById('fve-header-variant-status');
+        const selection = headerChoice.value;
+        const headerPreview = document.getElementById('fve-header-variant-preview');
+        const banner = headerPreview?.querySelector('.fve-unified-draft-header');
+        const copy = headerPreview?.querySelector('.fve-draft-hero-copy');
+        if (banner) {
+            banner.style.minHeight = selection === 'full' ? '430px' : '100px';
+            banner.style.backgroundImage = selection === 'full' ? variantBackground : 'none';
+        }
+        if (copy) copy.style.display = selection === 'full' ? 'block' : 'none';
+        status.textContent = 'Zapisywanie…';
+        try {
+            const response = await fetch(variantSaveUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify({page_id: variantPageId, variant: selection})
+            });
+            if (!response.ok) throw Error('HTTP ' + response.status);
+            status.textContent = 'Wybór zapisany ✓';
+        } catch (error) {
+            status.textContent = 'Błąd zapisu: ' + error.message;
+        }
     });
     const openButton =
         document.getElementById("full-visual-editor-button");
