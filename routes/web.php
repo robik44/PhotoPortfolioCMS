@@ -149,6 +149,7 @@ Route::middleware(["auth"])->group(function () {
     Route::post('/admin/home-hero-draft/photo', [DraftHeaderController::class, 'uploadHomeHeroPhoto'])->name('home-hero-draft.photo');
     Route::put('/admin/home-hero-draft', [DraftHeaderController::class, 'saveHomeHero'])->name('home-hero-draft.save');
     Route::get('/admin/header-draft/preview', [DraftHeaderController::class, 'preview'])->name('draft-header.preview');
+    Route::get('/admin/header-draft/publication-review', [DraftHeaderController::class, 'publicationReview'])->name('draft-header.review');
 
     Route::get('/admin/header-settings', [HeaderSettingController::class, 'edit'])
         ->name('header-settings.edit');
