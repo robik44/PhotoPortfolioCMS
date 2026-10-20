@@ -189,6 +189,53 @@ class HomeBuilderController extends Controller
             $changed = true;
         }
 
+        // Hero content belongs to the homepage builder, never the shared header.
+        // Create missing blocks only: existing user-edited sections are left untouched.
+        if ($findIndex($sections, fn ($item) => ($item["id"] ?? null) === "hero-eyebrow") === null) {
+            $sections[] = [
+                "id" => "hero-eyebrow",
+                "type" => "text",
+                "content" => $settings["draft_header_eyebrow"] ?? "APETYT NA PIĘKNE HISTORIE",
+                "semantic_tag" => "p",
+                "position_x" => 7,
+                "position_y" => 5,
+                "element_width" => 38,
+                "style" => [
+                    "font_size" => 12,
+                    "font_weight" => 400,
+                    "color" => "#485641",
+                    "letter_spacing" => 4,
+                    "line_height" => 1.4,
+                ],
+            ];
+            $changed = true;
+        }
+
+        if ($findIndex($sections, fn ($item) => ($item["id"] ?? null) === "hero-portfolio-cta") === null) {
+            $sections[] = [
+                "id" => "hero-portfolio-cta",
+                "type" => "button",
+                "content" => $settings["draft_header_cta_text"] ?? "ZOBACZ PORTFOLIO",
+                "button_link" => "#portfolio",
+                "position_x" => 7,
+                "position_y" => 32,
+                "element_width" => 24,
+                "button_background" => "#597649",
+                "button_border_color" => "#597649",
+                "button_border_width" => 0,
+                "button_radius" => 40,
+                "button_padding_x" => 32,
+                "button_padding_y" => 17,
+                "style" => [
+                    "font_size" => 12,
+                    "font_weight" => 600,
+                    "color" => "#ffffff",
+                    "letter_spacing" => 1.2,
+                ],
+            ];
+            $changed = true;
+        }
+
         // A removed Portfolio heading must stay removed. Navigation to the
         // gallery is now anchored to the gallery itself in the public canvas.
 
