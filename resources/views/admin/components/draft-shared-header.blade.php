@@ -18,9 +18,10 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
   $y = max(-300,min(300,(int)($item['y']??0)));
   $font = max(8,min(120,(float)($item['font']??$defaultSize)));
   $w = max(40,min(1400,(int)($item['w']??$defaultWidth)));
-  $spacing = max(-2,min(20,(float)($item['spacing']??0)));
-  $line = max(.7,min(3,(float)($item['line']??1.1)));
-  return "--dx:{$x}px;--dy:{$y}px;--fs:{$font}px;--lw:{$w}px;--ls:{$spacing}px;--lh:{$line}";
+  $spacing = isset($item['spacing']) ? max(-2,min(20,(float)$item['spacing'])) : null;
+  $line = isset($item['line']) ? max(.7,min(3,(float)$item['line'])) : null;
+  $optional = ($spacing === null ? '' : "--ls:{$spacing}px;").($line === null ? '' : "--lh:{$line};");
+  return "--dx:{$x}px;--dy:{$y}px;--fs:{$font}px;--lw:{$w}px;{$optional}";
 };
 @endphp
 <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
@@ -71,8 +72,8 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-hero h1{white-space:pre-line;font:normal 83px/1.04 Georgia,serif;letter-spacing:-.04em;margin:0 0 18px}
 #fve-header-variant-preview .ff-shared-hero p{font:16px/1.65 Arial;max-width:560px}
 #fve-header-variant-preview .ff-cta{display:inline-block;background:#597649;border-radius:100px;padding:17px 32px;color:white;font:12px Arial;letter-spacing:.12em;margin-top:19px}
-#fve-header-variant-preview .ff-eyebrow{position:relative;font-size:var(--fs,11px);letter-spacing:var(--ls,4px)}
-#fve-header-variant-preview .ff-shared-hero h1{position:relative;font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,0px);max-width:var(--lw,850px)}
+#fve-header-variant-preview .ff-eyebrow{position:relative;font-size:var(--fs,11px);letter-spacing:var(--ls,.38em)}
+#fve-header-variant-preview .ff-shared-hero h1{position:relative;font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,-.04em);max-width:var(--lw,850px)}
 #fve-header-variant-preview .ff-shared-hero p{position:relative;font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px);margin:0 0 8px}
 #fve-header-variant-preview .ff-cta{position:relative;font-size:var(--fs,14px);margin-top:8px}
 #fve-header-variant-preview .ff-simple .ff-shared-hero{display:none}
