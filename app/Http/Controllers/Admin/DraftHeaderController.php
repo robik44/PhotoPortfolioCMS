@@ -74,7 +74,7 @@ class DraftHeaderController extends Controller
             'positions.*.x' => ['required', 'integer', 'between:-400,400'],
             'positions.*.y' => ['required', 'integer', 'between:-300,300'],
         ]);
-        $allowed = ['brand', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
+        $allowed = ['brand', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
         $positions = array_intersect_key($data['positions'], array_flip($allowed));
         SiteSetting::updateOrCreate(
             ['key' => 'draft_header_builder_positions'],
