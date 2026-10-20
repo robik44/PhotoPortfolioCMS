@@ -91,6 +91,18 @@
 @endphp
 
 <style>
+
+    .fve-banner-draft-settings { position:relative; flex-shrink:0; }
+    #fve-banner-settings-panel[hidden] { display:none!important; }
+    #fve-banner-settings-panel { position:absolute;top:calc(100% + 12px);left:0;z-index:120;width:min(390px,88vw);max-height:calc(100vh - 120px);overflow:auto;background:#fff;box-shadow:0 12px 35px #0003;border:1px solid #d6ded2;border-radius:12px;padding:20px; }
+    #fve-page-banner-form { display:flex;flex-direction:column;gap:12px;font:13px/1.4 Arial,sans-serif; }
+    #fve-page-banner-form strong { font-size:16px; }
+    #fve-page-banner-form p { margin:0;color:#536054;font-size:12px; }
+    #fve-page-banner-form label { display:flex;flex-direction:column;gap:5px;font-weight:600; }
+    #fve-page-banner-form input:not([type=checkbox]),#fve-page-banner-form textarea { width:100%;padding:9px;border:1px solid #cbd3ca;border-radius:5px;font:14px Arial,sans-serif;box-sizing:border-box; }
+    #fve-page-banner-form .fve-banner-reset { flex-direction:row;align-items:center;font-weight:400; }
+    .fve-banner-form-actions { display:flex;gap:8px;flex-wrap:wrap; }
+    #fve-page-banner-save-status { min-height:16px;color:#31573e; }
     /* FULL VISUAL PAGE EDITOR */
 
     #full-visual-editor {
@@ -551,7 +563,13 @@
   $headerVariantPageId = ($isHomeBuilder ?? false) ? null : ($page->id ?? null);
   $headerVariantKey = $headerVariantPageId ? 'draft_page_header_variant_'.$headerVariantPageId : 'draft_page_header_variant_home';
   $headerVariantValue = \App\Models\SiteSetting::where('key', $headerVariantKey)->value('value') ?: (($isHomeBuilder ?? false) ? 'full' : 'simple');
-  $draftPreviewImage = \App\Models\SiteSetting::where('key', 'draft_header_preview_image')->value('value');
+  $pageBannerRaw = $headerVariantPageId
+    ? \App\Models\SiteSetting::where('key', 'draft_page_banner_'.$headerVariantPageId)->value('value')
+    : null;
+  $pageBannerDecoded = is_string($pageBannerRaw) ? json_decode($pageBannerRaw, true) : null;
+  $pageBannerDraft = is_array($pageBannerDecoded) ? $pageBannerDecoded : [];
+  $draftPreviewImage = ($pageBannerDraft['photo'] ?? null)
+    ?: \App\Models\SiteSetting::where('key', 'draft_header_preview_image')->value('value');
 @endphp
 <div class="fve-header-choice" style="display:flex;align-items:center;gap:8px;padding:6px 12px;background:#edf1eb;border-radius:7px">
 <label for="fve-header-variant" style="font-size:12px;font-weight:600;color:#233a2b">Nagłówek:</label>
@@ -561,6 +579,39 @@
 </select>
 <span id="fve-header-variant-status" style="font-size:11px;color:#426049">Wersja testowa</span>
 </div>
+
+
+@if(!($isHomeBuilder ?? false))
+<div class="fve-banner-draft-settings">
+<button type="button" class="fve-button" id="fve-banner-settings-toggle" aria-expanded="false" aria-controls="fve-banner-settings-panel">Edytuj baner</button>
+<div id="fve-banner-settings-panel" hidden>
+<form id="fve-page-banner-form" action="{{ route('draft-page-banner.save', $page) }}" method="post" enctype="multipart/form-data">
+@csrf
+<strong>Baner tej podstrony — wersja testowa</strong>
+<p>Zmiany dotyczą tylko strony „{{ $page->title }}”. Logo i menu pozostają wspólne.</p>
+<label>Tekst nad tytułem
+<input type="text" name="eyebrow" maxlength="120" value="{{ $pageBannerDraft['eyebrow'] ?? ($builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE') }}">
+</label>
+<label>Tytuł
+<textarea name="title" rows="2" maxlength="180">{{ $pageBannerDraft['title'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności") }}</textarea>
+</label>
+<label>Opis
+<textarea name="description" rows="3" maxlength="500">{{ $pageBannerDraft['description'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.') }}</textarea>
+</label>
+<label>Tekst zielonego przycisku
+<input type="text" name="button" maxlength="80" value="{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}">
+</label>
+<label>Zdjęcie banera (JPG, PNG lub WebP, do 8 MB)
+<input type="file" name="photo" accept="image/jpeg,image/png,image/webp">
+</label>
+<label class="fve-banner-reset"><input type="checkbox" name="reset_photo" value="1"> Użyj ponownie wspólnego zdjęcia</label>
+<div class="fve-banner-form-actions">
+<button type="submit" class="fve-button dark">Zapisz roboczy baner</button>
+<button type="button" class="fve-button" id="fve-banner-panel-close">Zamknij</button>
+</div>
+<output id="fve-page-banner-save-status" role="status"></output>
+</form></div></div>
+@endif
 
             <button
                 type="button"
@@ -867,6 +918,68 @@ document.addEventListener("DOMContentLoaded", function () {
             status.textContent = 'Błąd zapisu: ' + error.message;
         }
     });
+
+    const bannerToggle = document.getElementById('fve-banner-settings-toggle');
+    const bannerPanel = document.getElementById('fve-banner-settings-panel');
+    const bannerForm = document.getElementById('fve-page-banner-form');
+    if (bannerToggle && bannerPanel && bannerForm) {
+        const setOpen = (open) => {
+            bannerPanel.hidden = !open;
+            bannerToggle.setAttribute('aria-expanded', String(open));
+        };
+        bannerToggle.addEventListener('click', () => setOpen(bannerPanel.hidden));
+        document.getElementById('fve-banner-panel-close')?.addEventListener('click', () => setOpen(false));
+        bannerForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const resultStatus = document.getElementById('fve-page-banner-save-status');
+            const submit = bannerForm.querySelector('button[type="submit"]');
+            resultStatus.textContent = 'Zapisywanie wersji testowej…';
+            submit.disabled = true;
+            try {
+                const response = await fetch(bannerForm.action, {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: {'Accept': 'application/json'},
+                    body: new FormData(bannerForm)
+                });
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({}));
+                    const message = Object.values(error.errors || {}).flat()[0] || error.message || ('HTTP ' + response.status);
+                    throw Error(message);
+                }
+                const result = await response.json();
+                const preview = document.getElementById('fve-header-variant-preview');
+                if (preview) {
+                    const map = [['eyebrow','.ff-eyebrow'],['title','.ff-shared-hero h1'],['description','.ff-shared-hero p']];
+                    for (const [field,selector] of map) {
+                        const node = preview.querySelector(selector);
+                        if (node) node.textContent = result.draft[field] ?? '';
+                    }
+                    const cta = preview.querySelector('.ff-cta');
+                    if (cta) cta.textContent = (result.draft.button ?? '') + '　→';
+                    const stage = preview.querySelector('.ff-shared-stage');
+                    let photo = stage?.querySelector('.ff-shared-photo');
+                    if (result.photo_url && stage) {
+                        if (!photo) {
+                            photo = document.createElement('img');
+                            photo.className = 'ff-shared-photo';
+                            photo.alt = '';
+                            stage.prepend(photo);
+                        }
+                        photo.src = result.photo_url;
+                    } else if (photo) photo.remove();
+                }
+                bannerForm.querySelector('input[name="photo"]').value = '';
+                bannerForm.querySelector('input[name="reset_photo"]').checked = false;
+                resultStatus.textContent = 'Zapisano wersję roboczą ✓ — strona publiczna bez zmian';
+            } catch (error) {
+                resultStatus.textContent = 'Nie zapisano: ' + error.message;
+            } finally {
+                submit.disabled = false;
+            }
+        });
+    }
+
     const openButton =
         document.getElementById("full-visual-editor-button");
 
