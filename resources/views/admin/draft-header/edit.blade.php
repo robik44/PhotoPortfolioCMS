@@ -9,7 +9,7 @@
 @csrf
 <p><strong>Przenieś hero do osobnej wersji roboczej strony głównej</strong></p>
 <p>Zapisze kopię czterech elementów (napis nad tytułem, tytuł, opis, przycisk), ich pozycji i zdjęcia w osobnym, nieopublikowanym zestawie. Nie zastąpi istniejącego buildera strony głównej.</p>
-<button class="cms-button" type="submit">Utwórz / zaktualizuj robocze hero</button>
+<button class="cms-button" type="submit">Utwórz / zaktualizuj robocze hero</button> <a href="{{ route('home-hero-draft.edit') }}" style="margin-left:18px;font-weight:bold">Otwórz roboczy builder banera →</a>
 </form>
 <form method="POST" enctype="multipart/form-data" action="{{ route('draft-header.update') }}" style="display:grid;gap:16px;max-width:580px;margin-top:24px;">
 @csrf @method('PUT')
