@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
+use App\Models\PageBuilder;
 use Illuminate\Http\Request;
 
 class DraftHeaderController extends Controller
@@ -90,6 +91,29 @@ class DraftHeaderController extends Controller
             ['value' => json_encode($positions)]
         );
         return response()->json(['ok' => true, 'positions' => $positions]);
+    }
+
+    public function exportHeroDraft()
+    {
+        $settings = $this->settings();
+        $positions = json_decode($settings['draft_header_builder_positions'] ?? '{}', true) ?: [];
+        $get = static fn (string $id) => is_array($positions[$id] ?? null) ? $positions[$id] : [];
+        $blocks = [
+            ['id'=>'hero-eyebrow','type'=>'text','content'=>$settings['draft_header_eyebrow'],'semantic_tag'=>'p','draft_geometry'=>$get('eyebrow')],
+            ['id'=>'hero-heading','type'=>'heading','heading_level'=>'h1','semantic_tag'=>'h1','content'=>$settings['draft_header_hero_title'],'draft_geometry'=>$get('headline')],
+            ['id'=>'hero-text','type'=>'text','semantic_tag'=>'p','content'=>$settings['draft_header_hero_description'],'draft_geometry'=>$get('description')],
+            ['id'=>'hero-portfolio-cta','type'=>'button','content'=>$settings['draft_header_cta_text'],'button_link'=>'#portfolio','button_background'=>'#597649','draft_geometry'=>$get('cta')],
+        ];
+        // Separate unpublished staging record. Never mutate the live home PageBuilder.
+        PageBuilder::updateOrCreate(
+            ['page_id'=>null, 'type'=>'home_hero_draft'],
+            ['content'=>['version'=>1,'source'=>'draft-header','sections'=>$blocks,
+                'preview_image'=>$settings['draft_header_preview_image'],
+                'hero_x'=>(int)$settings['draft_header_hero_x']],
+             'published'=>false]
+        );
+        return redirect()->route('draft-header.edit')
+            ->with('success','Zapisano osobną roboczą kopię hero. Publiczna strona i obecny builder pozostały bez zmian.');
     }
 
     public function preview()
