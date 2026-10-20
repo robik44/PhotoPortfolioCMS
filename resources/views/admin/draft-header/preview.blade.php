@@ -69,6 +69,8 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand-image-piece img{display:block;width:100%;max-width:none!important;max-height:none!important;height:auto}
 .brand-name-piece{display:flex;flex-direction:column;min-width:max-content}
 .brand-name-piece strong,.brand-name-piece small{display:block;white-space:nowrap}
+.brand-name-piece strong{font-size:var(--brand-name-size,25px)!important}
+.brand-name-piece small{font-size:calc(var(--brand-name-size,25px) * .36)!important}
 .brand .divider{flex:0 0 1px}
 .brand[data-drag="brand"]{min-width:0}
 .brand[data-drag="brand"].selected{outline-offset:8px}
@@ -157,7 +159,7 @@ updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale=p.w?String(p.w/Number(el.dataset.baseWidth||1)):'';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-text')el.style.width=p.w?p.w+'px':'';el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale=p.w?String(p.w/Number(el.dataset.baseWidth||1)):'';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
 function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));const id=[...selected][0],p=pos[id]||{};
@@ -180,7 +182,13 @@ e.addEventListener('pointerdown',ev=>{
  e.setPointerCapture(ev.pointerId);
  const move=event=>{
   const dx=event.clientX-sx,dy=event.clientY-sy;
-  if(resizing)apply(e,{...pos[id],w:clamp(Math.round(width+dx),40,1400)});
+  if(resizing){
+    if(id==='brand-text'){
+      const base=Number(initial[id]?.font||25);
+      const delta=Math.abs(dy)>Math.abs(dx)?dy:dx;
+      apply(e,{...pos[id],font:Math.round(clamp(base+delta*.35,10,96)*10)/10});
+    }else apply(e,{...pos[id],w:clamp(Math.round(width+dx),40,1400)});
+  }
   else for(const k of selected){let p=initial[k];if(!p)continue;apply(byId[k],{...p,x:clamp(Math.round(p.x+dx),-400,400),y:clamp(Math.round(p.y+dy),-300,300)})}
   const b=e.getBoundingClientRect();let mx=null,my=null;
   for(const o of els){if(o===e)continue;const r=o.getBoundingClientRect();if(Math.abs(b.left-r.left)<7)mx=r.left;if(Math.abs(b.top-r.top)<7)my=r.top}
