@@ -71,7 +71,10 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand-name-piece strong,.brand-name-piece small{display:block;white-space:nowrap}
 .brand-name-piece strong{font-size:var(--brand-name-size,25px)!important}
 .brand-name-piece small{font-size:calc(var(--brand-name-size,25px) * .36)!important}
-.brand .divider{flex:0 0 1px}
+.brand .divider[data-drag="brand-divider"]{display:block;flex:0 0 auto!important;align-self:center!important;width:1px;min-width:1px;height:52px;min-height:0;margin:0 8px;background:#aaa;cursor:move}
+.brand .divider[data-drag="brand-divider"].selected{outline:1px dashed #507446;outline-offset:6px}
+.brand .divider[data-drag="brand-divider"] .resize-handle{display:none}
+.brand .divider[data-drag="brand-divider"].selected .resize-handle{display:block;right:-10px;bottom:-10px}
 .brand[data-drag="brand"]{min-width:0}
 .brand[data-drag="brand"].selected{outline-offset:8px}
 .brand-image-piece .resize-handle,.brand-name-piece .resize-handle{bottom:-9px}
@@ -159,7 +162,7 @@ updateCompact();
 function snapshot(){return JSON.stringify(pos)}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale=p.w?String(p.w/Number(el.dataset.baseWidth||1)):'';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width=(p.w||1)+'px';el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
 function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));const id=[...selected][0],p=pos[id]||{};
@@ -183,7 +186,9 @@ e.addEventListener('pointerdown',ev=>{
  const move=event=>{
   const dx=event.clientX-sx,dy=event.clientY-sy;
   if(resizing){
-    if(id==='brand-text'){
+    if(id==='brand-divider'){
+      apply(e,{...pos[id],w:clamp(Math.round((initial[id]?.w||1)+dx*.08),1,12),h:clamp(Math.round((initial[id]?.h||52)+dy),15,180)});
+    }else if(id==='brand-text'){
       const base=Number(initial[id]?.font||25);
       const delta=Math.abs(dy)>Math.abs(dx)?dy:dx;
       apply(e,{...pos[id],font:Math.round(clamp(base+delta*.35,10,96)*10)/10});
