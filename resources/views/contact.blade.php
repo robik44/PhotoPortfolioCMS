@@ -155,13 +155,13 @@
 
             <p>{{ $settings['contact_text'] }}</p>
 
-            @if($settings['contact_email'])
+            @if(filter_var($settings['contact_email'], FILTER_VALIDATE_EMAIL))
                 <a
                     class="contact-email"
-                    href="mailto:{{ $settings['contact_email'] }}"
-                >
-                    {{ $settings['contact_email'] }}
-                </a>
+                    href="{{ url('/kontakt') }}"
+                    data-ff-email="{{ base64_encode($settings['contact_email']) }}"
+                    data-ff-email-label="{{ base64_encode($settings['contact_email']) }}"
+                >Napisz e-mail</a>
             @endif
         </div>
     </section>
@@ -172,5 +172,6 @@
     <span aria-hidden="true"> · </span><a href="{{ route('privacy') }}" style="text-decoration:underline;text-underline-offset:3px;">Polityka prywatności</a>
 </footer>
 
+<script src="{{ asset('js/email-protect.js') }}?v=1" defer></script>
 </body>
 </html>
