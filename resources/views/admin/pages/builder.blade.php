@@ -583,6 +583,7 @@
 
 @if($isHomeBuilder ?? false)
 <a href="{{ route('home-hero-draft.edit') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj roboczy baner ↗</a>
+<a href="{{ route('draft-header.review') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Przegląd publikacji ↗</a>
 @endif
 @if(!($isHomeBuilder ?? false))
 <div class="fve-banner-draft-settings">
