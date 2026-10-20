@@ -119,6 +119,15 @@ class DraftHeaderController extends Controller
     public function homeHeroEditor()
     {
         $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
+        $content = $draft->content ?: [];
+        if (!array_key_exists('extra_sections', $content)) {
+            $live = PageBuilder::whereNull('page_id')->where('type', 'home')->first();
+            $content['extra_sections'] = array_values(array_filter($live?->content['sections'] ?? [],
+                static fn ($section) => !in_array($section['id'] ?? '', ['hero-image','hero-heading','hero-text','hero-eyebrow','hero-portfolio-cta'], true)));
+            $draft->content = $content;
+            $draft->published = false;
+            $draft->save();
+        }
         $settings = $this->settings();
         $header = \App\Support\HeaderSettings::resolve(SiteSetting::pluck('value', 'key')->all());
         $menuItems = \App\Models\MenuItem::whereNull('parent_id')->where('published', true)->orderBy('sort_order')->get();
@@ -126,8 +135,30 @@ class DraftHeaderController extends Controller
         return view('admin.draft-header.home-hero-editor', [
             'draft' => $draft->content ?: [], 'settings' => $settings, 'header' => $header,
             'menuItems' => $menuItems, 'headerPositions' => $headerPositions,
-            'homeSections' => (PageBuilder::whereNull('page_id')->where('type','home')->first()?->content['sections'] ?? []),
+            'homeSections' => $content['extra_sections'],
         ]);
+    }
+
+    public function saveHomeDraftSections(Request $request)
+    {
+        $data = $request->validate([
+            'texts' => ['required', 'array', 'max:150'],
+            'texts.*' => ['nullable', 'string', 'max:10000'],
+        ]);
+        $draft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->firstOrFail();
+        $content = $draft->content ?: [];
+        abort_unless(isset($content['extra_sections']) && is_array($content['extra_sections']), 422);
+        foreach ($data['texts'] as $index => $value) {
+            abort_unless(ctype_digit((string)$index) && isset($content['extra_sections'][(int)$index]), 422);
+            $section = &$content['extra_sections'][(int)$index];
+            abort_unless(isset($section['content']) && is_string($section['content']), 422);
+            $section['content'] = $value ?? '';
+            unset($section);
+        }
+        $draft->content = $content;
+        $draft->published = false;
+        $draft->save();
+        return response()->json(['ok' => true]);
     }
 
     public function uploadHomeHeroPhoto(Request $request)
