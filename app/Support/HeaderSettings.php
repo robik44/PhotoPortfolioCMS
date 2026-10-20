@@ -24,6 +24,8 @@ class HeaderSettings
         'header_subtitle_letter_spacing' => 0.14,
         'header_logo_subtitle_gap' => 4,
         'header_layout' => 'left',
+        'header_split_gap' => 70,
+        'header_split_radius' => 36,
         'header_padding_top' => 48,
         'header_padding_bottom' => 48,
     ];
@@ -51,7 +53,9 @@ class HeaderSettings
             'header_logo_letter_spacing' => ['required', 'numeric', 'between:0,1'],
             'header_subtitle_letter_spacing' => ['required', 'numeric', 'between:0,1'],
             'header_logo_subtitle_gap' => ['required', 'integer', 'between:0,80'],
-            'header_layout' => ['required', 'in:left,center,right'],
+            'header_layout' => ['required', 'in:left,center,right,split'],
+            'header_split_gap' => ['sometimes', 'required', 'integer', 'between:0,240'],
+            'header_split_radius' => ['sometimes', 'required', 'integer', 'between:0,100'],
             'header_padding_top' => ['sometimes', 'required', 'integer', 'between:0,160'],
             'header_padding_bottom' => ['sometimes', 'required', 'integer', 'between:0,160'],
         ];
