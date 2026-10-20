@@ -1,4 +1,11 @@
 @php
+    $draftHeaderLive = ($settings['foodfoto_draft_header_live'] ?? null)
+        ?? \App\Models\SiteSetting::where('key', 'foodfoto_draft_header_live')->value('value');
+@endphp
+@if((string) $draftHeaderLive === '1')
+    @include('components.foodfoto-published-header')
+@else
+@php
     $headerSettings = \App\Support\HeaderSettings::resolve($settings ?? []);
     $headerFonts = \App\Support\HeaderFonts::custom($settings ?? []);
     $headerFamilies = \App\Support\HeaderFonts::families($headerFonts);
@@ -228,3 +235,5 @@
 
     </div>
 </header>
+
+@endif
