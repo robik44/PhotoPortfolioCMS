@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Positive x should not be discarded: the central editor saves it.
         // At the right edge x=0 is the maximum valid offset.
         const proposedX = Math.min(x, Math.max(0, bounds.right - scaled.right));
-        const minX = bounds.left - scaled.left;
+        const minX = Math.max(bounds.left, brandRight + 12) - scaled.left;
         const finalX = Math.max(minX, proposedX);
         menu.style.transform = 'translate(' + finalX + 'px,' + y + 'px) scale(' + scale + ')';
     }
