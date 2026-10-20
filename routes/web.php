@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\DraftHeaderController;
 use App\Http\Controllers\Admin\GalleryController;
 use App\Http\Controllers\Admin\GalleryCollectionController;
 use App\Http\Controllers\Admin\FontLibraryController;
@@ -139,9 +140,9 @@ Route::middleware(["auth"])->group(function () {
     Route::post('/admin/fonts', [FontLibraryController::class, 'store'])->name('fonts.store');
     Route::put('/admin/fonts', [FontLibraryController::class, 'update'])->name('fonts.update');
 
-    Route::get('/admin/header-draft', [\\App\\Http\\Controllers\\Admin\\DraftHeaderController::class, 'edit'])->name('draft-header.edit');
-    Route::put('/admin/header-draft', [\\App\\Http\\Controllers\\Admin\\DraftHeaderController::class, 'update'])->name('draft-header.update');
-    Route::get('/admin/header-draft/preview', [\\App\\Http\\Controllers\\Admin\\DraftHeaderController::class, 'preview'])->name('draft-header.preview');
+    Route::get('/admin/header-draft', [DraftHeaderController::class, 'edit'])->name('draft-header.edit');
+    Route::put('/admin/header-draft', [DraftHeaderController::class, 'update'])->name('draft-header.update');
+    Route::get('/admin/header-draft/preview', [DraftHeaderController::class, 'preview'])->name('draft-header.preview');
 
     Route::get('/admin/header-settings', [HeaderSettingController::class, 'edit'])
         ->name('header-settings.edit');
