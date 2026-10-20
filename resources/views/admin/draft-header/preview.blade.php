@@ -5,7 +5,7 @@
 *{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#26241f;font-family:Georgia,serif}
 .preview-alert{padding:12px 4vw;background:#233b30;color:#fff;font:14px/1.4 Arial,sans-serif;display:flex;gap:24px;justify-content:space-between;align-items:center}
 .preview-alert a{color:white}.scene{position:relative;min-height:650px;background:#ebe7df;overflow:hidden}
-.scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--hero-x) center}
 .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(245,243,238,.84),rgba(245,243,238,.38) 44%,transparent 75%);pointer-events:none}
 .site-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:var(--gap);padding:12px 4vw;min-height:var(--height)}
 .brand{display:flex;align-items:center;gap:14px;flex-shrink:0;text-decoration:none;color:#171717;background:rgba(var(--logo-rgb),var(--logo-opacity));padding:12px 20px;border-radius:8px}
@@ -24,7 +24,7 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
     $logoHex = ltrim($settings['draft_header_logo_background'], '#');
     $logoRgb = implode(',', array_map('hexdec', str_split($logoHex, 2)));
 @endphp
-<div class="scene" style="--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
+<div class="scene" style="--hero-x:{{ (int)$settings['draft_header_hero_x'] }}%;--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
 <img src="{{ $heroUrl }}" alt="Zdjęcie górnego banera">
 <header class="site-head"><div class="brand">
 @if(!empty($header['header_brand_image']))<img src="{{ asset('storage/'.$header['header_brand_image']) }}" alt="FoodFoto"><span class="divider"></span>@else <strong>food<br>foto</strong><span class="divider"></span>@endif
