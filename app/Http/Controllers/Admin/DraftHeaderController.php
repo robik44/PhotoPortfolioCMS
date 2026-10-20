@@ -15,6 +15,8 @@ class DraftHeaderController extends Controller
         'draft_header_logo_background' => '#ffffff',
         'draft_header_logo_opacity' => 90,
         'draft_header_menu_background' => '#ffffff',
+        'draft_header_hero_x' => 50,
+        'draft_header_preview_image' => '',
     ];
 
     private function settings(): array
@@ -37,7 +39,17 @@ class DraftHeaderController extends Controller
             'draft_header_logo_background' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
             'draft_header_logo_opacity' => ['required', 'integer', 'between:0,100'],
             'draft_header_menu_background' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
+            'draft_header_hero_x' => ['required', 'integer', 'between:0,100'],
+            'draft_header_preview_image_file' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:8192'],
+            'draft_header_remove_preview_image' => ['sometimes', 'boolean'],
         ]);
+        unset($data['draft_header_preview_image_file'], $data['draft_header_remove_preview_image']);
+        if ($request->boolean('draft_header_remove_preview_image')) {
+            $data['draft_header_preview_image'] = '';
+        }
+        if ($request->hasFile('draft_header_preview_image_file')) {
+            $data['draft_header_preview_image'] = $request->file('draft_header_preview_image_file')->store('draft-header', 'public');
+        }
         foreach ($data as $key => $value) {
             SiteSetting::updateOrCreate(['key' => $key], ['value' => (string) $value]);
         }
@@ -47,7 +59,8 @@ class DraftHeaderController extends Controller
     public function preview()
     {
         $settings = $this->settings();
-        $hero = SiteSetting::where('key', 'preview_hero_image')->value('value')
+        $hero = $settings['draft_header_preview_image']
+            ?: SiteSetting::where('key', 'preview_hero_image')->value('value')
             ?: SiteSetting::where('key', 'hero_image')->value('value');
         $heroUrl = $hero ? asset('storage/'.$hero) : asset('images/foodfoto-carrots-hero.jpg');
         $header = \App\Support\HeaderSettings::resolve(SiteSetting::pluck('value', 'key')->all());
