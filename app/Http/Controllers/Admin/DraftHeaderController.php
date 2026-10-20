@@ -59,8 +59,71 @@ class DraftHeaderController extends Controller
         return view('admin.draft-header.publication-review', [
             'pages' => $pages,
             'home_variant' => ($saved['draft_page_header_variant_home'] ?? 'full') === 'simple' ? 'simple' : 'full',
+            'header_live' => ($saved['foodfoto_draft_header_live'] ?? '0') === '1',
+            'new_home_system_live' => ($saved['foodfoto_new_home_published'] ?? '0') === '1',
             'home_draft_ready' => $homeDraft !== null && count($homeDraft->content['sections'] ?? []) > 0,
         ]);
+    }
+
+    /**
+     * Explicit opt-in publication. The old header and all existing builder
+     * content remain untouched. Rollback only flips the same independent flag.
+     */
+    public function publishDraftHeader(Request $request)
+    {
+        $request->validate([
+            'confirmation' => ['required', 'in:PUBLIKUJ'],
+        ], ['confirmation.in' => 'Wpisz dokładnie PUBLIKUJ, aby potwierdzić publikację.']);
+
+        $settings = SiteSetting::pluck('value', 'key')->all();
+        if (($settings['foodfoto_new_home_published'] ?? '0') === '1') {
+            return back()->withErrors([
+                'publication' => 'Aktywny jest inny system nowej strony głównej. Najpierw trzeba uzgodnić, który z nich ma być publikowany.',
+            ]);
+        }
+
+        $homeVariant = ($settings['draft_page_header_variant_home'] ?? 'full') === 'simple' ? 'simple' : 'full';
+        $homeDraft = PageBuilder::whereNull('page_id')->where('type', 'home_hero_draft')->first();
+        if ($homeVariant === 'full' && (!$homeDraft || count($homeDraft->content['sections'] ?? []) < 4)) {
+            return back()->withErrors([
+                'publication' => 'Pełny baner strony głównej nie ma zapisanej kompletnej wersji roboczej.',
+            ]);
+        }
+
+        $photo = $homeDraft?->content['preview_image']
+            ?: ($settings['draft_header_preview_image'] ?? null);
+        if ($homeVariant === 'full' && (!$photo || !\Illuminate\Support\Facades\Storage::disk('public')->exists($photo))) {
+            return back()->withErrors([
+                'publication' => 'Brak zdjęcia pełnego banera strony głównej na dysku publicznym.',
+            ]);
+        }
+
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            SiteSetting::updateOrCreate(
+                ['key' => 'foodfoto_draft_header_live'],
+                ['value' => '1']
+            );
+        });
+
+        return redirect()->route('draft-header.review')
+            ->with('success', 'Nowy nagłówek został opublikowany. Możesz go cofnąć jednym działaniem.');
+    }
+
+    public function rollbackDraftHeader(Request $request)
+    {
+        $request->validate([
+            'confirmation' => ['required', 'in:COFNIJ'],
+        ], ['confirmation.in' => 'Wpisz dokładnie COFNIJ, aby przywrócić poprzedni nagłówek.']);
+
+        \Illuminate\Support\Facades\DB::transaction(function () {
+            SiteSetting::updateOrCreate(
+                ['key' => 'foodfoto_draft_header_live'],
+                ['value' => '0']
+            );
+        });
+
+        return redirect()->route('draft-header.review')
+            ->with('success', 'Przywrócono poprzedni wygląd. Nowe ustawienia pozostały zapisane jako robocze.');
     }
 
     public function update(Request $request)
