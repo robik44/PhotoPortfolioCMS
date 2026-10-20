@@ -5,7 +5,7 @@
 <p>Zmiany zapisujesz niezależnie od obecnego nagłówka. <strong>Nie są publikowane na stronie FoodFoto.</strong></p>
 @if($errors->any())<div class="cms-alert cms-alert-error">@foreach($errors->all() as $error)<p>{{ $error }}</p>@endforeach</div>@endif
 <a class="cms-button cms-button-primary" href="{{ route('draft-header.preview') }}" target="_blank" rel="noopener">Otwórz podgląd całej góry strony ↗</a>
-<form method="POST" action="{{ route('draft-header.update') }}" style="display:grid;gap:16px;max-width:580px;margin-top:24px;">
+<form method="POST" enctype="multipart/form-data" action="{{ route('draft-header.update') }}" style="display:grid;gap:16px;max-width:580px;margin-top:24px;">
 @csrf @method('PUT')
 <label>Prześwit między logo a menu (px)
 <input style="display:block;width:100%" type="number" name="draft_header_gap" min="0" max="240" value="{{ old('draft_header_gap',$settings['draft_header_gap']) }}" required></label>
@@ -20,6 +20,19 @@
 <small>100% — pełne tło; 90% — subtelny prześwit; 0% — całkowicie przezroczyste. Logo i tekst pozostają nieprzezroczyste.</small></label>
 <label>Tło pod menu
 <input type="color" name="draft_header_menu_background" value="{{ old('draft_header_menu_background',$settings['draft_header_menu_background']) }}"></label>
+<fieldset style="border:1px solid #ddd;border-radius:8px;padding:16px;display:grid;gap:12px">
+<legend>Fotografia wyłącznie do testów</legend>
+<label for="draft_header_hero_x">Położenie zdjęcia w poziomie: <output id="draft-header-hero-x-value">{{ old('draft_header_hero_x',$settings['draft_header_hero_x']) }}%</output></label>
+<input id="draft_header_hero_x" style="width:100%" type="range" name="draft_header_hero_x" min="0" max="100" step="1" value="{{ old('draft_header_hero_x',$settings['draft_header_hero_x']) }}" oninput="document.getElementById('draft-header-hero-x-value').textContent=this.value+'%'">
+<small>0% — lewa strona zdjęcia, 50% — środek, 100% — prawa. Efekt będzie najbardziej widoczny, gdy proporcje obrazu różnią się od proporcji banera.</small>
+<label for="draft_header_preview_image_file">Własne zdjęcie do podglądu (JPG, PNG lub WebP, maks. 8 MB)</label>
+<input id="draft_header_preview_image_file" type="file" name="draft_header_preview_image_file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp">
+@if(!empty($settings['draft_header_preview_image']))
+<p>Aktualnie wybrano osobną fotografię testową.</p>
+<label><input type="checkbox" name="draft_header_remove_preview_image" value="1"> Przywróć zdjęcie banera i usuń wybór zdjęcia testowego</label>
+@endif
+<small>Zdjęcie testowe nie zmienia banera na publicznej stronie.</small>
+</fieldset>
 <button class="cms-button cms-button-primary" type="submit">Zapisz wersję testową</button>
 </form>
 <p style="margin-top:20px">Po zapisaniu otwórz podgląd ponownie. Publiczna strona oraz obecny edytor nagłówka pozostają nietknięte.</p>
