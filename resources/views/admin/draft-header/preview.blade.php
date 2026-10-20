@@ -50,14 +50,14 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .preview-content{min-height:1000px;padding:95px 7%;background:#f8f7f3;color:#333}
 .preview-content h2{font:400 44px Georgia,serif}.preview-content p{font:16px/1.6 Arial,sans-serif}
 .preview-content-spacer{height:650px}
-.compact-header{position:fixed;top:0;left:0;right:0;z-index:90;min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:6px 4vw;background:#f8f7f3;border-bottom:1px solid #dedbd5;box-shadow:0 3px 12px rgba(0,0,0,.04);opacity:0;visibility:hidden;transform:translateY(-100%);transition:transform .25s,opacity .25s,visibility .25s;pointer-events:none}
+.compact-header{position:fixed;top:0;left:0;right:0;z-index:90;min-height:82px;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:9px 3.5vw;background:#f8f7f3;border-bottom:1px solid #dedbd5;box-shadow:0 3px 12px rgba(0,0,0,.04);opacity:0;visibility:hidden;transform:translateY(-100%);transition:transform .25s,opacity .25s,visibility .25s;pointer-events:none}
 .compact-header.visible{opacity:1;visibility:visible;transform:translateY(0);pointer-events:auto}
-.compact-header .brand{background:transparent!important;transform:none!important;padding:0!important;gap:10px}
-.compact-header .brand img{max-height:38px}.compact-header .brand strong{font-size:18px}.compact-header .brand small{font-size:7px}
-.compact-header .header-actions{transform:none!important;border:1px solid #dedbd5;background:#fff;padding:3px 12px;border-radius:8px 8px 24px 40px}
-.compact-header .header-actions nav{transform:none!important;gap:14px;padding:8px 4px}
-.compact-header .header-actions nav a{font-size:10px}
-.compact-header .contact-button{transform:none!important;padding:10px 14px;font-size:10px}
+.compact-header .brand{background:transparent!important;transform:none!important;scale:none!important;padding:0!important;gap:14px}
+.compact-header .brand img{max-height:58px}.compact-header .brand strong{font-size:25px}.compact-header .brand small{font-size:9px}
+.compact-header .header-actions{transform:none!important;border:1px solid #dedbd5;background:#fff;padding:7px 15px;border-radius:8px 8px 24px 40px}
+.compact-header .header-actions nav{transform:none!important;gap:17px;padding:10px 5px}
+.compact-header .header-actions nav a{font-size:11px}
+.compact-header .contact-button{transform:none!important;padding:12px 17px;font-size:11px}
 .compact-header [data-drag]{cursor:default;touch-action:auto}.compact-header .resize-handle,.compact-header .menu-drag-handle{display:none!important}
 #viewport-stage.inner-page .scene{min-height:180px;background:#f8f7f3}
 #viewport-stage.inner-page .scene>img,#viewport-stage.inner-page .scene:after,#viewport-stage.inner-page .hero-copy{display:none}
@@ -80,9 +80,12 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand[data-drag="brand"]{min-width:0}
 .brand[data-drag="brand"].selected{outline-offset:8px}
 .brand-image-piece .resize-handle,.brand-name-piece .resize-handle{bottom:-9px}
-.compact-header .brand-image-piece{width:38px!important}
+.compact-header .brand-image-piece{width:55px!important}
 .compact-header .brand-image-piece img{width:100%}
 .compact-header .brand-name-piece{width:auto!important}
+.compact-header .brand-name-piece strong{font-size:25px!important}.compact-header .brand-name-piece small{font-size:9px!important}
+.compact-header .brand .divider{height:55px!important}
+@media(max-width:900px){.compact-header{padding:8px 3vw;gap:10px}.compact-header .brand-image-piece{width:43px!important}.compact-header .brand-name-piece strong{font-size:20px!important}.compact-header .brand-name-piece small{font-size:8px!important}.compact-header .header-actions nav a{font-size:10px}}
 </style></head>
 <body>
 <div class="preview-alert"><span>WERSJA TESTOWA — widoczna tylko po zalogowaniu. Strona publiczna nie jest zmieniona.</span><a href="{{ route('draft-header.edit') }}">← Edytuj nagłówek</a></div>
