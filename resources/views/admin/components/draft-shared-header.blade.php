@@ -61,7 +61,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-rule{height:var(--ff-line);width:22px;position:relative;flex-shrink:0;transform:translate(var(--ff-line-x),var(--ff-line-y))}.ff-shared-rule:before{content:"";position:absolute;left:50%;top:0;height:100%;width:1px;background:#aaa}
 #fve-header-variant-preview .ff-shared-name{transform:translate(var(--ff-name-x),var(--ff-name-y))}.ff-shared-name strong{display:block;font:normal var(--ff-name) Georgia,serif;white-space:nowrap}
 #fve-header-variant-preview .ff-shared-name small{display:block;font:11px Arial;letter-spacing:.12em;white-space:nowrap}
-#fve-header-variant-preview .ff-shared-menu{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
+#fve-header-variant-preview .ff-shared-menu{position:absolute;top:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right top;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
 #fve-header-variant-preview .ff-shared-menu span{font:11px Arial;letter-spacing:.1em}
 #fve-header-variant-preview .ff-menu-links{display:flex;align-items:center;gap:22px;margin:0;padding:12px 6px;background:transparent;border:0;flex-wrap:nowrap}
 #fve-header-variant-preview .ff-menu-links span{font:11px Arial;letter-spacing:.1em;white-space:nowrap}
@@ -92,8 +92,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const brand = root.querySelector('.ff-shared-brand');
     if (!menu || !stage || !brand) return;
 
-    // The visual editor is initially hidden and opens after page load.
-    // Never calculate a scale from zero-sized rectangles (this caused the tiny menu).
+    // The shared menu uses the upper-right of the banner as its origin,
+    // matching the central builder rather than the text content's width.
+    // Honor both positive and negative saved offsets, without clipping.
     let queued = false;
     function fitMenu() {
         queued = false;
@@ -104,21 +105,21 @@ document.addEventListener('DOMContentLoaded', function() {
         const x = Number.parseFloat(css.getPropertyValue('--ff-menu-x')) || 0;
         const y = Number.parseFloat(css.getPropertyValue('--ff-menu-y')) || 0;
         menu.style.transform = 'none';
-        const natural = menu.getBoundingClientRect().width;
+        const naturalWidth = menu.getBoundingClientRect().width;
+        if (naturalWidth < 100) { menu.style.transform = ''; return; }
         const brandRight = brand.getBoundingClientRect().right;
-        if (natural < 100) {
-            menu.style.transform = '';
-            return;
-        }
-        const free = bounds.right - Math.max(brandRight + 14, bounds.left) - 18;
-        // If the editor is still arranging its layout, preserve the CSS scale
-        // and wait for a ResizeObserver measurement rather than shrinking to 10%.
-        if (free < 160) {
-            menu.style.transform = '';
-            return;
-        }
-        const scale = Math.max(0.55, Math.min(wanted, free / natural));
-        menu.style.transform = 'translate(' + Math.min(0,x) + 'px,' + y + 'px) scale(' + scale + ')';
+        const available = Math.max(0, bounds.right - Math.max(bounds.left, brandRight + 16));
+        if (available < 160) { menu.style.transform = ''; return; }
+        // Shrink only when necessary to keep the brand and menu apart.
+        const scale = Math.max(0.1, Math.min(wanted, available / naturalWidth));
+        menu.style.transform = 'scale(' + scale + ')';
+        const scaled = menu.getBoundingClientRect();
+        // Positive x should not be discarded: the central editor saves it.
+        // At the right edge x=0 is the maximum valid offset.
+        const proposedX = Math.min(x, Math.max(0, bounds.right - scaled.right));
+        const minX = bounds.left - scaled.left;
+        const finalX = Math.max(minX, proposedX);
+        menu.style.transform = 'translate(' + finalX + 'px,' + y + 'px) scale(' + scale + ')';
     }
     function requestFit() {
         if (queued) return;
