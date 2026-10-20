@@ -25,7 +25,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 };
 @endphp
 <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}">
-<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" style="--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
+<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
 <div class="ff-shared-bar">
 <div class="ff-shared-brand">
@@ -43,7 +43,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 
 <div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE' }}</div>
 <h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności" }}</h1>
-<p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $builderHeaderSettings['draft_header_hero_description'] ?? '' }}</p>
+<p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.' }}</p>
 <span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">{{ $builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO' }}　→</span>
 </div>
 </section>
@@ -61,7 +61,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-rule{height:var(--ff-line);width:22px;position:relative;flex-shrink:0;transform:translate(var(--ff-line-x),var(--ff-line-y))}.ff-shared-rule:before{content:"";position:absolute;left:50%;top:0;height:100%;width:1px;background:#aaa}
 #fve-header-variant-preview .ff-shared-name{transform:translate(var(--ff-name-x),var(--ff-name-y))}.ff-shared-name strong{display:block;font:normal var(--ff-name) Georgia,serif;white-space:nowrap}
 #fve-header-variant-preview .ff-shared-name small{display:block;font:11px Arial;letter-spacing:.12em;white-space:nowrap}
-#fve-header-variant-preview .ff-shared-menu{position:absolute;top:0;right:0;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right top;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale))}
+#fve-header-variant-preview .ff-shared-menu{position:relative;top:auto;right:auto;margin-left:auto;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y))}
 #fve-header-variant-preview .ff-shared-menu span{font:11px Arial;letter-spacing:.1em}
 #fve-header-variant-preview .ff-menu-links{display:flex;align-items:center;gap:22px;margin:0;padding:12px 6px;background:transparent;border:0;flex-wrap:nowrap}
 #fve-header-variant-preview .ff-menu-links span{font:11px Arial;letter-spacing:.1em;white-space:nowrap}
@@ -84,42 +84,52 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
 </style>
 <script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const root = document.getElementById('fve-header-variant-preview');
     if (!root) return;
-    const menu = root.querySelector('.ff-shared-menu');
     const stage = root.querySelector('.ff-shared-stage');
+    const bar = root.querySelector('.ff-shared-bar');
     const brand = root.querySelector('.ff-shared-brand');
-    if (!menu || !stage || !brand) return;
+    const menu = root.querySelector('.ff-shared-menu');
+    if (!stage || !bar || !brand || !menu) return;
 
-    // The shared menu uses the upper-right of the banner as its origin,
-    // matching the central builder rather than the text content's width.
-    // Honor both positive and negative saved offsets, without clipping.
+    // Match the central builder: a flex-positioned capsule, then its saved
+    // translation and proportional zoom. Do not anchor the menu at top:0;
+    // the saved Y offset is relative to the centered header row.
     let queued = false;
     function fitMenu() {
         queued = false;
-        const bounds = stage.getBoundingClientRect();
-        if (bounds.width < 500 || bounds.height < 70) return;
-        const css = getComputedStyle(stage);
-        const wanted = Number.parseFloat(css.getPropertyValue('--ff-menu-scale')) || 1;
-        const x = Number.parseFloat(css.getPropertyValue('--ff-menu-x')) || 0;
-        const y = Number.parseFloat(css.getPropertyValue('--ff-menu-y')) || 0;
+        const stageRect = stage.getBoundingClientRect();
+        if (stageRect.width < 350 || stageRect.height < 40) return;
+
+        const style = getComputedStyle(stage);
+        const x = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
+        const y = Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0;
+        const targetWidth = Number.parseFloat(stage.dataset.menuWidth) || 0;
+        const isSimple = stage.classList.contains('ff-simple');
+        const viewScale = stageRect.width / (stage.offsetWidth || 1);
+        if (!Number.isFinite(viewScale) || viewScale <= 0) return;
+
         menu.style.transform = 'none';
-        const naturalWidth = menu.getBoundingClientRect().width;
-        if (naturalWidth < 100) { menu.style.transform = ''; return; }
-        const brandRight = brand.getBoundingClientRect().right;
-        const available = Math.max(0, bounds.right - Math.max(bounds.left, brandRight + 16));
-        if (available < 160) { menu.style.transform = ''; return; }
-        // Shrink only when necessary to keep the brand and menu apart.
-        const scale = Math.max(0.1, Math.min(wanted, available / naturalWidth));
-        menu.style.transform = 'scale(' + scale + ')';
-        const scaled = menu.getBoundingClientRect();
-        // Positive x should not be discarded: the central editor saves it.
-        // At the right edge x=0 is the maximum valid offset.
-        const proposedX = Math.min(x, Math.max(0, bounds.right - scaled.right));
-        const minX = Math.max(bounds.left, brandRight + 12) - scaled.left;
-        const finalX = Math.max(minX, proposedX);
-        menu.style.transform = 'translate(' + finalX + 'px,' + y + 'px) scale(' + scale + ')';
+        menu.style.zoom = '1';
+        const nativeWidth = menu.getBoundingClientRect().width / viewScale;
+        if (nativeWidth < 100) return;
+
+        let zoom = isSimple ? 1 : Math.max(.55, Math.min(1.8, targetWidth > 0 ? targetWidth / nativeWidth : 1));
+        const barRect = bar.getBoundingClientRect();
+        const brandRect = brand.getBoundingClientRect();
+        const free = Math.max(160, (barRect.right - brandRect.right - 14) / viewScale);
+        zoom = Math.min(zoom, free / nativeWidth);
+        menu.style.zoom = String(Math.max(.45, zoom));
+        menu.style.transform = 'none';
+
+        const base = menu.getBoundingClientRect();
+        const minX = (brandRect.right + 10 - base.left) / viewScale;
+        const maxX = (stageRect.right - 4 - base.right) / viewScale;
+        const finalX = minX <= maxX ? Math.min(maxX, Math.max(minX, isSimple ? 0 : x)) : maxX;
+        const minY = (stageRect.top + 2 - base.top) / viewScale;
+        const finalY = Math.max(minY, isSimple ? 0 : y);
+        menu.style.transform = 'translate(' + finalX + 'px,' + finalY + 'px)';
     }
     function requestFit() {
         if (queued) return;
@@ -128,7 +138,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     const observer = new ResizeObserver(requestFit);
     observer.observe(stage);
-    observer.observe(brand);
     window.addEventListener('resize', requestFit);
     window.addEventListener('load', requestFit);
     requestFit();
