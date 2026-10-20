@@ -241,18 +241,35 @@
                     $textLink = \App\Support\BuilderButton::href($element['text_link'] ?? null);
                     $exactEmail = filter_var(trim((string) $content), FILTER_VALIDATE_EMAIL) ? trim((string) $content) : null;
                     $textHref = $textLink ?: ($exactEmail ? 'mailto:'.$exactEmail : null);
+                    $mailTarget = $textHref && preg_match('/^mailto:([^?]+)/i', $textHref, $mailMatches)
+                        ? rawurldecode($mailMatches[1]) : null;
+                    $protectedTextEmail = $mailTarget && filter_var($mailTarget, FILTER_VALIDATE_EMAIL)
+                        ? $mailTarget : null;
                 @endphp
                 <{{ $semanticTag }} class="builder-public-text" data-builder-typography-target style="margin:0;{{ $typographyCss }}">
-@if($textHref)<a href="{{ $textHref }}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">{!! nl2br(e($content)) !!}</a>@else{!! nl2br(e($content)) !!}@endif</{{ $semanticTag }}>
+@if($protectedTextEmail)<a href="{{ url('/kontakt') }}"
+    data-ff-email="{{ base64_encode($protectedTextEmail) }}"
+    data-ff-email-label="{{ base64_encode((string) $content) }}"
+    style="color:inherit;text-decoration:underline;text-underline-offset:3px;">Napisz e-mail</a>@elseif($textHref)<a href="{{ $textHref }}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">{!! nl2br(e($content)) !!}</a>@else{!! nl2br(e($content)) !!}@endif</{{ $semanticTag }}>
 
             @elseif($type === 'button')
-                @php($buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null))
+                @php
+                    $buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null);
+                    $buttonMailTarget = $buttonHref && preg_match('/^mailto:([^?]+)/i', $buttonHref, $buttonMailMatches)
+                        ? rawurldecode($buttonMailMatches[1]) : null;
+                    $protectedButtonEmail = $buttonMailTarget && filter_var($buttonMailTarget, FILTER_VALIDATE_EMAIL)
+                        ? $buttonMailTarget : null;
+                @endphp
                 <a
                     class="builder-public-button" data-builder-typography-target
-                    @if($buttonHref) href="{{ $buttonHref }}" @endif
-                    @if($buttonHref && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
+                    @if($protectedButtonEmail)
+                        href="{{ url('/kontakt') }}"
+                        data-ff-email="{{ base64_encode($protectedButtonEmail) }}"
+                        data-ff-email-label="{{ base64_encode((string) $content) }}"
+                    @elseif($buttonHref) href="{{ $buttonHref }}" @endif
+                    @if($buttonHref && !$protectedButtonEmail && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
                     style="{{ $typographyCss }}{{ \App\Support\BuilderButton::css($element) }}"
-                >{{ $content }}</a>
+                >{{ $protectedButtonEmail ? 'Napisz e-mail →' : $content }}</a>
 
             @elseif($type === 'process_steps')
                 @include('components.builder-process-steps', ['element' => $element, 'fontCatalog' => $fontCatalog])
