@@ -696,6 +696,39 @@
                 <div class="fve-ruler-canvas">
                 <div class="fve-page" id="fve-page">
 
+                    @if($isHomeBuilder ?? false)
+                    @php
+                        $draftName = $builderHeaderSettings['site_title'] ?? 'Magda Gugała';
+                        $draftBrand = 'branding/foodfoto-transparent-v2.png';
+                        $draftBrandUrl = is_file(storage_path('app/public/'.$draftBrand)) ? asset('storage/'.$draftBrand) : null;
+                    @endphp
+                    <div class="fve-test-brand-overlay" aria-label="Nowy nagłówek testowy">
+                        <div class="fve-test-brand">
+                            @if($draftBrandUrl)<img src="{{ $draftBrandUrl }}" alt="FoodFoto">@else<strong>food<br>foto</strong>@endif
+                            <span class="fve-test-rule"></span>
+                            <span class="fve-test-name"><strong>Magda Gugała</strong><small>FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI</small></span>
+                        </div>
+                        <div class="fve-test-menu">
+                            @foreach($builderHeaderMenuItems as $item)
+                            <span>{{ $item->label ?? $item->title ?? 'Menu' }}</span>
+                            @endforeach
+                            <span class="fve-test-contact">{{ $builderHeaderSettings['draft_header_contact_text'] ?? 'POROZMAWIAJMY' }}</span>
+                        </div>
+                    </div>
+                    <style>
+                    #fve-page{position:relative}
+                    #fve-page .fve-test-brand-overlay{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 27px;pointer-events:none}
+                    #fve-page .fve-test-brand{display:flex;align-items:center;gap:13px;min-width:0}
+                    #fve-page .fve-test-brand img{width:64px;height:auto}
+                    #fve-page .fve-test-brand>strong{font:900 28px/.82 Arial}
+                    #fve-page .fve-test-rule{width:1px;height:57px;background:#aaa;flex-shrink:0}
+                    #fve-page .fve-test-name strong{display:block;font:normal 27px Georgia,serif;white-space:nowrap}
+                    #fve-page .fve-test-name small{display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap;margin-top:5px}
+                    #fve-page .fve-test-menu{display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:10px 10px 27px 35px;padding:8px 12px;white-space:nowrap}
+                    #fve-page .fve-test-menu>span{font:10px Arial;letter-spacing:.06em}
+                    #fve-page .fve-test-contact{padding:10px 12px;border:1px solid #344639;border-radius:40px}
+                    </style>
+                    @endif
                     @unless($isHomeBuilder ?? false)
 <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
 <div class="fve-unified-draft-header" style="position:relative;min-height:{{ ($isHomeBuilder ?? false) ? '0' : ($headerVariantValue === 'full' ? '430px' : '100px') }};background:{{ ($isHomeBuilder ?? false) ? 'transparent' : ($headerVariantValue === 'full' ? '#f0ece6' : '#f8f7f3') }};{{ !($isHomeBuilder ?? false) && $headerVariantValue === 'full' && $draftPreviewImage ? "background-image:linear-gradient(90deg,rgba(250,249,246,.87),rgba(250,249,246,.3),transparent),url('".asset('storage/'.$draftPreviewImage)."');background-size:cover;background-position:center top;" : '' }}padding:20px 30px">
