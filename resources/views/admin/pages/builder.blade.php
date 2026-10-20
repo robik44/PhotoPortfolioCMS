@@ -734,17 +734,46 @@
                     </div>
                     <style>
                     #fve-page{position:relative}
-                    #fve-page .fve-test-brand-overlay{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 27px;pointer-events:none}
+                    #fve-page .fve-test-brand-overlay{position:absolute;top:0;left:0;right:0;z-index:50;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:18px 27px;pointer-events:none;overflow:visible}
                     #fve-page .fve-test-brand{transform:translate(var(--ff-brand-x),var(--ff-brand-y));display:flex;align-items:center;gap:13px;min-width:0}
                     #fve-page .fve-test-brand img{width:var(--ff-logo-size,64px);height:auto}
                     #fve-page .fve-test-brand>strong{font:900 28px/.82 Arial}
                     #fve-page .fve-test-rule{width:var(--ff-rule-width,1px);height:var(--ff-rule-height,57px);background:#aaa;flex-shrink:0}
                     #fve-page .fve-test-name strong{display:block;font:normal var(--ff-name-size,27px) Georgia,serif;white-space:nowrap}
                     #fve-page .fve-test-name small{display:block;font:9px Arial;letter-spacing:.12em;white-space:nowrap;margin-top:5px}
-                    #fve-page .fve-test-menu{zoom:var(--ff-menu-scale,1);transform:translate(var(--ff-menu-x),var(--ff-menu-y));display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:var(--ff-menu-radius,10px 10px 27px 35px);padding:8px 12px;white-space:nowrap}
+                    #fve-page .fve-test-menu{zoom:1;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y)) scale(var(--ff-menu-scale,1));flex-shrink:0;display:flex;align-items:center;gap:14px;background:#fff;border:1px solid #dedbd5;border-radius:var(--ff-menu-radius,10px 10px 27px 35px);padding:8px 12px;white-space:nowrap}
                     #fve-page .fve-test-menu>span{font:12px Arial;letter-spacing:.06em}
                     #fve-page .fve-test-contact{padding:12px 17px;border:1px solid #344639;border-radius:40px}
                     </style>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        const overlay = document.querySelector('#fve-page .fve-test-brand-overlay');
+                        if (!overlay) return;
+                        const menu = overlay.querySelector('.fve-test-menu');
+                        const brand = overlay.querySelector('.fve-test-brand');
+                        let raf = 0;
+                        function fitDraftMenu() {
+                            if (!menu || !brand) return;
+                            const style = getComputedStyle(overlay);
+                            const wanted = Number(style.getPropertyValue('--ff-menu-scale')) || 1;
+                            const moveX = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
+                            const moveY = Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0;
+                            menu.style.transform = 'none';
+                            const rawWidth = menu.getBoundingClientRect().width;
+                            const frame = overlay.getBoundingClientRect();
+                            const brandRight = brand.getBoundingClientRect().right;
+                            const available = Math.max(0, frame.right - 12 - Math.max(brandRight + 12, frame.left));
+                            const maxScale = rawWidth > 0 ? available / rawWidth : 1;
+                            const scale = Math.max(.1, Math.min(wanted, maxScale));
+                            const maxRight = frame.right - 12;
+                            const shiftX = Math.min(moveX, Math.max(0, maxRight - menu.getBoundingClientRect().right));
+                            menu.style.transform = 'translate(' + shiftX + 'px,' + moveY + 'px) scale(' + scale + ')';
+                        }
+                        function requestFit(){cancelAnimationFrame(raf);raf=requestAnimationFrame(fitDraftMenu)}
+                        requestFit();
+                        window.addEventListener('resize',requestFit);
+                    });
+                    </script>
                     @endif
                     @unless($isHomeBuilder ?? false)
 <div id="fve-header-variant-preview" data-variant="{{ $headerVariantValue }}" class="{{ ($isHomeBuilder ?? false) ? 'fve-home-shared-header' : '' }}">
