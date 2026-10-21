@@ -15,15 +15,33 @@
     $mosaicMoreLink = \App\Support\BuilderButton::href($element['mosaic_more_link'] ?? '/#portfolio') ?: url('/#portfolio');
     $mosaicHeaderTitle = (string)($element['mosaic_title'] ?? "Piękne obrazy\ndla smacznych historii");
     $mosaicShowDescriptions = (bool)($element['mosaic_descriptions'] ?? true);
+    $mosaicTypography = is_array($element['mosaic_typography'] ?? null) ? $element['mosaic_typography'] : [];
+    $mosaicCatalog = app(\App\Services\SiteFontLibrary::class)->catalog();
+    $mosaicTextCss = static fn(string $role, array $card = []) =>
+        \App\Support\MosaicTypography::css(
+            array_replace(
+                is_array($mosaicTypography[$role] ?? null) ? $mosaicTypography[$role] : [],
+                is_array($card['typography'][$role] ?? null) ? $card['typography'][$role] : []
+            ),
+            $mosaicCatalog
+        );
+    $mosaicMoreButton = (bool)($element['mosaic_more_button'] ?? false);
+    $mosaicMoreBg = preg_match('/^#[0-9a-fA-F]{6}$/', (string)($element['mosaic_more_bg'] ?? ''))
+        ? $element['mosaic_more_bg'] : '#58754a';
+    $mosaicMoreBorder = preg_match('/^#[0-9a-fA-F]{6}$/', (string)($element['mosaic_more_border'] ?? ''))
+        ? $element['mosaic_more_border'] : '#58754a';
+    $mosaicMoreRadius = max(0, min(100, (float)($element['mosaic_more_radius'] ?? 40)));
+    $mosaicMorePadX = max(0, min(80, (float)($element['mosaic_more_padding_x'] ?? 22)));
+    $mosaicMorePadY = max(0, min(50, (float)($element['mosaic_more_padding_y'] ?? 12)));
 @endphp
 <section class="ff-mosaic ff-mosaic-desktop-fixed" style="--fm-gap:{{ $mosaicGap }}px;--fm-row:{{ $mosaicRowHeight }}px;--fm-side:{{ $mosaicSide }}%;--fm-title:{{ $mosaicTitleSize }}px;" aria-label="Wybrane realizacje FoodFoto">
     <div class="ff-mosaic-header">
         <div>
-            <span class="ff-mosaic-kicker">{{ $element['mosaic_kicker'] ?? 'WYBRANE REALIZACJE' }}</span>
-            <h2 class="ff-mosaic-heading">{{ $mosaicHeaderTitle }}</h2>
+            <span class="ff-mosaic-kicker" style="{{ $mosaicTextCss('kicker') }}">{{ $element['mosaic_kicker'] ?? 'WYBRANE REALIZACJE' }}</span>
+            <h2 class="ff-mosaic-heading" style="{{ $mosaicTextCss('heading') }}">{{ $mosaicHeaderTitle }}</h2>
         </div>
-        <p class="ff-mosaic-intro">{{ $element['mosaic_intro'] ?? 'Fotografia żywności i stylizacja, które podkreślają charakter produktu i marki.' }}</p>
-        <a class="ff-mosaic-more" href="{{ $mosaicMoreLink }}">{{ $element['mosaic_more_label'] ?? 'ZOBACZ WSZYSTKIE REALIZACJE' }} →</a>
+        <p class="ff-mosaic-intro" style="{{ $mosaicTextCss('intro') }}">{{ $element['mosaic_intro'] ?? 'Fotografia żywności i stylizacja, które podkreślają charakter produktu i marki.' }}</p>
+        <a class="ff-mosaic-more {{ $mosaicMoreButton ? 'is-button' : '' }}" href="{{ $mosaicMoreLink }}" style="{{ $mosaicTextCss('more') }};--fm-more-bg:{{ $mosaicMoreBg }};--fm-more-border:{{ $mosaicMoreBorder }};--fm-more-radius:{{ $mosaicMoreRadius }}px;--fm-more-pad-x:{{ $mosaicMorePadX }}px;--fm-more-pad-y:{{ $mosaicMorePadY }}px">{{ $element['mosaic_more_label'] ?? 'ZOBACZ WSZYSTKIE REALIZACJE' }} →</a>
     </div>
     <div class="ff-mosaic-grid {{ $mosaicLayout === 'even' ? 'is-even' : '' }}">
         @foreach($mosaicCards as $i => $mosaicCard)
@@ -50,12 +68,12 @@
                 </div>
                 <div class="ff-mosaic-card-meta">
                     <div class="ff-mosaic-text">
-                        <div class="ff-mosaic-card-category">{{ $cardCategory }}</div>
+                        <div class="ff-mosaic-card-category" style="{{ $mosaicTextCss('category', $mosaicCard) }}">{{ $cardCategory }}</div>
                         @if($mosaicShowDescriptions && $cardDescription !== '')
-                            <p class="ff-mosaic-card-description">{{ $cardDescription }}</p>
+                            <p class="ff-mosaic-card-description" style="{{ $mosaicTextCss('description', $mosaicCard) }}">{{ $cardDescription }}</p>
                         @endif
                     </div>
-                    <span class="ff-mosaic-arrow" aria-hidden="true">→</span>
+                    <span class="ff-mosaic-arrow" aria-hidden="true" style="{{ $mosaicTextCss('arrow', $mosaicCard) }}">{{ $mosaicCard['action_text'] ?? '→' }}</span>
                 </div>
             </a>
         @endforeach
