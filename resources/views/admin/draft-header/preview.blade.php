@@ -178,6 +178,13 @@ heightInput.addEventListener('change',()=>{
  checkpoint();
  setHeroHeight(heightInput.value);
 });
+heightHandle.addEventListener('keydown',event=>{
+ if(event.key!=='ArrowUp'&&event.key!=='ArrowDown') return;
+ if(document.getElementById('viewport-stage').classList.contains('inner-page')) return;
+ event.preventDefault();
+ checkpoint();
+ setHeroHeight(heroHeight+(event.key==='ArrowUp'?-10:10));
+});
 heightHandle.addEventListener('pointerdown',event=>{
  if(event.button!==0 || document.getElementById('viewport-stage').classList.contains('inner-page')) return;
  event.preventDefault();event.stopPropagation();
@@ -220,7 +227,7 @@ compact.querySelectorAll('[data-drag],.selected,.resize-handle').forEach(el=>{el
 document.body.appendChild(compact);
 let forceCompact=false;
 function updateCompact(){const shouldShow=forceCompact||pageSelect.value==='inner'||window.scrollY>120;compact.classList.toggle('visible',shouldShow);}
-pageSelect.onchange=()=>{stage.classList.toggle('inner-page',pageSelect.value==='inner');forceCompact=false;updateCompact()};
+pageSelect.onchange=()=>{stage.classList.toggle('inner-page',pageSelect.value==='inner');heightInput.disabled=pageSelect.value==='inner';forceCompact=false;updateCompact()};
 document.getElementById('compact-demo').onclick=()=>{forceCompact=!forceCompact;updateCompact();};
 window.addEventListener('scroll',updateCompact,{passive:true});
 updateCompact();
