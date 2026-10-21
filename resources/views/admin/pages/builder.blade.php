@@ -809,9 +809,9 @@
                         const overlay = document.getElementById('fve-home-draft-hero');
                         if (!overlay) return;
                         const links = [
-                            ['.ff-shared-brand', @json(route('draft-header.preview')), 'Otwórz centralny edytor logo i nagłówka'],
-                            ['.ff-shared-menu', @json(route('draft-header.preview')), 'Otwórz centralny edytor menu'],
-                            ['.ff-shared-hero', @json(route('home-hero-draft.edit')), 'Otwórz edytor banera strony głównej']
+                            ['.ff-shared-brand', '{{ route('draft-header.preview') }}', 'Otwórz centralny edytor logo i nagłówka'],
+                            ['.ff-shared-menu', '{{ route('draft-header.preview') }}', 'Otwórz centralny edytor menu'],
+                            ['.ff-shared-hero', '{{ route('home-hero-draft.edit') }}', 'Otwórz edytor banera strony głównej']
                         ];
                         links.forEach(([selector,url,label]) => {
                             const el=overlay.querySelector(selector);
