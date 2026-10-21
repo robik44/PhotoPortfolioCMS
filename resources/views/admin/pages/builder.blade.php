@@ -1715,7 +1715,6 @@ document.addEventListener("DOMContentLoaded", function () {
         selectField('Który tekst formatujesz?',activeRole,
             roles.map(role=>[role,mosaicRoleLabels[role]]),
             v=>item.mosaic_typography_role=v);
-        renderMosaicTypographyFields(item,activeRole,scope);
         title('EDYTUJ ZAZNACZONY TEKST');
         const currentRole = activeRole;
         const textFieldMap={
@@ -1727,7 +1726,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ? cardForEditing : item;
         const selectedField=textFieldMap[currentRole];
         const fallbackText={
-            kicker:'WYBRANE REALIZACJE',heading:'Piękne obrazy\\ndla smacznych historii',
+            kicker:'WYBRANE REALIZACJE',heading:'Piękne obrazy dla smacznych historii',
             intro:'Fotografia, która podkreśla charakter Twojej marki.',
             more:'ZOBACZ WSZYSTKIE REALIZACJE',
             category:'',description:'',arrow:'→'
@@ -1739,6 +1738,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if(selectedTextObj && selectedField)selectedTextObj[selectedField]=value;
             });
 
+        renderMosaicTypographyFields(item,activeRole,scope);
         title('Teksty nad mozaiką');
         field('Mały nagłówek','text',item.mosaic_kicker ?? 'WYBRANE REALIZACJE',v=>item.mosaic_kicker=v);
         field('Nagłówek sekcji','textarea',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii',v=>item.mosaic_title=v);
