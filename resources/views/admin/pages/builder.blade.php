@@ -583,6 +583,7 @@
 
 @if($isHomeBuilder ?? false)
 <a href="{{ route('draft-header.preview') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj logo i menu ↗</a>
+<a href="{{ route('draft-header.compact-editor') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj wspólny nagłówek bez zdjęcia ↗</a>
 <a href="{{ route('home-hero-draft.edit') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj roboczy baner ↗</a>
 <a href="{{ route('draft-header.review') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Przegląd publikacji ↗</a>
 @endif
