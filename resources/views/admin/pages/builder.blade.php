@@ -1499,7 +1499,7 @@ document.addEventListener("DOMContentLoaded", function () {
         item.mosaic_cards=item.mosaic_cards.slice(0,6);
         while(item.mosaic_cards.length<6) item.mosaic_cards.push({gallery_id:null,photo_id:null,title:'',category:'',description:'',link:'',crop_x:50,crop_y:50});
         item.mosaic_cards=item.mosaic_cards.map(card=>({
-            gallery_id:null,photo_id:null,title:'',category:'',description:'',link:'',crop_x:50,crop_y:50,
+            gallery_id:null,photo_id:null,title:'',category:'',description:'',link:'',crop_x:50,crop_y:50,action_text:'→',
             ...(card && typeof card==='object' && !Array.isArray(card) ? card : {})
         }));
         item.mosaic_selected_index=Math.max(0,Math.min(5,Number(item.mosaic_selected_index)||0));
@@ -1519,11 +1519,17 @@ document.addEventListener("DOMContentLoaded", function () {
         root.style.setProperty('--fm-title',Math.max(22,Math.min(76,Number(item.mosaic_title_size)||44))+'px');
         const header=mosaicNode('div','ff-mosaic-header');
         const titleArea=mosaicNode('div');
-        titleArea.appendChild(mosaicNode('span','ff-mosaic-kicker',item.mosaic_kicker ?? 'WYBRANE REALIZACJE'));
-        titleArea.appendChild(mosaicNode('h2','ff-mosaic-heading',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii'));
+        titleArea.appendChild(mosaicApplyTypography(mosaicNode('span','ff-mosaic-kicker',item.mosaic_kicker ?? 'WYBRANE REALIZACJE'),item,'kicker'));
+        titleArea.appendChild(mosaicApplyTypography(mosaicNode('h2','ff-mosaic-heading',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii'),item,'heading'));
         header.appendChild(titleArea);
-        header.appendChild(mosaicNode('p','ff-mosaic-intro',item.mosaic_intro ?? 'Fotografia żywności dla Twojej marki'));
-        header.appendChild(mosaicNode('span','ff-mosaic-more',(item.mosaic_more_label || 'ZOBACZ WSZYSTKIE REALIZACJE')+' →'));
+        header.appendChild(mosaicApplyTypography(mosaicNode('p','ff-mosaic-intro',item.mosaic_intro ?? 'Fotografia żywności dla Twojej marki'),item,'intro'));
+        const more=mosaicApplyTypography(mosaicNode('span','ff-mosaic-more'+(item.mosaic_more_button?' is-button':''),(item.mosaic_more_label || 'ZOBACZ WSZYSTKIE REALIZACJE')+' →'),item,'more');
+        more.style.setProperty('--fm-more-bg',item.mosaic_more_bg||'#58754a');
+        more.style.setProperty('--fm-more-border',item.mosaic_more_border||'#58754a');
+        more.style.setProperty('--fm-more-radius',Number(item.mosaic_more_radius??40)+'px');
+        more.style.setProperty('--fm-more-pad-x',Number(item.mosaic_more_padding_x??22)+'px');
+        more.style.setProperty('--fm-more-pad-y',Number(item.mosaic_more_padding_y??12)+'px');
+        header.appendChild(more);
         root.appendChild(header);
         const grid=mosaicNode('div','ff-mosaic-grid'+(item.mosaic_layout==='even'?' is-even':''));
         item.mosaic_cards.forEach((entry,index)=>{
@@ -1547,12 +1553,12 @@ document.addEventListener("DOMContentLoaded", function () {
             card.appendChild(media);
             const meta=mosaicNode('div','ff-mosaic-card-meta');
             const text=mosaicNode('div','ff-mosaic-text');
-            text.appendChild(mosaicNode('div','ff-mosaic-card-category',entry.category || gallery?.title || 'Wybierz galerię'));
+            text.appendChild(mosaicApplyTypography(mosaicNode('div','ff-mosaic-card-category',entry.category || gallery?.title || 'Wybierz galerię'),item,'category',entry));
             if(item.mosaic_descriptions!==false && entry.description){
-                text.appendChild(mosaicNode('p','ff-mosaic-card-description',entry.description));
+                text.appendChild(mosaicApplyTypography(mosaicNode('p','ff-mosaic-card-description',entry.description),item,'description',entry));
             }
             meta.appendChild(text);
-            meta.appendChild(mosaicNode('span','ff-mosaic-arrow','→'));
+            meta.appendChild(mosaicApplyTypography(mosaicNode('span','ff-mosaic-arrow',entry.action_text??'→'),item,'arrow',entry));
             card.appendChild(meta);
             card.addEventListener('mousedown',e=>e.stopPropagation());
             card.addEventListener('click',e=>{
@@ -3276,7 +3282,7 @@ document.addEventListener("DOMContentLoaded", function () {
                   category:page?.title || gallery?.title || '',
                   description:'',
                   link:page?.url || '',
-                  crop_x:50,crop_y:50
+                  crop_x:50,crop_y:50,action_text:'→'
                 };
             });
         }
