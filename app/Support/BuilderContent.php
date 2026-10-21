@@ -110,13 +110,13 @@ class BuilderContent
                     ];
                     $positions = $element['process_positions'];
                     if (!is_array($positions)) {
-                        throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                        throw \Illuminate\Validation\ValidationException::withMessages([
                             'process_positions' => 'Nieprawidłowe położenie elementów procesu.',
                         ]);
                     }
                     foreach ($positions as $part => $position) {
                         if (!in_array($part, $validParts, true) || !is_array($position)) {
-                            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                            throw \Illuminate\Validation\ValidationException::withMessages([
                                 'process_positions' => 'Niedozwolony element lub przesunięcie.',
                             ]);
                         }
