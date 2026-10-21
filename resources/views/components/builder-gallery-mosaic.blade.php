@@ -51,7 +51,7 @@
                 $photo = $mosaicPhotoMap->get((int)($mosaicCard['photo_id'] ?? 0))
                     ?? $gallery?->photos?->first(fn($p) => (int)$p->id === (int)($mosaicCard['photo_id'] ?? 0));
                 if (!$photo && $gallery) $photo = $gallery->photos->first(fn($p) => (bool)$p->pivot?->is_cover) ?? $gallery->photos->first();
-                $cardLink = \App\Support\BuilderButton::href($mosaicCard['link'] ?? null) ?: ($gallery ? route('portfolio.gallery', $gallery) : null);
+                $cardLink = \App\Support\BuilderButton::href($mosaicCard['link'] ?? null) ?: ($gallery ? route('portfolio.gallery', ['gallery' => $gallery->slug]) : null);
                 $cardTitle = trim((string)($mosaicCard['title'] ?? '')) ?: ($gallery?->title ?? 'Wybierz galerię');
                 $cardCategory = trim((string)($mosaicCard['category'] ?? '')) ?: $cardTitle;
                 $cardDescription = trim((string)($mosaicCard['description'] ?? ''));
