@@ -61,25 +61,26 @@
         --ff-process-body-font:{{ $bodyFont }};
     ">
     @if(($design['branch_visible'] ?? true) !== false)
-        <div class="ff-process-branch" aria-hidden="true">
+        <div class="ff-process-branch" data-process-move="branch" style="{{ \App\Support\ProcessTypography::positionStyle($process, 'branch') }}" aria-hidden="true">
             <img class="ff-process-branch-art" src="{{ asset('images/foodfoto-botanical-branch.svg') }}" alt="" loading="lazy">
 
         </div>
     @endif
     @if($decorativePhoto)
-        <img class="ff-process-decorative-photo" src="{{ $decorativePhoto->imageUrl() }}" alt="" aria-hidden="true" loading="lazy"
+        <img class="ff-process-decorative-photo" data-process-move="decorative_photo" src="{{ $decorativePhoto->imageUrl() }}" alt="" aria-hidden="true" loading="lazy"
             style="width:{{ $num('decorative_photo_width', 340, 40, 900) }}px;
                    left:{{ $num('decorative_photo_x', 0, -300, 100) }}%;
                    top:{{ $num('decorative_photo_y', 0, -500, 500) }}px;
                    opacity:{{ $num('decorative_photo_opacity', 35, 0, 100)/100 }};
-                   transform:rotate({{ $num('decorative_photo_rotate', 0, -180, 180) }}deg);">
+                   transform:rotate({{ $num('decorative_photo_rotate', 0, -180, 180) }}deg);
+                   {{ \App\Support\ProcessTypography::positionStyle($process, 'decorative_photo') }}">
     @endif
     <div class="ff-process-intro">
         <div>
-            <p class="ff-process-eyebrow" data-process-part="kicker" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['kicker'], $catalog) }}">{{ $process['process_kicker'] ?? 'JAK PRACUJĘ' }}</p>
-            <h2 class="ff-process-title" data-process-part="title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['title'], $catalog) }}">{{ $process['process_title'] ?? 'Od pomysłu do gotowych kadrów' }}</h2>
+            <p class="ff-process-eyebrow" data-process-part="kicker" data-process-move="kicker" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['kicker'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'kicker') }}">{{ $process['process_kicker'] ?? 'JAK PRACUJĘ' }}</p>
+            <h2 class="ff-process-title" data-process-part="title" data-process-move="title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['title'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'title') }}">{{ $process['process_title'] ?? 'Od pomysłu do gotowych kadrów' }}</h2>
         </div>
-        <p class="ff-process-lead" data-process-part="intro" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['intro'], $catalog) }}">{{ $process['process_intro'] ?? 'Dbam o każdy detal — od koncepcji, przez stylizację, po finalne zdjęcia. Pracuję elastycznie, dopasowując się do potrzeb Twojej marki.' }}</p>
+        <p class="ff-process-lead" data-process-part="intro" data-process-move="intro" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['intro'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'intro') }}">{{ $process['process_intro'] ?? 'Dbam o każdy detal — od koncepcji, przez stylizację, po finalne zdjęcia. Pracuję elastycznie, dopasowując się do potrzeb Twojej marki.' }}</p>
     </div>
     <div class="ff-process-steps">
         @foreach($steps as $i => $step)
@@ -88,17 +89,23 @@
                 $icon = in_array($step['icon'] ?? '', array_keys($icons), true) ? $step['icon'] : $defaultSteps[$i]['icon'];
             @endphp
             <article class="ff-process-step">
-                <span class="ff-process-number" aria-hidden="true">{{ sprintf('%02d', $i+1) }}</span>
-                <div class="ff-process-bubble">
+                <span class="ff-process-number" data-process-part="step{{ $i+1 }}_number" data-process-move="step{{ $i+1 }}_number" aria-hidden="true"
+                    style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_number'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'step'.($i+1).'_number') }}">{{ sprintf('%02d', $i+1) }}</span>
+                <div class="ff-process-bubble" data-process-move="step{{ $i+1 }}_icon" style="{{ \App\Support\ProcessTypography::positionStyle($process, 'step'.($i+1).'_icon') }}">
                     <svg class="ff-process-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
                          stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
                         {!! $icons[$icon] !!}
                     </svg>
                 </div>
                 <div>
-                    <h3 class="ff-process-step-title" data-process-part="step{{ $i+1 }}_title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_title'], $catalog) }}">{{ preg_replace('/^\\s*[1-3][.)]\\s*/u', '', (string)($step['title'] ?? '')) }}</h3>
-                    <p class="ff-process-step-description" data-process-part="step{{ $i+1 }}_description" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_description'], $catalog) }}">{{ $step['description'] ?? '' }}</p>
+                    <h3 class="ff-process-step-title" data-process-part="step{{ $i+1 }}_title" data-process-move="step{{ $i+1 }}_title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_title'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'step'.($i+1).'_title') }}">{{ preg_replace('/^\\s*[1-3][.)]\\s*/u', '', (string)($step['title'] ?? '')) }}</h3>
+                    <p class="ff-process-step-description" data-process-part="step{{ $i+1 }}_description" data-process-move="step{{ $i+1 }}_description" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_description'], $catalog) }};{{ \App\Support\ProcessTypography::positionStyle($process, 'step'.($i+1).'_description') }}">{{ $step['description'] ?? '' }}</p>
                 </div>
+                @if($i < 2)
+                    <span class="ff-process-connector" data-process-move="step{{ $i+1 }}_connector"
+                        style="{{ \App\Support\ProcessTypography::positionStyle($process, 'step'.($i+1).'_connector') }}"
+                        aria-hidden="true"></span>
+                @endif
             </article>
         @endforeach
     </div>
