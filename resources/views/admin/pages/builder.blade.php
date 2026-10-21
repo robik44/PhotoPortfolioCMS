@@ -781,8 +781,18 @@
                             position:absolute;top:0;left:0;width:100%;z-index:4900;
                             pointer-events:none;overflow:hidden;
                         }
+                        #fve-page {
+                            --ff-builder-hero-height:{{ max(480,min(900,(int)($builderHeaderSettings['draft_header_hero_height'] ?? 650))) }}px;
+                        }
                         #fve-page .fve-home-draft-hero .ff-shared-stage.ff-full {
-                            height:540px;
+                            height:var(--ff-builder-hero-height);
+                        }
+                        /* Existing sections retain their original positions inside
+                           a canvas designed for a 540px legacy hero. Only move the
+                           canvas as a whole so this preview follows the full hero
+                           height without editing or re-saving section geometry. */
+                        #fve-page .fve-content {
+                            margin-top:calc(var(--ff-builder-hero-height) - 540px);
                         }
                         #fve-page .fve-home-draft-hero .ff-shared-brand,
                         #fve-page .fve-home-draft-hero .ff-shared-menu,
