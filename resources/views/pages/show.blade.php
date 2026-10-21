@@ -58,7 +58,7 @@
 <head>
     <meta charset="utf-8">
 
-    <meta name="viewport" content="width=1600, initial-scale=1, user-scalable=yes, maximum-scale=8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=yes, maximum-scale=8">
 
     @if(collect($sections)->contains('type', 'thumbnail_gallery'))
         <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
@@ -291,18 +291,47 @@
 
         }
     </style>
-    {{-- Fixed desktop composition on phones; users can pinch to zoom.
-         Do not rearrange columns or switch to the mobile layout. --}}
+    {{-- On touch screens preserve the 1400px desktop composition, fit it into
+         the physical viewport, and keep native pinch-to-zoom enabled. --}}
     <style>
-        @media (hover: none) and (pointer: coarse) and (max-device-width: 600px) {
-            /* The content canvas remains 1400px, as on desktop. A 1600px
-               browser viewport includes the desktop margins and full menu. */
-            html, body { width: 1600px !important; min-width: 1600px !important; margin-left: 0; margin-right: 0; overflow-x: hidden; }
+        @media (hover: none) and (pointer: coarse) {
+            html,body {width:100%!important;min-width:0!important;overflow-x:hidden;margin:0}
+            body > .ff-desktop-scale-root {width:1400px;transform-origin:top left}
             #fve-header-variant-preview.ff-public-header,
-            #fve-header-variant-preview.ff-public-header .ff-shared-stage { width: 1600px; max-width: none; }
-            .ff-public-sticky { width: 1600px; max-width: none; }
+            #fve-header-variant-preview.ff-public-header .ff-shared-stage {width:1400px!important;max-width:none!important}
+            #home-public-builder-canvas,#page-public-builder-canvas{margin-left:0!important;margin-right:0!important}
+            .ff-public-sticky{width:1400px!important;max-width:none!important;right:auto!important;transform-origin:top left}
         }
     </style>
+    <script>
+    (function () {
+        if (!window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+        function scaleDesktop() {
+            var root = document.querySelector('.ff-desktop-scale-root');
+            if (!root) return;
+            var screenWidth = document.documentElement.clientWidth;
+            var factor = Math.min(1, screenWidth / 1400);
+            root.style.transform = 'scale(' + factor + ')';
+            document.body.style.minHeight = (root.scrollHeight * factor) + 'px';
+            var sticky = document.getElementById('ff-public-sticky');
+            if (sticky) sticky.style.transform = 'scale(' + factor + ')';
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            var root = document.createElement('div');
+            root.className = 'ff-desktop-scale-root';
+            var nodes = Array.from(document.body.childNodes);
+            nodes.forEach(function (node) {
+                if (node.nodeType === 1 && node.id === 'ff-public-sticky') return;
+                if (node.nodeType === 1 && node.tagName === 'SCRIPT') return;
+                root.appendChild(node);
+            });
+            document.body.insertBefore(root, document.body.firstChild);
+            scaleDesktop();
+            window.addEventListener('resize', scaleDesktop);
+            window.addEventListener('load', scaleDesktop);
+        });
+    })();
+    </script>
 </head>
 
 <body>
