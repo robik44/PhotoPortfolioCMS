@@ -3,6 +3,7 @@
     container-type: inline-size;
     box-sizing: border-box;
     width: 100%;
+    min-height: var(--ff-process-section-height, 0px);
     background: var(--ff-process-background, #faf9f4);
     position: relative;
     isolation: isolate;
@@ -111,8 +112,34 @@
 /* One saved X/Y pair per piece; this does not disturb native typography transforms. */
 .ff-process [data-process-move] {
     translate:var(--ff-part-x,0px) var(--ff-part-y,0px);
+    scale:var(--ff-part-scale,1);
+    transform-origin:top left;
 }
-.ff-process.is-moving [data-process-move] { cursor:move!important; touch-action:none; }
+.ff-process [data-process-part] { position:relative; }
+.ff-process.is-editing .ff-process-resize-handle {
+    position:absolute;
+    display:block;
+    width:13px;
+    height:13px;
+    right:-10px;
+    bottom:-10px;
+    z-index:12;
+    background:#427a4d;
+    border:2px solid white;
+    box-shadow:0 0 0 1px #38633f,0 1px 5px #0002;
+    border-radius:2px;
+    cursor:nwse-resize;
+    touch-action:none;
+    pointer-events:auto;
+    opacity:0;
+}
+.ff-process.is-editing [data-process-part]:hover .ff-process-resize-handle,
+.ff-process.is-editing .ff-active-part .ff-process-resize-handle { opacity:1; }
+.ff-process.is-editing .ff-active-part { z-index:3; }
+
+.ff-process.is-moving [data-process-move] { cursor:grab!important; touch-action:none; }
+.ff-process.is-moving [data-process-move]:active { cursor:grabbing!important; }
+.ff-process.is-moving .ff-process-resize-handle { cursor:nwse-resize!important; }
 .ff-process.is-moving .ff-process-branch,
 .ff-process.is-moving .ff-process-decorative-photo { pointer-events:auto; cursor:move; }
 .ff-process.is-editing [data-process-move]:hover {
