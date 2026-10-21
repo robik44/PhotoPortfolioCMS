@@ -124,8 +124,18 @@
             </a>
 
             <a href="{{ route('draft-header.edit') }}"
-               class="cms-nav-item {{ request()->routeIs('draft-header.*') ? 'active' : '' }}">
-                <span>◫</span><span>Nagłówek — NOWY (testowy)</span>
+               class="cms-nav-item {{ request()->routeIs('draft-header.edit', 'draft-header.review') ? 'active' : '' }}">
+                <span>◫</span><span>Ustawienia nagłówków</span>
+            </a>
+
+            <a href="{{ route('draft-header.preview') }}"
+               class="cms-nav-item {{ request()->routeIs('draft-header.preview') ? 'active' : '' }}">
+                <span>▧</span><span>Nagłówek ze zdjęciem</span>
+            </a>
+
+            <a href="{{ route('draft-header.compact-editor') }}"
+               class="cms-nav-item {{ request()->routeIs('draft-header.compact-editor') ? 'active' : '' }}">
+                <span>▤</span><span>Nagłówek uproszczony</span>
             </a>
 
             <a href="{{ route("site-settings.edit") }}"
