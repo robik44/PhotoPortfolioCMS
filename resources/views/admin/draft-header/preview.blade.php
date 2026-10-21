@@ -4,7 +4,7 @@
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f5f3ee;color:#26241f;font-family:Georgia,serif}
 .preview-alert{padding:12px 4vw;background:#233b30;color:#fff;font:14px/1.4 Arial,sans-serif;display:flex;gap:24px;justify-content:space-between;align-items:center}
-.preview-alert a{color:white}.scene{position:relative;min-height:650px;background:#ebe7df;overflow:hidden}
+.preview-alert a{color:white}.scene{position:relative;height:var(--scene-height,650px);min-height:0;background:#ebe7df;overflow:hidden}
 .scene>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:var(--hero-x) center}
 .scene:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(245,243,238,.84),rgba(245,243,238,.38) 44%,transparent 75%);pointer-events:none}
 .site-head{position:relative;z-index:2;display:flex;align-items:center;justify-content:space-between;gap:var(--gap);padding:12px 4vw;min-height:var(--height)}
@@ -42,7 +42,10 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .builder-tools input,.builder-tools select{padding:6px;border:1px solid #bbb;border-radius:4px}
 #viewport-stage{margin:0 auto;max-width:100%;transition:width .2s;overflow:hidden}
 .ruler-horizontal{height:20px;position:relative;background:repeating-linear-gradient(90deg,#c4c9c0 0 1px,transparent 1px 10px),#f3f5f1;background-size:auto 9px;background-repeat:repeat-x;border-bottom:1px solid #b9c2b8;font:10px Arial,sans-serif;overflow:hidden}
-.ruler-vertical{position:absolute;left:0;z-index:10;width:20px;height:650px;background:repeating-linear-gradient(180deg,#c4c9c0 0 1px,transparent 1px 10px),#f3f5f1;background-size:9px auto;background-repeat:repeat-y;pointer-events:none}
+.ruler-vertical{position:absolute;left:0;z-index:10;width:20px;height:var(--scene-height,650px);background:repeating-linear-gradient(180deg,#c4c9c0 0 1px,transparent 1px 10px),#f3f5f1;background-size:9px auto;background-repeat:repeat-y;pointer-events:none}
+.hero-height-handle{position:absolute;right:4px;bottom:4px;z-index:35;width:35px;height:35px;display:grid;place-items:center;background:#233b30;color:white;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 10px #0006;cursor:ns-resize;touch-action:none;user-select:none;font:24px Arial,sans-serif}
+.hero-height-handle:hover,.hero-height-handle:focus-visible{background:#507446;outline:2px solid #507446;outline-offset:2px}
+#viewport-stage.inner-page .hero-height-handle{display:none}
 .resize-handle{position:absolute;width:13px;height:13px;right:-8px;bottom:-8px;background:#507446;border:2px solid #fff;box-shadow:0 0 0 1px #507446;cursor:nwse-resize;touch-action:none;display:none;z-index:30}
 [data-drag].selected>.resize-handle{display:block}
 
@@ -59,7 +62,7 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .compact-header .header-actions nav a{font-size:11px}
 .compact-header .contact-button{transform:none!important;padding:12px 17px;font-size:11px}
 .compact-header [data-drag]{cursor:default;touch-action:auto}.compact-header .resize-handle,.compact-header .menu-drag-handle{display:none!important}
-#viewport-stage.inner-page .scene{min-height:180px;background:#f8f7f3}
+#viewport-stage.inner-page .scene{height:180px;min-height:180px;background:#f8f7f3}
 #viewport-stage.inner-page .scene>img,#viewport-stage.inner-page .scene:after,#viewport-stage.inner-page .hero-copy{display:none}
 #viewport-stage.inner-page .site-head{background:#f8f7f3;align-items:center;padding-top:20px;padding-bottom:20px}
 #viewport-stage.inner-page .site-head .header-actions{border:1px solid #dedbd5;background:#fff;border-radius:8px 8px 24px 40px;box-shadow:0 3px 12px rgba(0,0,0,.03)}
@@ -105,6 +108,9 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 <label>↘ <input data-corner="br" aria-label="Prawy dolny" type="number" min="0" max="120" step="1" value="24" style="width:55px"></label>
 <label>↙ <input data-corner="bl" aria-label="Lewy dolny" type="number" min="0" max="120" step="1" value="40" style="width:55px"></label>
 </span>
+<label title="Możesz także przeciągnąć uchwyt w prawym dolnym rogu zdjęcia">Wysokość zdjęcia
+<input id="hero-height-input" type="number" min="480" max="900" step="1" value="{{ max(480,min(900,(int)($settings['draft_header_hero_height'] ?? 650))) }}" style="width:79px"> px
+</label>
 <button type="button" id="save-layout">Zapisz układ</button>
 <button type="button" id="undo-layout" class="secondary">↶ Cofnij</button>
 <button type="button" id="redo-layout" class="secondary">↷ Ponów</button>
@@ -121,7 +127,7 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 $draftPositions = json_decode($settings['draft_header_builder_positions'] ?? '{}', true) ?: [];
 $draftLogo = 'branding/foodfoto-transparent-v2.png';
 @endphp
-<div id="viewport-stage"><div class="scene" style="--hero-x:{{ (int)$settings['draft_header_hero_x'] }}%;--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
+<div id="viewport-stage"><div class="scene" style="--scene-height:{{ max(480,min(900,(int)($settings['draft_header_hero_height'] ?? 650))) }}px;--hero-x:{{ (int)$settings['draft_header_hero_x'] }}%;--logo-rgb:{{ $logoRgb }};--logo-opacity:{{ (int)$settings['draft_header_logo_opacity'] / 100 }};--gap:{{ (int)$settings['draft_header_gap'] }}px;--radius:{{ (int)$settings['draft_header_radius'] }}px;--height:{{ (int)$settings['draft_header_height'] }}px;--logo-bg:{{ $settings['draft_header_logo_background'] }};--menu-bg:{{ $settings['draft_header_menu_background'] }}">
 <img src="{{ $heroUrl }}" alt="Zdjęcie górnego banera">
 <header class="site-head" id="draft-main-header">
 <div class="brand" data-drag="brand">
@@ -147,6 +153,7 @@ $draftLogo = 'branding/foodfoto-transparent-v2.png';
 <p data-drag="description">{{ $settings['draft_header_hero_description'] }}</p>
 <a href="#" onclick="return false" class="hero-cta" data-drag="cta">{{ $settings['draft_header_cta_text'] }}　 →</a>
 </div>
+<button type="button" class="hero-height-handle" id="hero-height-handle" aria-label="Przeciągnij, aby zmienić wysokość zdjęcia" title="Przeciągnij w dół lub w górę, aby zmienić wysokość banera">↕</button>
 </div></div>
 <div class="preview-content"><h2>Dalsza część strony — podgląd przewijania</h2><p>Przewiń w dół, aby sprawdzić kompaktowy, jasny nagłówek. Ta sekcja jest widoczna tylko w builderze.</p><div class="preview-content-spacer"></div></div>
 <script>
@@ -156,6 +163,39 @@ const pos={}, selected=new Set(), history=[], future=[];
 const status=document.getElementById('builder-status'), gx=document.getElementById('guide-x'),gy=document.getElementById('guide-y');
 const size=document.getElementById('font-size'),spacing=document.getElementById('letter-space'),line=document.getElementById('line-height');
 const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const heightInput=document.getElementById('hero-height-input');
+const heightHandle=document.getElementById('hero-height-handle');
+const sceneElement=document.querySelector('#viewport-stage .scene');
+let heroHeight=clamp(Number(heightInput.value)||650,480,900);
+function setHeroHeight(next) {
+ heroHeight=Math.round(clamp(Number(next)||650,480,900));
+ sceneElement.style.setProperty('--scene-height',heroHeight+'px');
+ document.getElementById('ruler-v').style.height=heroHeight+'px';
+ heightInput.value=String(heroHeight);
+ status.textContent='Wysokość zdjęcia: '+heroHeight+' px — zapisz układ';
+}
+heightInput.addEventListener('change',()=>{
+ checkpoint();
+ setHeroHeight(heightInput.value);
+});
+heightHandle.addEventListener('pointerdown',event=>{
+ if(event.button!==0 || document.getElementById('viewport-stage').classList.contains('inner-page')) return;
+ event.preventDefault();event.stopPropagation();
+ checkpoint();
+ const startY=event.clientY, startHeight=heroHeight;
+ heightHandle.setPointerCapture(event.pointerId);
+ const move=e=>setHeroHeight(startHeight+(e.clientY-startY));
+ const end=()=>{
+  heightHandle.removeEventListener('pointermove',move);
+  heightHandle.removeEventListener('pointercancel',end);
+  heightHandle.removeEventListener('pointerup',end);
+  status.textContent='Wysokość '+heroHeight+' px — kliknij Zapisz układ';
+ };
+ heightHandle.addEventListener('pointermove',move);
+ heightHandle.addEventListener('pointercancel',end);
+ heightHandle.addEventListener('pointerup',end);
+});
+
 const menu=document.querySelector('#draft-main-header .header-actions');
 const menuBaseWidth=menu.getBoundingClientRect().width;
 const cornerPanel=document.getElementById('menu-corners');
@@ -184,12 +224,12 @@ pageSelect.onchange=()=>{stage.classList.toggle('inner-page',pageSelect.value===
 document.getElementById('compact-demo').onclick=()=>{forceCompact=!forceCompact;updateCompact();};
 window.addEventListener('scroll',updateCompact,{passive:true});
 updateCompact();
-function snapshot(){return JSON.stringify(pos)}
+function snapshot(){return JSON.stringify({positions:pos,height:heroHeight})}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
  el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}if(id==='menu-panel'){el.style.width='';setMenuAppearance(p)}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
-function restore(raw){let values=JSON.parse(raw);els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));sync()}
+function restore(raw){const state=JSON.parse(raw);const values=state.positions||state;els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));if(state.height!==undefined)setHeroHeight(state.height);sync()}
 function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));cornerPanel.style.display=selected.size===1&&selected.has('menu-panel')?'flex':'none';if(selected.has('menu-panel')){const p=pos['menu-panel']||{};cornerKeys.forEach((k,i)=>cornerPanel.querySelector('[data-corner="'+k+'"]').value=menuRadii(p)[i]);}const id=[...selected][0],p=pos[id]||{};
  for(const f of [size,spacing,line])f.disabled=selected.size!==1;
  size.value=p.font|| (id?parseFloat(getComputedStyle(byId[id]).fontSize):'');
@@ -261,7 +301,7 @@ if(scene&&cta&&pageSelect.value!=='inner'){
   };
  }
 }
-try{const res=await fetch(@json(route('draft-header.positions')),{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({positions:positionsToSave})});
+try{const res=await fetch(@json(route('draft-header.positions')),{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({positions:positionsToSave,hero_height:heroHeight})});
 if(!res.ok)throw Error('HTTP '+res.status);if(positionsToSave.cta)pos.cta={...positionsToSave.cta};status.textContent='Zapisano ✓';}catch(e){status.textContent='Błąd zapisu: '+e.message}
 };
 })();
