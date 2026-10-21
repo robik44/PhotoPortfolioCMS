@@ -174,6 +174,13 @@ class DraftHeaderController extends Controller
             'positions.*.font' => ['sometimes', 'numeric', 'between:8,120'],
             'positions.*.spacing' => ['sometimes', 'numeric', 'between:-2,20'],
             'positions.*.line' => ['sometimes', 'numeric', 'between:0.7,3'],
+            'positions.*.subtitle_font' => ['sometimes', 'numeric', 'between:7,48'],
+            'positions.*.subtitle_spacing' => ['sometimes', 'numeric', 'between:-2,20'],
+            'positions.*.word_spacing' => ['sometimes', 'numeric', 'between:-2,30'],
+            'positions.*.subtitle_word_spacing' => ['sometimes', 'numeric', 'between:-2,30'],
+            'positions.*.color' => ['sometimes', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'positions.*.subtitle_color' => ['sometimes', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'positions.*.weight' => ['sometimes', 'integer', 'in:300,400,500,600,700,800'],
             'positions.*.scene_x_percent' => ['sometimes', 'numeric', 'between:-100,200'],
             'positions.*.scene_y_percent' => ['sometimes', 'numeric', 'between:-100,200'],
         ]);
