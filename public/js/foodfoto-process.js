@@ -287,6 +287,48 @@
       if(typographyParts.some(part=>part[0]===key)) activate(item,key);
       if(onTextClick) onTextClick(key);
     };
+    const attachResizeHandle=(node,key)=>{
+      if(!onTextClick) return;
+      const grip=tag('span','ff-process-resize-handle');
+      grip.setAttribute('aria-hidden','true');
+      grip.title='Złap prawy dolny narożnik i zmień wielkość z zachowaniem proporcji';
+      grip.addEventListener('mousedown',e=>e.stopPropagation());
+      grip.addEventListener('click',e=>{e.stopPropagation();e.preventDefault();});
+      grip.addEventListener('pointerdown',event=>{
+        if(event.button!==0)return;
+        event.stopPropagation();event.preventDefault();
+        const start=movePosition(item,key);
+        const rect=node.getBoundingClientRect();
+        const zoom=section.getBoundingClientRect().width/Math.max(1,section.offsetWidth);
+        const originX=event.clientX,originY=event.clientY;
+        const id=event.pointerId;
+        grip.setPointerCapture(id);
+        const onMove=e=>{
+          if(e.pointerId!==id)return;
+          const dx=(e.clientX-originX)/Math.max(35,rect.width);
+          const dy=(e.clientY-originY)/Math.max(35,rect.height);
+          const next=Math.round(Math.max(.4,Math.min(3.5,start.scale*(1+(dx+dy)/2)))*100)/100;
+          item.process_positions[key]={...movePosition(item,key),scale:next};
+          setMove(node,item,key);
+          const current=node.getBoundingClientRect();
+          const stage=section.getBoundingClientRect();
+          if(zoom>0)showGuides((current.right-stage.left)/zoom,(current.bottom-stage.top)/zoom);
+        };
+        const finish=e=>{
+          if(e.pointerId!==id)return;
+          grip.removeEventListener('pointermove',onMove);
+          grip.removeEventListener('pointerup',finish);
+          grip.removeEventListener('pointercancel',finish);
+          if(grip.hasPointerCapture(id))grip.releasePointerCapture(id);
+          clearGuides();
+          selectPart(key);
+        };
+        grip.addEventListener('pointermove',onMove);
+        grip.addEventListener('pointerup',finish);
+        grip.addEventListener('pointercancel',finish);
+      });
+      node.appendChild(grip);
+    };
     const movable = (node,key) => {
       setMove(node,item,key);
       if(selectedMoves.get(item)===key) node.classList.add('ff-active-part');
@@ -340,51 +382,14 @@
           selectPart(key);
         }
       });
+      if(!node.dataset.processPart)attachResizeHandle(node,key);
       return node;
     };
     const assignText = (node,key) => {
       node.dataset.processPart = key;
       if (typographyEditor) typographyEditor.apply(node, typographyItem(item,key));
       movable(node,key);
-      if(onTextClick){
-        // Handle sits inside each actual text element; the entire text is
-        // resized uniformly via CSS scale, preserving glyph proportions,
-        // line spacing and wrapping. It never replaces the editable text.
-        const grip=tag('span','ff-process-resize-handle');
-        grip.setAttribute('aria-hidden','true');
-        grip.title='Złap i przeciągnij, aby proporcjonalnie zmienić rozmiar tekstu';
-        grip.addEventListener('mousedown',event=>event.stopPropagation());
-        grip.addEventListener('click',event=>{event.stopPropagation();event.preventDefault();});
-        grip.addEventListener('pointerdown',event=>{
-          if(event.button!==0)return;
-          event.stopPropagation();event.preventDefault();
-          const start=movePosition(item,key);
-          const box=node.getBoundingClientRect();
-          const pointerId=event.pointerId;
-          const originX=event.clientX,originY=event.clientY;
-          grip.setPointerCapture(pointerId);
-          const onMove=e=>{
-            if(e.pointerId!==pointerId)return;
-            const rx=(e.clientX-originX)/Math.max(80,box.width);
-            const ry=(e.clientY-originY)/Math.max(35,box.height);
-            const scale=Math.round(Math.max(.4,Math.min(3.5,start.scale*(1+(rx+ry)/2)))*100)/100;
-            item.process_positions[key]={...movePosition(item,key),scale};
-            setMove(node,item,key);
-          };
-          const stop=e=>{
-            if(e.pointerId!==pointerId)return;
-            grip.removeEventListener('pointermove',onMove);
-            grip.removeEventListener('pointerup',stop);
-            grip.removeEventListener('pointercancel',stop);
-            if(grip.hasPointerCapture(pointerId))grip.releasePointerCapture(pointerId);
-            selectPart(key);
-          };
-          grip.addEventListener('pointermove',onMove);
-          grip.addEventListener('pointerup',stop);
-          grip.addEventListener('pointercancel',stop);
-        });
-        node.appendChild(grip);
-      }
+      attachResizeHandle(node,key);
       if (onTextClick) {
         node.style.cursor = moveModes.get(item)===false ? 'text' : 'grab';
         node.addEventListener('mousedown', event => event.stopPropagation());
@@ -408,17 +413,17 @@
     }
     const decoration = mediaPhotos.find(photo=>Number(photo.id)===Number(d.decorative_photo_id));
     if (decoration) {
-      const photo = tag('img','ff-process-decorative-photo');
-      photo.src = decoration.url || decoration.thumbnail_url;
-      photo.alt = '';
-      photo.setAttribute('aria-hidden','true');
-      photo.loading='lazy';
-      photo.style.width = safeNumber(d.decorative_photo_width,340,40,900)+'px';
-      photo.style.left = safeNumber(d.decorative_photo_x,0,-300,100)+'%';
-      photo.style.top = safeNumber(d.decorative_photo_y,0,-500,500)+'px';
-      photo.style.opacity = safeNumber(d.decorative_photo_opacity,35,0,100)/100;
-      photo.style.transform='rotate('+safeNumber(d.decorative_photo_rotate,0,-180,180)+'deg)';
-      section.appendChild(movable(photo,'decorative_photo'));
+      const photoFrame=tag('div','ff-process-decorative-photo');
+      const photo=tag('img','ff-process-decorative-photo-image');
+      photo.src=decoration.url || decoration.thumbnail_url;
+      photo.alt='';photo.loading='lazy';photo.draggable=false;
+      photoFrame.style.width=safeNumber(d.decorative_photo_width,340,40,900)+'px';
+      photoFrame.style.left=safeNumber(d.decorative_photo_x,0,-300,100)+'%';
+      photoFrame.style.top=safeNumber(d.decorative_photo_y,0,-500,500)+'px';
+      photoFrame.style.opacity=safeNumber(d.decorative_photo_opacity,35,0,100)/100;
+      photoFrame.style.transform='rotate('+safeNumber(d.decorative_photo_rotate,0,-180,180)+'deg)';
+      photoFrame.appendChild(photo);
+      section.appendChild(movable(photoFrame,'decorative_photo'));
     }
     const intro = tag('div','ff-process-intro');
     const leadLeft = tag('div');
