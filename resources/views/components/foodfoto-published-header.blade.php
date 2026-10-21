@@ -56,7 +56,7 @@
         .ff-public-sticky .ff-shared-rule{display:block;position:relative;flex:0 0 22px!important;width:22px!important;min-width:22px!important;max-width:22px!important;height:58px!important;margin:0!important;align-self:center;transform:none!important;background:none!important}
 .ff-public-sticky .ff-shared-rule::before{content:"";display:block;position:absolute;left:50%;top:0;width:1px;height:100%;background:#aaa;transform:translateX(-50%)}
         .ff-public-sticky .ff-shared-name{display:block;flex:0 0 auto!important;width:auto!important;margin:0;transform:none!important}
-        .ff-public-sticky .ff-shared-name strong{display:block;font-size:var(--ff-compact-name,28px)!important;font-weight:var(--ff-title-weight,400);letter-spacing:var(--ff-title-spacing,0px);word-spacing:var(--ff-title-word-spacing,0px);color:var(--ff-title-color,#222)}
+        .ff-public-sticky .ff-shared-name strong{display:block;font-family:Georgia,serif;font-size:var(--ff-compact-name,28px)!important;font-weight:var(--ff-title-weight,400);letter-spacing:var(--ff-title-spacing,0px);word-spacing:var(--ff-title-word-spacing,0px);color:var(--ff-title-color,#222)}
         .ff-public-sticky .ff-shared-name small{display:block;font-size:var(--ff-compact-subtitle,9px)!important;letter-spacing:var(--ff-subtitle-spacing,1.4px);word-spacing:var(--ff-subtitle-word-spacing,0px);color:var(--ff-subtitle-color,#222)}
         .ff-public-sticky .ff-shared-menu{display:flex;align-items:center;gap:10px;border:1px solid #dedbd5;background:white;border-radius:8px 8px 24px 40px;padding:10px 16px;margin-left:auto;zoom:1!important;transform:none!important}
         .ff-public-sticky .ff-menu-links{display:flex;gap:17px;align-items:center}
