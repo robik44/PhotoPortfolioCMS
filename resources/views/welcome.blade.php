@@ -507,10 +507,16 @@
             if (!root) return;
             var screenWidth = document.documentElement.clientWidth;
             var factor = Math.min(1, screenWidth / 1400);
-            root.style.transform = 'scale(' + factor + ')';
-            document.body.style.minHeight = (root.scrollHeight * factor) + 'px';
+            // CSS zoom scales the layout box itself. A transform only scales
+            // pixels and can leave iOS Safari horizontally scrolled or clipped.
+            root.style.transform = 'none';
+            root.style.zoom = String(factor);
+            document.body.style.minHeight = '';
             var sticky = document.getElementById('ff-public-sticky');
-            if (sticky) sticky.style.transform = 'scale(' + factor + ')';
+            if (sticky) {
+                sticky.style.transform = 'none';
+                sticky.style.zoom = String(factor);
+            }
         }
         document.addEventListener('DOMContentLoaded', function () {
             var root = document.createElement('div');
@@ -526,7 +532,10 @@
             if (sticky) document.body.appendChild(sticky);
             scaleDesktop();
             window.addEventListener('resize', scaleDesktop);
-            window.addEventListener('load', scaleDesktop);
+            window.addEventListener('load', function () {
+                scaleDesktop();
+                if (!window.location.hash) window.scrollTo(0, 0);
+            });
         });
     })();
     </script>
