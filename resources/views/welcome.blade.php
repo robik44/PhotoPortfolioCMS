@@ -379,7 +379,7 @@
         }
 
         /* Responsive layout: desktop 4, tablet 2, phone 1. */
-        @media (max-width: 900px) {
+        @media (max-width: 900px) and (hover: hover) {
             .header-inner {
                 min-height: 65px;
                 padding: 14px 18px;
@@ -419,7 +419,7 @@
             }
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 520px) and (hover: hover) {
             .site-header .logo {
                 width: 100%;
                 white-space: nowrap;
@@ -522,6 +522,8 @@
                 root.appendChild(node);
             });
             document.body.insertBefore(root, document.body.firstChild);
+            var sticky = root.querySelector('#ff-public-sticky');
+            if (sticky) document.body.appendChild(sticky);
             scaleDesktop();
             window.addEventListener('resize', scaleDesktop);
             window.addEventListener('load', scaleDesktop);
