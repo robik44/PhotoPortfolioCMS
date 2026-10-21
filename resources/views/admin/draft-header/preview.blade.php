@@ -247,8 +247,22 @@ for(const [input,key,a,b] of [[size,'font',8,120],[spacing,'spacing',-2,20],[lin
 document.getElementById('viewport-mode').onchange=e=>{document.getElementById('viewport-stage').style.width=e.target.value;status.textContent='Podgląd '+e.target.options[e.target.selectedIndex].text};
 document.getElementById('save-layout').onclick=async()=>{
 status.textContent='Zapisywanie…';
-try{const res=await fetch(@json(route('draft-header.positions')),{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({positions:pos})});
-if(!res.ok)throw Error('HTTP '+res.status);status.textContent='Zapisano ✓';}catch(e){status.textContent='Błąd zapisu: '+e.message}
+// Save the rendered button origin in normalized scene coordinates, not only
+// its drag offsets. Different line flow in page views cannot distort this.
+const positionsToSave=JSON.parse(JSON.stringify(pos));
+const scene=stage.querySelector('.scene'), cta=byId.cta;
+if(scene&&cta&&pageSelect.value!=='inner'){
+ const box=scene.getBoundingClientRect(),button=cta.getBoundingClientRect();
+ if(box.width>0&&box.height>0){
+  positionsToSave.cta={
+   ...(positionsToSave.cta||{x:0,y:0}),
+   scene_x_percent:Math.round(clamp((button.left-box.left)/box.width*100,-100,200)*10000)/10000,
+   scene_y_percent:Math.round(clamp((button.top-box.top)/box.height*100,-100,200)*10000)/10000
+  };
+ }
+}
+try{const res=await fetch(@json(route('draft-header.positions')),{method:'PUT',credentials:'same-origin',headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]').content},body:JSON.stringify({positions:positionsToSave})});
+if(!res.ok)throw Error('HTTP '+res.status);if(positionsToSave.cta)pos.cta={...positionsToSave.cta};status.textContent='Zapisano ✓';}catch(e){status.textContent='Błąd zapisu: '+e.message}
 };
 })();
 </script></body></html>
