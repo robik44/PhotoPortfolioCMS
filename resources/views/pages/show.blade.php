@@ -225,7 +225,7 @@
             font-size: 15px;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 900px) and (hover: hover) {
             .header-inner {
                 flex-direction: column;
                 align-items: flex-start;
@@ -243,7 +243,7 @@
 
         }
 
-        @media (max-width: 520px) {
+        @media (max-width: 520px) and (hover: hover) {
             .site-header .logo {
                 width: 100%;
                 white-space: nowrap;
@@ -326,6 +326,8 @@
                 root.appendChild(node);
             });
             document.body.insertBefore(root, document.body.firstChild);
+            var sticky = root.querySelector('#ff-public-sticky');
+            if (sticky) document.body.appendChild(sticky);
             scaleDesktop();
             window.addEventListener('resize', scaleDesktop);
             window.addEventListener('load', scaleDesktop);
