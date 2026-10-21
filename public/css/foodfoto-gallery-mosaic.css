@@ -6,6 +6,18 @@
 .ff-mosaic-heading{font:400 var(--fm-title)/1.05 Georgia,serif;letter-spacing:-.035em;margin:0;white-space:pre-line}
 .ff-mosaic-intro{margin:0 0 4px;font:15px/1.55 Arial,sans-serif;color:var(--fm-muted)}
 .ff-mosaic-more{justify-self:end;color:var(--fm-ink);text-decoration:none;border-bottom:1px solid #8e9689;padding:4px 0;font:600 11px/1.5 Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
+/* Editable label/link styling is shared by the public view and builder. */
+.ff-mosaic-more.is-button{
+  display:inline-flex;align-items:center;justify-content:center;
+  border:1px solid var(--fm-more-border,#58754a);
+  border-radius:var(--fm-more-radius,40px);
+  background:var(--fm-more-bg,#58754a);
+  color:#fff;
+  padding:var(--fm-more-pad-y,12px) var(--fm-more-pad-x,22px);
+  text-decoration:none;
+  min-height:30px;
+}
+.ff-mosaic.is-editing .ff-mosaic-typography-target{cursor:text}
 .ff-mosaic-grid{display:grid;grid-template-columns:minmax(0,var(--fm-side)) repeat(2,minmax(0,1fr)) minmax(0,var(--fm-side));grid-template-rows:repeat(2,var(--fm-row));gap:var(--fm-gap);grid-template-areas:'a b c f' 'a d e f'}
 .ff-mosaic-grid.is-even{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,var(--fm-row));grid-template-areas:'a b c' 'd e f'}
 .ff-mosaic-card{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #e9e9e5;color:inherit;text-decoration:none;position:relative;cursor:pointer;transition:box-shadow .2s}
