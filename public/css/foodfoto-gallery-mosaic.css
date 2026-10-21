@@ -1,0 +1,30 @@
+/* Shared between the visual builder and the published FoodFoto page. */
+.ff-mosaic{--fm-gap:12px;--fm-row:260px;--fm-side:26%;--fm-title:44px;--fm-ink:#252622;--fm-muted:#6c7069;width:100%;box-sizing:border-box;color:var(--fm-ink);font-family:Arial,sans-serif}
+.ff-mosaic *{box-sizing:border-box}
+.ff-mosaic-header{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) auto;align-items:end;gap:28px;margin:0 0 24px}
+.ff-mosaic-kicker{display:block;font:600 11px/1.6 Arial,sans-serif;letter-spacing:.23em;text-transform:uppercase;color:#647362;margin-bottom:8px}
+.ff-mosaic-heading{font:400 var(--fm-title)/1.05 Georgia,serif;letter-spacing:-.035em;margin:0;white-space:pre-line}
+.ff-mosaic-intro{margin:0 0 4px;font:15px/1.55 Arial,sans-serif;color:var(--fm-muted)}
+.ff-mosaic-more{justify-self:end;color:var(--fm-ink);text-decoration:none;border-bottom:1px solid #8e9689;padding:4px 0;font:600 11px/1.5 Arial,sans-serif;letter-spacing:.11em;white-space:nowrap}
+.ff-mosaic-grid{display:grid;grid-template-columns:minmax(0,var(--fm-side)) repeat(2,minmax(0,1fr)) minmax(0,var(--fm-side));grid-template-rows:repeat(2,var(--fm-row));gap:var(--fm-gap);grid-template-areas:'a b c f' 'a d e f'}
+.ff-mosaic-grid.is-even{grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,var(--fm-row));grid-template-areas:'a b c' 'd e f'}
+.ff-mosaic-card{min-width:0;min-height:0;display:flex;flex-direction:column;overflow:hidden;background:#fff;border:1px solid #e9e9e5;color:inherit;text-decoration:none;position:relative;cursor:pointer;transition:box-shadow .2s}
+.ff-mosaic-card:nth-child(1){grid-area:a}.ff-mosaic-card:nth-child(2){grid-area:b}.ff-mosaic-card:nth-child(3){grid-area:c}.ff-mosaic-card:nth-child(4){grid-area:d}.ff-mosaic-card:nth-child(5){grid-area:e}.ff-mosaic-card:nth-child(6){grid-area:f}
+.ff-mosaic-card:hover{box-shadow:0 6px 25px #00000018}
+.ff-mosaic-image{width:100%;height:100%;min-height:0;flex:1 1 0;display:block;object-fit:cover;transition:transform .3s}
+.ff-mosaic-card:hover .ff-mosaic-image{transform:scale(1.025)}
+.ff-mosaic-photo{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;background:#eee;display:flex}
+.ff-mosaic-placeholder{display:flex;flex:1;align-items:center;justify-content:center;background:#e9ede6;color:#647362;font:14px Arial}
+.ff-mosaic-card-meta{display:flex;align-items:center;gap:8px;padding:11px 13px;min-height:54px;flex:0 0 auto}
+.ff-mosaic-text{flex:1 1 auto;min-width:0}
+.ff-mosaic-card-category{font:700 10px/1.25 Arial;letter-spacing:.12em;text-transform:uppercase;margin:0;color:#424741}
+.ff-mosaic-card-title{font:400 14px/1.25 Georgia,serif;margin:3px 0 0}
+.ff-mosaic-card-description{font:11px/1.4 Arial;color:#7a7e77;margin:3px 0 0}
+.ff-mosaic-arrow{font:17px Arial;color:#455747;align-self:center}
+.ff-mosaic-card.is-active{outline:3px solid #56784a;outline-offset:-3px}
+.ff-mosaic-card-meta.is-overlay{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(255,255,255,.94) 28%,rgba(255,255,255,.98));padding-top:24px}
+.ff-mosaic.is-editing .ff-mosaic-card{cursor:crosshair}
+.ff-mosaic.is-editing .ff-mosaic-card:hover{outline:2px solid #587e55;outline-offset:-2px}
+.ff-mosaic.is-editing .ff-mosaic-more{pointer-events:none}
+.ff-mosaic.is-editing .ff-mosaic-card{pointer-events:auto}
+@media(max-width:750px){.ff-mosaic:not(.ff-mosaic-desktop-fixed) .ff-mosaic-header{grid-template-columns:1fr;gap:12px}.ff-mosaic:not(.ff-mosaic-desktop-fixed) .ff-mosaic-grid{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(3,220px);grid-template-areas:'a b' 'c d' 'e f'}}
