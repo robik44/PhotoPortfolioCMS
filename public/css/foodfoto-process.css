@@ -3,7 +3,10 @@
     container-type: inline-size;
     box-sizing: border-box;
     width: 100%;
-    background: var(--ff-process-background, #fff);
+    background: var(--ff-process-background, #faf9f4);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
     color: var(--ff-process-text, #24241f);
     padding: var(--ff-process-pad-y, 66px) var(--ff-process-pad-x, 54px);
     font-family: var(--ff-process-body-font, Arial, sans-serif);
@@ -60,7 +63,7 @@
 .ff-process .ff-process-step {
     min-width: 0;
     display: grid;
-    grid-template-columns: var(--ff-process-icon-size, 82px) minmax(0, 1fr);
+    grid-template-columns: auto var(--ff-process-icon-size, 82px) minmax(0, 1fr);
     gap: 17px;
     align-items: start;
     padding-right: 32px;
@@ -75,8 +78,35 @@
     height: var(--ff-process-icon-size, 82px);
     border-radius: 50%;
     background: var(--ff-process-icon-background, #f1f5e9);
+    border: var(--ff-process-icon-border, 1px) solid var(--ff-process-accent, #a7b593);
     color: var(--ff-process-icon-color, #8a9284);
     flex: 0 0 auto;
+}
+.ff-process .ff-process-intro, .ff-process .ff-process-steps { position: relative; z-index: 1; }
+.ff-process::before {
+    content: ''; position:absolute; z-index:0; inset:0; pointer-events:none;
+    background: linear-gradient(90deg, var(--ff-process-wash-color,#f1e7c9) 0%,transparent 75%);
+    opacity:var(--ff-process-wash-opacity,.53);
+}
+.ff-process .ff-process-branch {
+    position:absolute; z-index:0; left:var(--ff-process-branch-x,-65px);
+    top:var(--ff-process-branch-y,-16px);
+    width:var(--ff-process-branch-width,250px); max-width:none;
+    opacity:var(--ff-process-branch-opacity,.38); pointer-events:none;
+}
+.ff-process .ff-process-branch svg { display:block; width:100%; height:auto; }
+.ff-process .ff-process-decorative-photo {
+    position:absolute; z-index:0; pointer-events:none;
+    height:auto; max-width:none; object-fit:contain;
+}
+.ff-process .ff-process-number {
+    font:italic 400 var(--ff-process-number-size,38px)/1 Georgia,serif;
+    color:var(--ff-process-accent,#a7b593);
+    white-space:nowrap; align-self:center;
+}
+.ff-process.ff-process-no-numbers .ff-process-number { display:none; }
+.ff-process.ff-process-no-numbers .ff-process-step {
+    grid-template-columns: var(--ff-process-icon-size,82px) minmax(0,1fr);
 }
 .ff-process .ff-process-icon {
     width: 52%;
@@ -104,22 +134,24 @@
 }
 .ff-process.ff-process-hide-arrows .ff-process-step::after { display: none; }
 .ff-process .ff-process-step:not(:last-child)::after {
-    content: '→';
-    position: absolute;
-    right: -12px;
-    top: 20px;
-    color: var(--ff-process-accent, #899575);
-    font: 300 35px/1 Arial, sans-serif;
+    content:''; position:absolute; right:calc(var(--ff-process-connector-length,26px) / -2);
+    top:38px; width:var(--ff-process-connector-length,26px);
+    height:1px; background:var(--ff-process-accent,#899575); opacity:.6;
+}
+.ff-process.ff-process-arrow-connectors .ff-process-step:not(:last-child)::after {
+    content:'→'; top:24px; right:-15px; width:auto; height:auto; background:transparent;
+    font:300 30px/1 Arial,sans-serif; opacity:1; color:var(--ff-process-accent,#899575);
 }
 @container (max-width: 980px) {
     .ff-process .ff-process-intro { grid-template-columns: 1fr; gap: 15px; }
     .ff-process .ff-process-steps { grid-template-columns: 1fr; gap: 28px; }
     .ff-process .ff-process-step { padding-right: 0; }
-    .ff-process .ff-process-step:not(:last-child)::after { content: '↓'; top: auto; right: 50%; bottom: -27px; font-size: 21px; }
+    .ff-process .ff-process-step:not(:last-child)::after { content:''; top:auto; right:50%; bottom:-20px; width:1px; height:16px; }
+    .ff-process.ff-process-arrow-connectors .ff-process-step:not(:last-child)::after { content:'↓'; top:auto; right:50%; bottom:-27px; width:auto; height:auto; background:transparent; font-size:21px; }
 }
 @container (max-width: 520px) {
     .ff-process { padding: 28px 22px; }
     .ff-process h2.ff-process-title { font-size: min(var(--ff-process-title-size, 58px), 38px); }
-    .ff-process .ff-process-step { grid-template-columns: 64px minmax(0, 1fr); }
+    .ff-process .ff-process-step { grid-template-columns: 33px 64px minmax(0, 1fr); gap: 10px; }
     .ff-process .ff-process-bubble { width: 64px; height: 64px; }
 }
