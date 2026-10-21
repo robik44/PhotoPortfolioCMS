@@ -1394,6 +1394,106 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 
+    // Existing site-font catalog: selected font names resolve identically in
+    // the visual canvas and the published Blade renderer.
+    const mosaicFontFamilies = @json($siteFonts['families']);
+    const mosaicFontChoices = @json($siteFonts['choices']);
+    const mosaicRoleDefaults = {
+        kicker:{font_size:11,font_weight:600,line_height:1.6,letter_spacing:2.53,color:'#647362'},
+        heading:{font_size:44,font_weight:400,line_height:1.05,letter_spacing:-1.54,color:'#252622'},
+        intro:{font_size:15,font_weight:400,line_height:1.55,letter_spacing:0,color:'#6c7069'},
+        more:{font_size:11,font_weight:600,line_height:1.5,letter_spacing:1.21,color:'#252622'},
+        category:{font_size:10,font_weight:700,line_height:1.25,letter_spacing:1.2,color:'#424741'},
+        description:{font_size:11,font_weight:400,line_height:1.4,letter_spacing:0,color:'#7a7e77'},
+        arrow:{font_size:17,font_weight:400,line_height:1,letter_spacing:0,color:'#455747'}
+    };
+    const mosaicRoleLabels = {
+        kicker:'Mały nagłówek — WYBRANE REALIZACJE',
+        heading:'Główny nagłówek — Piękne obrazy',
+        intro:'Opis sekcji',
+        more:'Przycisk / link — ZOBACZ WSZYSTKIE REALIZACJE',
+        category:'Podpis pod zdjęciem',
+        description:'Opis pod zdjęciem',
+        arrow:'Strzałka / tekst na przycisku karty'
+    };
+    function mosaicEffectiveTypography(item,role,card=null){
+        const shared=item.mosaic_typography?.[role]||{};
+        const specific=card?.typography?.[role]||{};
+        return {...shared,...specific};
+    }
+    function mosaicApplyTypography(node,item,role,card=null){
+        node.classList.add('ff-mosaic-typography-target');
+        const style=mosaicEffectiveTypography(item,role,card);
+        if(style.font_family && mosaicFontFamilies[style.font_family])
+            node.style.fontFamily=mosaicFontFamilies[style.font_family];
+        if(style.font_size!==undefined)node.style.fontSize=style.font_size+'px';
+        if(style.font_weight!==undefined)node.style.fontWeight=String(style.font_weight);
+        if(style.font_style)node.style.fontStyle=style.font_style;
+        if(style.line_height!==undefined)node.style.lineHeight=String(style.line_height);
+        if(style.letter_spacing!==undefined)node.style.letterSpacing=style.letter_spacing+'px';
+        if(style.word_spacing!==undefined)node.style.wordSpacing=style.word_spacing+'px';
+        if(style.color)node.style.color=style.color;
+        if(style.text_transform)node.style.textTransform=style.text_transform;
+        if(style.text_align)node.style.textAlign=style.text_align;
+        if(style.text_decoration)node.style.textDecoration=style.text_decoration;
+        return node;
+    }
+    function renderMosaicTypographyFields(item,role,scope){
+        const isCard=scope==='card';
+        const card=item.mosaic_cards[item.mosaic_selected_index];
+        const group=isCard
+            ? (card.typography??={})
+            : (item.mosaic_typography??={});
+        const values=group[role]??={};
+        const defaults={...(mosaicRoleDefaults[role]||{}),...item.mosaic_typography?.[role],...values};
+        const change=(key,value)=>{
+            if(value===null||value==='') delete values[key]; else values[key]=value;
+            if(Object.keys(values).length===0)delete group[role];
+            render();
+        };
+        const heading=document.createElement('p');
+        heading.style.cssText='font:600 12px Arial;color:#47594a;margin:8px 0 10px';
+        heading.textContent=isCard?'Formatowanie tylko tej karty':'Formatowanie wspólne dla wszystkich kart';
+        properties.appendChild(heading);
+        selectField('Krój pisma',values.font_family||'',[
+            ['','Domyślny — według projektu'],
+            ...mosaicFontChoices.map(font=>[font.value,font.label])
+        ],v=>change('font_family',v));
+        field('Rozmiar czcionki (px, co 0,1)','number',values.font_size??defaults.font_size,
+            v=>change('font_size',Math.max(7,Math.min(120,Number(v)||7))),{min:7,max:120,step:.1});
+        selectField('Grubość czcionki',String(values.font_weight??defaults.font_weight),[
+            ...[100,200,300,400,500,600,700,800,900].map(w=>[String(w),String(w)])
+        ],v=>change('font_weight',Number(v)));
+        selectField('Pochylenie',values.font_style||'normal',[
+            ['normal','Prosta'],['italic','Kursywa']
+        ],v=>change('font_style',v));
+        field('Interlinia (np. 1,25)','number',values.line_height??defaults.line_height,
+            v=>change('line_height',Math.max(.7,Math.min(3.2,Number(v)||1))),{min:.7,max:3.2,step:.01});
+        field('Odstęp między literami (px)','number',values.letter_spacing??defaults.letter_spacing??0,
+            v=>change('letter_spacing',Math.max(-10,Math.min(30,Number(v)||0))),{min:-10,max:30,step:.1});
+        field('Odstęp między słowami (px)','number',values.word_spacing??0,
+            v=>change('word_spacing',Math.max(-20,Math.min(60,Number(v)||0))),{min:-20,max:60,step:.1});
+        field('Kolor tekstu','color',values.color||defaults.color||'#252622',
+            v=>change('color',v));
+        selectField('Wyrównanie',values.text_align||'left',[
+            ['left','Do lewej'],['center','Do środka'],['right','Do prawej'],['justify','Justuj']
+        ],v=>change('text_align',v));
+        selectField('Wielkość liter',values.text_transform||'none',[
+            ['none','Bez zmian'],['uppercase','WERSALIKI'],['lowercase','małe litery'],
+            ['capitalize','Początkowe Wielkie']
+        ],v=>change('text_transform',v));
+        selectField('Dekoracja tekstu',values.text_decoration||'none',[
+            ['none','Brak'],['underline','Podkreślenie'],['line-through','Przekreślenie']
+        ],v=>change('text_decoration',v));
+        const reset=mosaicNode('button','fve-button','Przywróć domyślną typografię tego tekstu');
+        reset.type='button';reset.style.cssText='width:100%;margin:12px 0';
+        reset.addEventListener('click',()=>{
+            delete group[role];
+            render();showProperties(item);
+        });
+        properties.appendChild(reset);
+    }
+
     function ensureMosaicCards(item) {
         if (!Array.isArray(item.mosaic_cards)) item.mosaic_cards=[];
         item.mosaic_cards=item.mosaic_cards.slice(0,6);
