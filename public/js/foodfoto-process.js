@@ -573,7 +573,7 @@
       ['branch_y','Pozycja gałązki w pionie (px)',-350,350]
     ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
     sectionTitle('Własny obrazek dekoracyjny pod tekstami');
-    field(container,'Obraz z biblioteki zdjęć',d.decorative_photo_id||'','select',v=>{
+    const photoSelect=field(container,'Obraz z biblioteki zdjęć',d.decorative_photo_id||'','select',v=>{
       d.decorative_photo_id=v?Number(v):null;
       refreshPhotoSelection();
     },{choices:[['','Bez dodatkowego obrazka'],...mediaPhotos.map(photo=>[photo.id,photo.title||photo.alt||('Zdjęcie '+photo.id)])]});
@@ -619,8 +619,7 @@
       tile.appendChild(caption);
       tile.addEventListener('click',()=>{
         d.decorative_photo_id=Number(photo.id);
-        const select=container.querySelector('.ff-process-photo-browser')?.previousElementSibling?.querySelector('select');
-        if(select)select.value=String(photo.id);
+        photoSelect.value=String(photo.id);
         refreshPhotoSelection();
         rerender();
       });
@@ -635,8 +634,7 @@
     clearPhoto.style.cssText='width:100%;margin-top:10px';
     clearPhoto.addEventListener('click',()=>{
       d.decorative_photo_id=null;
-      const select=container.querySelector('.ff-process-photo-browser')?.previousElementSibling?.querySelector('select');
-      if(select)select.value='';
+      photoSelect.value='';
       refreshPhotoSelection();
       rerender();
     });
