@@ -201,16 +201,75 @@
       '--ff-process-body-font': fontCSS(d.body_font,'Arial, sans-serif')
     };
     for (const [key,value] of Object.entries(cssVars)) section.style.setProperty(key,String(value));
+    if(onTextClick){
+      section.classList.add('is-editing');
+      if(moveModes.get(item)) section.classList.add('is-moving');
+    }
+    const selectPart = key => {
+      selectedMoves.set(item,key);
+      if(typographyParts.some(part=>part[0]===key)) activate(item,key);
+      if(onTextClick) onTextClick(key);
+    };
+    const movable = (node,key) => {
+      setMove(node,item,key);
+      if(!onTextClick) return node;
+      node.setAttribute('title',moveName(key)+' — kliknij, aby wybrać. Tryb przesuwania: przeciągnij.');
+      node.addEventListener('pointerdown',event=>{
+        if(!moveModes.get(item) || event.button!==0) return;
+        event.stopPropagation();
+        event.preventDefault();
+        const orig=movePosition(item,key);
+        const startX=event.clientX,startY=event.clientY;
+        const unit=section.getBoundingClientRect().width / Math.max(1,section.offsetWidth);
+        const scale=Number.isFinite(unit)&&unit>0?unit:1;
+        const pointerId=event.pointerId;
+        node.setPointerCapture(pointerId);
+        let moved=false;
+        const onMove=e=>{
+          if(e.pointerId!==pointerId)return;
+          const dx=(e.clientX-startX)/scale,dy=(e.clientY-startY)/scale;
+          if(Math.abs(dx)>1||Math.abs(dy)>1)moved=true;
+          const x=Math.round(Math.max(-1800,Math.min(1800,orig.x+dx)));
+          const y=Math.round(Math.max(-1000,Math.min(1000,orig.y+dy)));
+          item.process_positions[key]={x,y};
+          setMove(node,item,key);
+        };
+        const finish=e=>{
+          if(e.pointerId!==pointerId)return;
+          node.removeEventListener('pointermove',onMove);
+          node.removeEventListener('pointerup',finish);
+          node.removeEventListener('pointercancel',finish);
+          if(node.hasPointerCapture(pointerId))node.releasePointerCapture(pointerId);
+          selectPart(key);
+        };
+        node.addEventListener('pointermove',onMove);
+        node.addEventListener('pointerup',finish);
+        node.addEventListener('pointercancel',finish);
+      });
+      node.addEventListener('click',event=>{
+        if(moveModes.get(item)){
+          event.stopPropagation();
+          event.preventDefault();
+          return;
+        }
+        if(!node.dataset.processPart){
+          event.stopPropagation();
+          selectPart(key);
+        }
+      });
+      return node;
+    };
     const assignText = (node,key) => {
       node.dataset.processPart = key;
       if (typographyEditor) typographyEditor.apply(node, typographyItem(item,key));
+      movable(node,key);
       if (onTextClick) {
         node.style.cursor = 'text';
         node.addEventListener('mousedown', event => event.stopPropagation());
         node.addEventListener('click', event => {
           event.stopPropagation();
-          activate(item,key);
-          onTextClick(key);
+          if(moveModes.get(item))return;
+          selectPart(key);
         });
       }
       return node;
@@ -223,7 +282,7 @@
       branchImage.alt='';
       branchImage.draggable=false;
       branch.appendChild(branchImage);
-      section.appendChild(branch);
+      section.appendChild(movable(branch,'branch'));
     }
     const decoration = mediaPhotos.find(photo=>Number(photo.id)===Number(d.decorative_photo_id));
     if (decoration) {
@@ -237,7 +296,7 @@
       photo.style.top = safeNumber(d.decorative_photo_y,0,-500,500)+'px';
       photo.style.opacity = safeNumber(d.decorative_photo_opacity,35,0,100)/100;
       photo.style.transform='rotate('+safeNumber(d.decorative_photo_rotate,0,-180,180)+'deg)';
-      section.appendChild(photo);
+      section.appendChild(movable(photo,'decorative_photo'));
     }
     const intro = tag('div','ff-process-intro');
     const leadLeft = tag('div');
@@ -251,14 +310,19 @@
       const col = tag('article','ff-process-step');
       const number = tag('span','ff-process-number',String(index+1).padStart(2,'0'));
       number.setAttribute('aria-hidden','true');
-      col.appendChild(number);
+      col.appendChild(assignText(number,'step'+(index+1)+'_number'));
       const bubble = tag('div','ff-process-bubble');
       bubble.appendChild(createIcon(iconLabels.some(i=>i[0]===step.icon) ? step.icon : defaultSteps[index].icon));
-      col.appendChild(bubble);
+      col.appendChild(movable(bubble,'step'+(index+1)+'_icon'));
       const text = tag('div');
       text.appendChild(assignText(tag('h3','ff-process-step-title',String(step.title||'').replace(/^\s*[1-3][.)]\s*/,'')),'step'+(index+1)+'_title'));
       text.appendChild(assignText(tag('p','ff-process-step-description',step.description),'step'+(index+1)+'_description'));
       col.appendChild(text);
+      if(index<2){
+        const connector=tag('span','ff-process-connector');
+        connector.setAttribute('aria-hidden','true');
+        col.appendChild(movable(connector,'step'+(index+1)+'_connector'));
+      }
       steps.appendChild(col);
     });
     section.appendChild(steps);
