@@ -1598,7 +1598,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     function renderMosaicProperties(item){
         ensureMosaicCards(item);
-        const intro=mosaicNode('p',null,'Cała mozaika jest jednym elementem. Kliknij kartę na stronie, aby edytować jej zdjęcie, podpis i link. Przeciągaj narożnik całego bloku, aby zmienić jego szerokość.');
+        const intro=mosaicNode('p',null,'Kliknij napis na mozaice, aby wybrać jego czcionkę i kolor. Kliknij dwa razy, aby zmienić treść bezpośrednio na stronie. Parametry zdjęć i kart znajdziesz poniżej.');
         intro.style.cssText='font:12px/1.5 Arial;color:#606b62;margin:6px 0 16px';
         properties.appendChild(intro);
         function title(text){
@@ -1612,16 +1612,6 @@ document.addEventListener("DOMContentLoaded", function () {
             b.addEventListener('click',()=>{handler();render();showProperties(item);});
             properties.appendChild(b);
         }
-        title('Teksty nad mozaiką');
-        field('Mały nagłówek','text',item.mosaic_kicker ?? 'WYBRANE REALIZACJE',v=>item.mosaic_kicker=v);
-        field('Nagłówek sekcji','textarea',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii',v=>item.mosaic_title=v);
-        field('Opis sekcji','textarea',item.mosaic_intro ?? '',v=>item.mosaic_intro=v);
-        field('Tekst odnośnika','text',item.mosaic_more_label ?? 'ZOBACZ WSZYSTKIE REALIZACJE',v=>item.mosaic_more_label=v);
-        field('Symbol lub tekst na końcu linku','text',item.mosaic_more_action_text??'→',
-            v=>item.mosaic_more_action_text=String(v).slice(0,24));
-        selectField('Dokąd prowadzi odnośnik?',item.mosaic_more_link || '/#portfolio',
-            [['/#portfolio','Do portfolio na stronie'],...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])],
-            v=>item.mosaic_more_link=v);
         title('Typografia — wszystkie napisy i przyciski');
         const scope = item.mosaic_typography_scope === 'card' ? 'card' : 'shared';
         selectField('Zakres zmian',scope,[
@@ -1641,6 +1631,39 @@ document.addEventListener("DOMContentLoaded", function () {
             roles.map(role=>[role,mosaicRoleLabels[role]]),
             v=>item.mosaic_typography_role=v);
         renderMosaicTypographyFields(item,activeRole,scope);
+        title('EDYTUJ ZAZNACZONY TEKST');
+        const currentRole = item.mosaic_typography_role || 'heading';
+        const textFieldMap={
+            kicker:'mosaic_kicker',heading:'mosaic_title',intro:'mosaic_intro',
+            more:'mosaic_more_label',category:'category',description:'description',arrow:'action_text'
+        };
+        const cardForEditing=item.mosaic_cards[item.mosaic_selected_index];
+        const selectedTextObj=['category','description','arrow'].includes(currentRole)
+            ? cardForEditing : item;
+        const selectedField=textFieldMap[currentRole];
+        const fallbackText={
+            kicker:'WYBRANE REALIZACJE',heading:'Piękne obrazy\\ndla smacznych historii',
+            intro:'Fotografia, która podkreśla charakter Twojej marki.',
+            more:'ZOBACZ WSZYSTKIE REALIZACJE',
+            category:'',description:'',arrow:'→'
+        };
+        field('Treść napisu: '+(mosaicRoleLabels[currentRole]||'Tekst'),
+            ['heading','intro','description'].includes(currentRole)?'textarea':'text',
+            selectedTextObj?.[selectedField]??fallbackText[currentRole]??'',
+            value=>{
+                if(selectedTextObj && selectedField)selectedTextObj[selectedField]=value;
+            });
+
+        title('Teksty nad mozaiką');
+        field('Mały nagłówek','text',item.mosaic_kicker ?? 'WYBRANE REALIZACJE',v=>item.mosaic_kicker=v);
+        field('Nagłówek sekcji','textarea',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii',v=>item.mosaic_title=v);
+        field('Opis sekcji','textarea',item.mosaic_intro ?? '',v=>item.mosaic_intro=v);
+        field('Tekst odnośnika','text',item.mosaic_more_label ?? 'ZOBACZ WSZYSTKIE REALIZACJE',v=>item.mosaic_more_label=v);
+        field('Symbol lub tekst na końcu linku','text',item.mosaic_more_action_text??'→',
+            v=>item.mosaic_more_action_text=String(v).slice(0,24));
+        selectField('Dokąd prowadzi odnośnik?',item.mosaic_more_link || '/#portfolio',
+            [['/#portfolio','Do portfolio na stronie'],...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])],
+            v=>item.mosaic_more_link=v);
         title('Wygląd odnośnika nad zdjęciami');
         selectField('Styl linku „ZOBACZ WSZYSTKIE REALIZACJE”',
             item.mosaic_more_button?'button':'link',[
