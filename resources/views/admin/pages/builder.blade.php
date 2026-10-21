@@ -1046,6 +1046,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return [
                     "id" => $gallery->id,
                     "title" => $gallery->title,
+                    "published" => (bool) $gallery->published,
                     "description" => $gallery->description,
                     "gallery_collection_id" => $gallery->gallery_collection_id,
                     "gallery_collection_name" => optional($gallery->collection)->name,
