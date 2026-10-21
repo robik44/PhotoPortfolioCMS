@@ -19,7 +19,13 @@
     {icon: 'image', title: '3. Gotowe kadry', description: 'Otrzymujesz dopracowane zdjęcia gotowe do publikacji i użycia w materiałach.'}
   ];
   const defaultDesign = {
-    background: '#ffffff', text: '#24241f', muted: '#64675e',
+    background: '#faf9f4', wash_color: '#f1e7c9', wash_opacity: 53,
+    branch_visible: true, branch_opacity: 38, branch_width: 250, branch_x: -65, branch_y: -16,
+    decorative_photo_id: null, decorative_photo_opacity: 35, decorative_photo_width: 340,
+    decorative_photo_x: 0, decorative_photo_y: 0, decorative_photo_rotate: 0,
+    show_numbers: true, number_size: 38, icon_border_width: 1,
+    connector_style: 'line', connector_length: 26,
+    background: '#faf9f4', text: '#24241f', muted: '#64675e',
     accent: '#a7b593', icon_background: '#f2f6eb', icon_color: '#858d82',
     pad_x: 54, pad_y: 70, head_gap: 56, section_gap: 46,
     steps_gap: 24, icon_size: 82,
@@ -28,6 +34,8 @@
     heading_font: 'Georgia', body_font: 'Arial', show_arrows: true
   };
   let fontChoices = [];
+  let mediaPhotos = [];
+  function configurePhotos(values) { mediaPhotos = Array.isArray(values) ? values : []; }
   let typographyEditor = null;
   const activeParts = new WeakMap();
   function attachTypography(editor) { typographyEditor = editor; }
@@ -123,9 +131,21 @@
     initialize(item);
     const d = item.process_design;
     const section = tag('section', 'ff-process');
+    if (d.show_numbers === false) section.classList.add('ff-process-no-numbers');
+    if (d.connector_style === 'none' || d.show_arrows === false) section.classList.add('ff-process-hide-arrows');
+    if (d.connector_style === 'arrow') section.classList.add('ff-process-arrow-connectors');
     if (d.show_arrows === false) section.classList.add('ff-process-hide-arrows');
     const cssVars = {
-      '--ff-process-background': safeColor(d.background,'#fff'),
+      '--ff-process-background': safeColor(d.background,'#faf9f4'),
+      '--ff-process-wash-color': safeColor(d.wash_color,'#f1e7c9'),
+      '--ff-process-wash-opacity': safeNumber(d.wash_opacity,53,0,100)/100,
+      '--ff-process-branch-opacity': safeNumber(d.branch_opacity,38,0,100)/100,
+      '--ff-process-branch-width': safeNumber(d.branch_width,250,70,650)+'px',
+      '--ff-process-branch-x': safeNumber(d.branch_x,-65,-350,350)+'px',
+      '--ff-process-branch-y': safeNumber(d.branch_y,-16,-350,350)+'px',
+      '--ff-process-number-size': safeNumber(d.number_size,38,12,100)+'px',
+      '--ff-process-icon-border': safeNumber(d.icon_border_width,1,0,8)+'px',
+      '--ff-process-connector-length': safeNumber(d.connector_length,26,0,110)+'px',
       '--ff-process-text': safeColor(d.text,'#24241f'),
       '--ff-process-muted': safeColor(d.muted,'#64675e'),
       '--ff-process-accent': safeColor(d.accent,'#a7b593'),
@@ -160,6 +180,34 @@
       }
       return node;
     };
+    if (d.branch_visible !== false) {
+      const branch = tag('div','ff-process-branch');
+      branch.setAttribute('aria-hidden','true');
+      branch.innerHTML = '<svg viewBox="0 0 310 410" fill="none" xmlns="http://www.w3.org/2000/svg">'
+        +'<path d="M5 395C37 332 17 257 89 197C123 168 127 119 160 80C179 58 199 44 221 22" stroke="#839771" stroke-width="2.2"/>'
+        +'<path d="M70 258C23 237 13 206 14 187C60 200 81 221 70 258Z" fill="#b5c5a0" fill-opacity=".45" stroke="#98aa82"/>'
+        +'<path d="M92 198C54 172 58 135 68 115C106 145 115 177 92 198Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>'
+        +'<path d="M133 123C101 99 107 66 125 45C148 76 157 107 133 123Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>'
+        +'<path d="M113 163C147 125 188 127 208 135C178 174 140 187 113 163Z" fill="#b5c5a0" fill-opacity=".38" stroke="#98aa82"/>'
+        +'<path d="M166 73C183 34 221 21 245 22C231 62 194 88 166 73Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>'
+        +'<path d="M49 317C73 276 112 266 134 273C113 309 80 328 49 317Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>'
+        +'</svg>';
+      section.appendChild(branch);
+    }
+    const decoration = mediaPhotos.find(photo=>Number(photo.id)===Number(d.decorative_photo_id));
+    if (decoration) {
+      const photo = tag('img','ff-process-decorative-photo');
+      photo.src = decoration.url || decoration.thumbnail_url;
+      photo.alt = '';
+      photo.setAttribute('aria-hidden','true');
+      photo.loading='lazy';
+      photo.style.width = safeNumber(d.decorative_photo_width,340,40,900)+'px';
+      photo.style.left = safeNumber(d.decorative_photo_x,0,-300,100)+'%';
+      photo.style.top = safeNumber(d.decorative_photo_y,0,-500,500)+'px';
+      photo.style.opacity = safeNumber(d.decorative_photo_opacity,35,0,100)/100;
+      photo.style.transform='rotate('+safeNumber(d.decorative_photo_rotate,0,-180,180)+'deg)';
+      section.appendChild(photo);
+    }
     const intro = tag('div','ff-process-intro');
     const leadLeft = tag('div');
     leadLeft.appendChild(assignText(tag('p','ff-process-eyebrow',item.process_kicker),'kicker'));
@@ -170,11 +218,14 @@
     const steps = tag('div','ff-process-steps');
     item.process_steps.slice(0,3).forEach((step,index) => {
       const col = tag('article','ff-process-step');
+      const number = tag('span','ff-process-number',String(index+1).padStart(2,'0'));
+      number.setAttribute('aria-hidden','true');
+      col.appendChild(number);
       const bubble = tag('div','ff-process-bubble');
       bubble.appendChild(createIcon(iconLabels.some(i=>i[0]===step.icon) ? step.icon : defaultSteps[index].icon));
       col.appendChild(bubble);
       const text = tag('div');
-      text.appendChild(assignText(tag('h3','ff-process-step-title',step.title),'step'+(index+1)+'_title'));
+      text.appendChild(assignText(tag('h3','ff-process-step-title',String(step.title||'').replace(/^\\s*[1-3][.)]\\s*/,'')),'step'+(index+1)+'_title'));
       text.appendChild(assignText(tag('p','ff-process-step-description',step.description),'step'+(index+1)+'_description'));
       col.appendChild(text);
       steps.appendChild(col);
@@ -245,10 +296,34 @@
     });
     sectionTitle('Kolory');
     for(const [key,label] of [
-      ['background','Tło'],['text','Nagłówki'],['muted','Teksty opisów'],
+      ['background','Kolor bazowy tła'],['wash_color','Kolor żółtej poświaty'],['text','Nagłówki'],['muted','Teksty opisów'],
       ['accent','Etykieta, linia i strzałki'],['icon_background','Tło ikon'],
       ['icon_color','Kolor ikon']
     ])field(container,label,d[key],'color',v=>d[key]=v);
+    sectionTitle('Poświata i gałązka za napisami');
+    field(container,'Intensywność poświaty (%)',d.wash_opacity,'number',v=>d.wash_opacity=v,{min:0,max:100,step:1});
+    field(container,'Pokaż rysunek gałązki',d.branch_visible===false?'no':'yes','select',v=>d.branch_visible=v==='yes',{choices:[['yes','Tak'],['no','Nie']]});
+    for(const [key,label,min,max] of [
+      ['branch_opacity','Krycie gałązki (%)',0,100],
+      ['branch_width','Szerokość gałązki (px)',70,650],
+      ['branch_x','Pozycja gałązki w poziomie (px)',-350,350],
+      ['branch_y','Pozycja gałązki w pionie (px)',-350,350]
+    ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
+    sectionTitle('Własny obrazek dekoracyjny pod tekstami');
+    field(container,'Obraz z biblioteki zdjęć',d.decorative_photo_id||'','select',v=>d.decorative_photo_id=v?Number(v):null,{choices:[['','Bez dodatkowego obrazka'],...mediaPhotos.map(photo=>[photo.id,photo.title||photo.alt||('Zdjęcie '+photo.id)])]});
+    for(const [key,label,min,max] of [
+      ['decorative_photo_opacity','Krycie dekoracji (%)',0,100],
+      ['decorative_photo_width','Szerokość obrazka (px)',40,900],
+      ['decorative_photo_x','Pozycja pozioma (%)',-300,100],
+      ['decorative_photo_y','Pozycja pionowa (px)',-500,500],
+      ['decorative_photo_rotate','Obrót (stopnie)',-180,180]
+    ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
+    sectionTitle('Numeracja i łączniki');
+    field(container,'Wyświetl numery 01 / 02 / 03',d.show_numbers===false?'no':'yes','select',v=>d.show_numbers=v==='yes',{choices:[['yes','Tak'],['no','Nie']]});
+    field(container,'Wielkość numerów (px)',d.number_size,'number',v=>d.number_size=v,{min:12,max:100,step:1});
+    field(container,'Grubość obramowania ikon (px)',d.icon_border_width,'number',v=>d.icon_border_width=v,{min:0,max:8,step:0.1});
+    field(container,'Łączniki etapów',d.connector_style||'line','select',v=>{d.connector_style=v;d.show_arrows=v!=='none';},{choices:[['line','Delikatne linie'],['arrow','Strzałki'],['none','Bez łączników']]});
+    field(container,'Długość łączników (px)',d.connector_length,'number',v=>d.connector_length=v,{min:0,max:110,step:1});
     sectionTitle('Odstępy i ikony');
     for(const [key,label,min,max] of [
       ['pad_x','Marginesy boczne (px)',0,160],
@@ -258,7 +333,7 @@
       ['steps_gap','Odstęp między etapami (px)',0,120],
       ['icon_size','Wielkość ikon (px)',36,150]
     ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
-    field(container,'Strzałki między etapami',d.show_arrows===false?'no':'yes','select',v=>d.show_arrows=v==='yes',{choices:[['yes','Pokaż'],['no','Ukryj']]});
+
   }
-  window.FoodfotoProcess={initialize,render,panel,configure,attachTypography,activate,typographyItem,typographyParts};
+  window.FoodfotoProcess={initialize,render,panel,configure,configurePhotos,attachTypography,activate,typographyItem,typographyParts};
 })();
