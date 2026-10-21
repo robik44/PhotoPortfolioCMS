@@ -364,6 +364,52 @@
     };
     const sectionTitle=text=>{const h=tag('h4','',text);h.style.cssText='margin:24px 0 6px;font-weight:700;border-top:1px solid #ddd;padding-top:12px;';container.appendChild(h);};
     const d=item.process_design;
+    sectionTitle('Wygląd zgodny z projektem');
+    const stylePreset=tag('button','fve-button','Zastosuj delikatniejszy styl z projektu');
+    stylePreset.type='button';stylePreset.style.cssText='width:100%;font-weight:600;margin-bottom:8px';
+    stylePreset.title='Ustawi wygląd sekcji i typografię wszystkich 12 napisów. Nie zmieni treści ani zapisanych przesunięć.';
+    stylePreset.addEventListener('click',()=>{
+      Object.assign(item.process_design,{
+        background:'#faf9f4',wash_color:'#f2e8ce',wash_opacity:26,
+        branch_visible:true,branch_opacity:58,branch_width:245,
+        branch_x:-65,branch_y:-35,
+        show_numbers:true,number_size:31,
+        connector_style:'line',show_arrows:true,connector_length:27,
+        icon_size:66,icon_border_width:1,
+        icon_background:'#f7f8f0',icon_color:'#8b9a81',
+        accent:'#98a888',text:'#272824',muted:'#656962',
+        pad_x:66,pad_y:54,head_gap:55,section_gap:36,
+        steps_gap:25,title_size:46,title_weight:400,heading_italic:true,
+        lead_size:14,step_title_size:18,step_description_size:13
+      });
+      const styles=[
+        ['kicker',11,'#819373',600,'normal','Arial'],
+        ['title',46,'#242521',400,'italic','Georgia'],
+        ['intro',14,'#656962',400,'normal','Arial'],
+        ...[1,2,3].flatMap(i=>[
+          ['step'+i+'_number',31,'#98a888',400,'italic','Georgia'],
+          ['step'+i+'_title',18,'#242521',400,'normal','Georgia'],
+          ['step'+i+'_description',13,'#626861',400,'normal','Arial']
+        ])
+      ];
+      for(const [key,size,color,weight,fontStyle,family] of styles){
+        item.process_typography ??= {};
+        item.process_typography[key] ??= {};
+        item.process_typography[key].typography ??= {};
+        item.process_typography[key].typography.desktop={
+          ...(item.process_typography[key].typography.desktop||{}),
+          font_family:family,font_size:size,font_weight:weight,
+          font_style:fontStyle,color,color_alpha:100,opacity:100
+        };
+      }
+      container.innerHTML='';
+      panel(container,item,rerender);
+      rerender();
+    });
+    container.appendChild(stylePreset);
+    const presetNote=tag('p','', 'Preset nadaje ciemniejszy nagłówek i subtelniejsze żółte tło z projektu. Możesz potem zmienić osobno dowolny tekst. Zdjęcia, treść i pozycje pozostają bez zmian.');
+    presetNote.style.cssText='font:12px/1.5 Arial;color:#687368';
+    container.appendChild(presetNote);
     sectionTitle('Położenie każdego elementu — przesuń myszą');
     const dragIsOn=moveModes.get(item)===true;
     field(container,'Tryb swobodnego przesuwania',dragIsOn?'yes':'no','select',value=>{
