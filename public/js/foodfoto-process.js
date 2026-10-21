@@ -59,7 +59,7 @@
     item.process_positions ??= {};
     const val=item.process_positions[key];
     if(!val || typeof val!=='object' || Array.isArray(val)) return {x:0,y:0};
-    return {x:safeNumber(val.x,0,-1800,1800),y:safeNumber(val.y,0,-1000,1000)};
+    return {x:safeNumber(val.x,0,-1800,1800),y:safeNumber(val.y,0,-1000,1000),scale:safeNumber(val.scale,1,.4,3.5)};
   };
   function setMove(node,item,key){
     if(!node) return;
@@ -67,6 +67,7 @@
     const coords=movePosition(item,key);
     node.style.setProperty('--ff-part-x',coords.x+'px');
     node.style.setProperty('--ff-part-y',coords.y+'px');
+    node.style.setProperty('--ff-part-scale',String(coords.scale));
   }
 
   function attachTypography(editor) { typographyEditor = editor; }
@@ -171,6 +172,7 @@
     if (d.connector_style === 'arrow') section.classList.add('ff-process-arrow-connectors');
     if (d.show_arrows === false) section.classList.add('ff-process-hide-arrows');
     const cssVars = {
+      '--ff-process-section-height': safeNumber(d.section_height,0,0,1600)+'px',
       '--ff-process-background': safeColor(d.background,'#faf9f4'),
       '--ff-process-wash-color': safeColor(d.wash_color,'#f1e7c9'),
       '--ff-process-wash-opacity': safeNumber(d.wash_opacity,53,0,100)/100,
@@ -203,7 +205,7 @@
     for (const [key,value] of Object.entries(cssVars)) section.style.setProperty(key,String(value));
     if(onTextClick){
       section.classList.add('is-editing');
-      if(moveModes.get(item)) section.classList.add('is-moving');
+      if(moveModes.get(item)!==false) section.classList.add('is-moving');
     }
     const selectPart = key => {
       selectedMoves.set(item,key);
@@ -219,7 +221,7 @@
       // attempts to drag the entire three-step section.
       node.addEventListener('mousedown',event=>event.stopPropagation());
       node.addEventListener('pointerdown',event=>{
-        if(!moveModes.get(item) || event.button!==0) return;
+        if(moveModes.get(item)===false || event.button!==0) return;
         event.stopPropagation();
         event.preventDefault();
         const orig=movePosition(item,key);
@@ -235,7 +237,7 @@
           if(Math.abs(dx)>1||Math.abs(dy)>1)moved=true;
           const x=Math.round(Math.max(-1800,Math.min(1800,orig.x+dx)));
           const y=Math.round(Math.max(-1000,Math.min(1000,orig.y+dy)));
-          item.process_positions[key]={x,y};
+          item.process_positions[key]={...movePosition(item,key),x,y};
           setMove(node,item,key);
         };
         const finish=e=>{
@@ -251,7 +253,7 @@
         node.addEventListener('pointercancel',finish);
       });
       node.addEventListener('click',event=>{
-        if(moveModes.get(item)){
+        if(moveModes.get(item)!==false){
           event.stopPropagation();
           event.preventDefault();
           return;
@@ -267,12 +269,51 @@
       node.dataset.processPart = key;
       if (typographyEditor) typographyEditor.apply(node, typographyItem(item,key));
       movable(node,key);
+      if(onTextClick){
+        // Handle sits inside each actual text element; the entire text is
+        // resized uniformly via CSS scale, preserving glyph proportions,
+        // line spacing and wrapping. It never replaces the editable text.
+        const grip=tag('span','ff-process-resize-handle');
+        grip.setAttribute('aria-hidden','true');
+        grip.title='Złap i przeciągnij, aby proporcjonalnie zmienić rozmiar tekstu';
+        grip.addEventListener('mousedown',event=>event.stopPropagation());
+        grip.addEventListener('click',event=>{event.stopPropagation();event.preventDefault();});
+        grip.addEventListener('pointerdown',event=>{
+          if(event.button!==0)return;
+          event.stopPropagation();event.preventDefault();
+          const start=movePosition(item,key);
+          const box=node.getBoundingClientRect();
+          const pointerId=event.pointerId;
+          const originX=event.clientX,originY=event.clientY;
+          grip.setPointerCapture(pointerId);
+          const onMove=e=>{
+            if(e.pointerId!==pointerId)return;
+            const rx=(e.clientX-originX)/Math.max(80,box.width);
+            const ry=(e.clientY-originY)/Math.max(35,box.height);
+            const scale=Math.round(Math.max(.4,Math.min(3.5,start.scale*(1+(rx+ry)/2)))*100)/100;
+            item.process_positions[key]={...movePosition(item,key),scale};
+            setMove(node,item,key);
+          };
+          const stop=e=>{
+            if(e.pointerId!==pointerId)return;
+            grip.removeEventListener('pointermove',onMove);
+            grip.removeEventListener('pointerup',stop);
+            grip.removeEventListener('pointercancel',stop);
+            if(grip.hasPointerCapture(pointerId))grip.releasePointerCapture(pointerId);
+            selectPart(key);
+          };
+          grip.addEventListener('pointermove',onMove);
+          grip.addEventListener('pointerup',stop);
+          grip.addEventListener('pointercancel',stop);
+        });
+        node.appendChild(grip);
+      }
       if (onTextClick) {
-        node.style.cursor = 'text';
+        node.style.cursor = moveModes.get(item)===false ? 'text' : 'grab';
         node.addEventListener('mousedown', event => event.stopPropagation());
         node.addEventListener('click', event => {
           event.stopPropagation();
-          if(moveModes.get(item))return;
+          if(moveModes.get(item)!==false)return;
           selectPart(key);
         });
       }
@@ -335,7 +376,7 @@
   function panel(container,item,rerender) {
     if (item.type !== 'process_steps') return;
     initialize(item);
-    const header = tag('p','', 'Każdy tekst i każda ikona są edytowalne. Wysokość sekcji dopasowuje się automatycznie.');
+    const header = tag('p','', 'Kliknij i przeciągnij dowolny napis. Zielony uchwyt w jego prawym dolnym rogu zmienia wielkość proporcjonalnie. Wysokość sekcji ustawisz poniżej.');
     header.style.cssText = 'color:#666;font-size:12px;line-height:1.5;';
     container.appendChild(header);
     const field = (root,label,value,kind,change,opts={}) => {
@@ -414,15 +455,18 @@
     const presetNote=tag('p','', 'Preset nadaje ciemniejszy nagłówek i subtelniejsze żółte tło z projektu. Możesz potem zmienić osobno dowolny tekst. Zdjęcia, treść i pozycje pozostają bez zmian.');
     presetNote.style.cssText='font:12px/1.5 Arial;color:#687368';
     container.appendChild(presetNote);
-    sectionTitle('Położenie każdego elementu — przesuń myszą');
-    const dragIsOn=moveModes.get(item)===true;
+    sectionTitle('Wysokość całej sekcji');
+    field(container,'Minimalna wysokość sekcji (px; 0 = automatyczna)',d.section_height??0,'number',
+      value=>d.section_height=Math.max(0,Math.min(1600,Math.round(value))),{min:0,max:1600,step:5});
+    sectionTitle('Położenie i rozmiar — złap i przeciągnij');
+    const dragIsOn=moveModes.get(item)!==false;
     field(container,'Tryb swobodnego przesuwania',dragIsOn?'yes':'no','select',value=>{
       moveModes.set(item,value==='yes');
       container.innerHTML='';
       panel(container,item,rerender);
       rerender();
     },{choices:[['no','Wyłączony — kliknięcie otwiera typografię'],['yes','WŁĄCZONY — złap każdy element i przeciągnij']]});
-    const info=tag('p','', 'Włącz przesuwanie i przeciągaj pojedyncze teksty, numery, ikony, gałązkę oraz linie między etapami. Możesz również wprowadzić dokładne X i Y poniżej.');
+    const info=tag('p','', 'Kliknij tekst, żeby go zaznaczyć. Przeciągnij cały napis, aby go przesunąć; przeciągnij zielony kwadracik w prawym dolnym rogu, aby powiększyć lub pomniejszyć go proporcjonalnie.');
     info.style.cssText='font:12px/1.5 Arial;color:#657368';
     container.appendChild(info);
     const selectedKey=selectedMoves.get(item)||currentPart(item);
@@ -440,6 +484,11 @@
     field(container,'Przesunięcie pionowe Y (px)',coord.y,'number',value=>{
       item.process_positions[selectedKey]={...movePosition(item,selectedKey),y:Math.round(value)};
     },{min:-1000,max:1000,step:1});
+    if(typographyParts.some(([key])=>key===selectedKey)){
+      field(container,'Skala tekstu (% — proporcjonalnie)',Math.round(coord.scale*100),'number',value=>{
+        item.process_positions[selectedKey]={...movePosition(item,selectedKey),scale:Math.round(value)/100};
+      },{min:40,max:350,step:1});
+    }
     const reset=tag('button','fve-button','Wyzeruj położenie wybranego elementu');
     reset.type='button';reset.style.cssText='width:100%;margin:8px 0 12px';
     reset.onclick=()=>{
