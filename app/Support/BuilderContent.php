@@ -94,6 +94,7 @@ class BuilderContent
                     'decorative_photo_x' => [-300,100],
                     'decorative_photo_y' => [-500,500],
                     'decorative_photo_rotate' => [-180,180],
+                    'section_height' => [0,1600],
                 ] as $key => [$min, $max]) {
                     $rules['process_design.'.$key] = ['sometimes', 'numeric', 'between:'.$min.','.$max];
                 }
@@ -123,6 +124,7 @@ class BuilderContent
                         Validator::make($position, [
                             'x' => ['sometimes','numeric','between:-1800,1800'],
                             'y' => ['sometimes','numeric','between:-1000,1000'],
+                            'scale' => ['sometimes','numeric','between:0.4,3.5'],
                         ])->validate();
                     }
                 }
