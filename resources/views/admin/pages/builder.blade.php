@@ -1446,6 +1446,8 @@ document.addEventListener("DOMContentLoaded", function () {
             : (item.mosaic_typography??={});
         const values=group[role]??={};
         const defaults={...(mosaicRoleDefaults[role]||{}),...item.mosaic_typography?.[role],...values};
+        if(role==='heading' && values.font_size===undefined && item.mosaic_typography?.heading?.font_size===undefined)
+            defaults.font_size=Number(item.mosaic_title_size??44);
         const change=(key,value)=>{
             if(value===null||value==='') delete values[key]; else values[key]=value;
             if(Object.keys(values).length===0)delete group[role];
@@ -1531,6 +1533,20 @@ document.addEventListener("DOMContentLoaded", function () {
         more.style.setProperty('--fm-more-pad-y',Number(item.mosaic_more_padding_y??12)+'px');
         header.appendChild(more);
         root.appendChild(header);
+        for(const [role,selector] of [
+            ['kicker','.ff-mosaic-kicker'],['heading','.ff-mosaic-heading'],
+            ['intro','.ff-mosaic-intro'],['more','.ff-mosaic-more']
+        ]){
+            const target=header.querySelector(selector);
+            if(!target)continue;
+            target.addEventListener('mousedown',e=>e.stopPropagation());
+            target.addEventListener('click',e=>{
+                e.preventDefault();e.stopPropagation();
+                item.mosaic_typography_scope='shared';
+                item.mosaic_typography_role=role;
+                selectOnly(item.id);render();showProperties(item);
+            });
+        }
         const grid=mosaicNode('div','ff-mosaic-grid'+(item.mosaic_layout==='even'?' is-even':''));
         item.mosaic_cards.forEach((entry,index)=>{
             const gallery=galleries.find(g=>Number(g.id)===Number(entry.gallery_id));
@@ -1564,6 +1580,13 @@ document.addEventListener("DOMContentLoaded", function () {
             card.addEventListener('click',e=>{
                 e.preventDefault();e.stopPropagation();
                 item.mosaic_selected_index=index;
+                const roleTarget=e.target.closest('.ff-mosaic-card-category,.ff-mosaic-card-description,.ff-mosaic-arrow');
+                if(roleTarget){
+                    item.mosaic_typography_scope='card';
+                    item.mosaic_typography_role=roleTarget.classList.contains('ff-mosaic-card-description')
+                        ? 'description'
+                        : (roleTarget.classList.contains('ff-mosaic-arrow') ? 'arrow' : 'category');
+                }
                 selectOnly(item.id);
                 render();
                 showProperties(item);
@@ -1650,8 +1673,6 @@ document.addEventListener("DOMContentLoaded", function () {
             field('Szerokość skrajnych kart (%)','number',item.mosaic_side_width ?? 26,
                 v=>item.mosaic_side_width=Math.max(17,Math.min(34,Number(v)||26)),{min:17,max:34,step:0.5});
         }
-        field('Rozmiar nagłówka (px)','number',item.mosaic_title_size ?? 44,
-            v=>item.mosaic_title_size=Math.max(22,Math.min(76,Number(v)||44)),{min:22,max:76,step:0.1});
         selectField('Podpisy opisowe kart',item.mosaic_descriptions===false?'off':'on',
             [['on','Pokaż opisy'],['off','Ukryj opisy']],v=>item.mosaic_descriptions=v==='on');
         title('Karty galerii: 6 pozycji');
