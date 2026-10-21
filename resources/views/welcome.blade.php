@@ -71,7 +71,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=1400, user-scalable=yes, maximum-scale=8">
+    <meta name="viewport" content="width=1600, initial-scale=1, user-scalable=yes, maximum-scale=8">
 
     @include('components.seo-meta', ['seo' => \App\Support\Seo::meta(null)])
 
@@ -491,10 +491,12 @@
          Do not rearrange columns or switch to the mobile layout. --}}
     <style>
         @media (hover: none) and (pointer: coarse) and (max-device-width: 600px) {
-            html, body { width: 1400px !important; min-width: 1400px !important; margin-left: 0; margin-right: 0; }
+            /* The content canvas remains 1400px, as on desktop. A 1600px
+               browser viewport includes the desktop margins and full menu. */
+            html, body { width: 1600px !important; min-width: 1600px !important; margin-left: 0; margin-right: 0; overflow-x: hidden; }
             #fve-header-variant-preview.ff-public-header,
-            #fve-header-variant-preview.ff-public-header .ff-shared-stage { width: 1400px; }
-            .ff-public-sticky { width: 1400px; max-width: none; }
+            #fve-header-variant-preview.ff-public-header .ff-shared-stage { width: 1600px; max-width: none; }
+            .ff-public-sticky { width: 1600px; max-width: none; }
         }
     </style>
 </head>
