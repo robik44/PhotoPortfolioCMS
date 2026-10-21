@@ -296,7 +296,9 @@
     <style>
         @media (hover: none) and (pointer: coarse) {
             html,body {width:100%!important;min-width:0!important;overflow-x:hidden;margin:0}
-            body > .ff-desktop-scale-root {width:1400px;transform-origin:top left}
+            /* Absolute positioning prevents a 1400px child from inflating
+               the layout viewport before the fit factor is measured. */
+            body > .ff-desktop-scale-root {position:absolute;top:0;left:0;width:1400px;transform:none!important;transform-origin:top left}
             #fve-header-variant-preview.ff-public-header,
             #fve-header-variant-preview.ff-public-header .ff-shared-stage {width:1400px!important;max-width:none!important}
             #home-public-builder-canvas,#page-public-builder-canvas{margin-left:0!important;margin-right:0!important}
@@ -309,13 +311,19 @@
         function scaleDesktop() {
             var root = document.querySelector('.ff-desktop-scale-root');
             if (!root) return;
-            var screenWidth = document.documentElement.clientWidth;
-            var factor = Math.min(1, screenWidth / 1400);
+            // documentElement.clientWidth can be 1400 on Safari when a
+            // wide child forces the layout viewport open. screen.width is
+            // independent of overflowing content and stays in CSS pixels.
+            var physicalWidth = window.matchMedia('(orientation: landscape)').matches
+                ? Math.max(window.screen.width, window.screen.height)
+                : Math.min(window.screen.width, window.screen.height);
+            var viewportWidth = Math.min(physicalWidth, window.innerWidth || physicalWidth);
+            var factor = Math.min(1, viewportWidth / 1400);
             // CSS zoom scales the layout box itself. A transform only scales
             // pixels and can leave iOS Safari horizontally scrolled or clipped.
             root.style.transform = 'none';
             root.style.zoom = String(factor);
-            document.body.style.minHeight = '';
+            document.body.style.minHeight = Math.ceil(root.scrollHeight * factor) + 'px';
             var sticky = document.getElementById('ff-public-sticky');
             if (sticky) {
                 sticky.style.transform = 'none';
@@ -335,11 +343,22 @@
             var sticky = root.querySelector('#ff-public-sticky');
             if (sticky) document.body.appendChild(sticky);
             scaleDesktop();
-            window.addEventListener('resize', scaleDesktop);
+            // Pinch zoom should stay native. Refit for rotation, not for
+            // visualViewport resize events caused by pinching.
+            window.addEventListener('orientationchange', scaleDesktop);
             window.addEventListener('load', function () {
                 scaleDesktop();
                 if (!window.location.hash) window.scrollTo(0, 0);
             });
+            if ('ResizeObserver' in window) {
+                new ResizeObserver(function () {
+                    var r = document.querySelector('.ff-desktop-scale-root');
+                    if (r) {
+                        var z = Number(r.style.zoom) || 1;
+                        document.body.style.minHeight = Math.ceil(r.scrollHeight * z) + 'px';
+                    }
+                }).observe(root);
+            }
         });
     })();
     </script>
