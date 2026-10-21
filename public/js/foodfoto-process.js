@@ -40,6 +40,8 @@
   const activeParts = new WeakMap();
   const moveModes = new WeakMap();
   const selectedMoves = new WeakMap();
+  const rulerModes = new WeakMap();
+  const snappingModes = new WeakMap();
   const moveKeys = [
     ['kicker','Mała etykieta „JAK PRACUJĘ”'],
     ['title','Duży nagłówek'],
@@ -206,7 +208,80 @@
     if(onTextClick){
       section.classList.add('is-editing');
       if(moveModes.get(item)!==false) section.classList.add('is-moving');
+      if(rulerModes.get(item)!==false) section.classList.add('has-rulers');
     }
+    // These live only inside the editor. The public renderer sees the same
+    // saved geometry but never shows rulers or alignment guides.
+    let guideX=null,guideY=null;
+    if(onTextClick){
+      const overlay=tag('div','ff-process-editor-overlay');
+      overlay.setAttribute('aria-hidden','true');
+      guideX=tag('div','ff-process-guide ff-process-guide-x');
+      guideY=tag('div','ff-process-guide ff-process-guide-y');
+      overlay.appendChild(guideX);overlay.appendChild(guideY);
+      const rulerX=tag('div','ff-process-ruler ff-process-ruler-x');
+      const rulerY=tag('div','ff-process-ruler ff-process-ruler-y');
+      for(let value=0;value<=2000;value+=100){
+        const lx=tag('span','ff-process-ruler-label',String(value));
+        lx.style.left=value+'px';
+        rulerX.appendChild(lx);
+        const ly=tag('span','ff-process-ruler-label',String(value));
+        ly.style.top=value+'px';
+        rulerY.appendChild(ly);
+      }
+      overlay.appendChild(rulerX);overlay.appendChild(rulerY);
+      section.appendChild(overlay);
+    }
+    const clearGuides=()=>{
+      if(guideX)guideX.style.display='none';
+      if(guideY)guideY.style.display='none';
+    };
+    const showGuides=(x,y)=>{
+      if(!guideX||rulerModes.get(item)===false)return;
+      if(x===null)guideX.style.display='none';
+      else {guideX.style.display='block';guideX.style.left=x+'px';}
+      if(y===null)guideY.style.display='none';
+      else {guideY.style.display='block';guideY.style.top=y+'px';}
+    };
+    const snapElement=(node,key,skipSnap)=>{
+      const parent=section.getBoundingClientRect();
+      const zoom=parent.width/Math.max(1,section.offsetWidth);
+      const measure=node.getBoundingClientRect();
+      const targets=[{
+        left:parent.left,right:parent.right,top:parent.top,bottom:parent.bottom,
+        width:parent.width,height:parent.height
+      },...Array.from(section.querySelectorAll('[data-process-move]'))
+        .filter(other=>other!==node && other.getClientRects().length)
+        .map(other=>other.getBoundingClientRect())
+        .filter(box=>box.width>3 && box.height>3)];
+      const lines=(box,axis)=> axis==='x'
+        ? [box.left,box.left+box.width/2,box.right]
+        : [box.top,box.top+box.height/2,box.bottom];
+      const candidates=(axis)=>{
+        let closest=null;
+        for(const source of lines(measure,axis)){
+          for(const other of targets){
+            for(const target of lines(other,axis)){
+              const diff=target-source;
+              if(Math.abs(diff)<=7 && (!closest || Math.abs(diff)<Math.abs(closest.diff)))
+                closest={diff,target};
+            }
+          }
+        }
+        return closest;
+      };
+      const horizontal=candidates('x');
+      const vertical=candidates('y');
+      if(!skipSnap && snappingModes.get(item)!==false && zoom>0){
+        const current=movePosition(item,key);
+        const x=Math.round(Math.max(-1800,Math.min(1800,current.x+(horizontal?.diff||0)/zoom)));
+        const y=Math.round(Math.max(-1000,Math.min(1000,current.y+(vertical?.diff||0)/zoom)));
+        item.process_positions[key]={...current,x,y};
+        setMove(node,item,key);
+      }
+      showGuides(horizontal && !skipSnap?(horizontal.target-parent.left)/Math.max(.1,zoom):null,
+        vertical && !skipSnap?(vertical.target-parent.top)/Math.max(.1,zoom):null);
+    };
     const selectPart = key => {
       selectedMoves.set(item,key);
       if(typographyParts.some(part=>part[0]===key)) activate(item,key);
@@ -239,6 +314,7 @@
           const y=Math.round(Math.max(-1000,Math.min(1000,orig.y+dy)));
           item.process_positions[key]={...movePosition(item,key),x,y};
           setMove(node,item,key);
+          snapElement(node,key,e.altKey);
         };
         const finish=e=>{
           if(e.pointerId!==pointerId)return;
@@ -246,6 +322,7 @@
           node.removeEventListener('pointerup',finish);
           node.removeEventListener('pointercancel',finish);
           if(node.hasPointerCapture(pointerId))node.releasePointerCapture(pointerId);
+          clearGuides();
           selectPart(key);
         };
         node.addEventListener('pointermove',onMove);
