@@ -153,7 +153,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview.ff-public-header .ff-shared-stage{overflow:visible}
 #fve-header-variant-preview.ff-public-header .ff-full .ff-shared-photo{object-position:center}
 #fve-header-variant-preview.ff-public-header .ff-full{overflow:hidden}
-@media(max-width:900px) {
+@media(max-width:900px) and (hover:hover) {
  #fve-header-variant-preview.ff-public-header .ff-shared-stage.ff-full{height:auto;min-height:720px;overflow:hidden}
  #fve-header-variant-preview.ff-public-header .ff-shared-bar{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:10px;padding:14px 4%;min-height:0}
  #fve-header-variant-preview.ff-public-header .ff-shared-brand{gap:7px;max-width:100%;transform:none}
