@@ -1979,7 +1979,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else if (item.type === "color_panel") {
 
             const hex = /^#[0-9a-f]{6}$/i.test(item.panel_color || '') ? item.panel_color : '#ffffff';
-            const alpha = Math.max(0, Math.min(100, Number(item.panel_opacity) ?? 100)) / 100;
+            const alpha = Math.max(0, Math.min(100, Number(item.panel_opacity ?? 100))) / 100;
             const red = parseInt(hex.slice(1,3),16);
             const green = parseInt(hex.slice(3,5),16);
             const blue = parseInt(hex.slice(5,7),16);
@@ -2921,6 +2921,20 @@ document.addEventListener("DOMContentLoaded", function () {
                 actions.appendChild(btn);
             }
             properties.appendChild(actions);
+            const presets=document.createElement('div');
+            presets.style.cssText='display:flex;flex-wrap:wrap;gap:5px;margin:0 0 14px';
+            for (const [text,level] of [
+                ['Pod napisami',5],
+                ['Między zdjęciami a tekstem',40],
+                ['Na wierzch',130]
+            ]) {
+                const btn=document.createElement('button');
+                btn.type='button';btn.className='fve-button';btn.textContent=text;
+                btn.style.cssText='flex:1 1 120px;font-size:11px;white-space:normal';
+                btn.onclick=()=>{item[layerKey]=level;render();showProperties(item);};
+                presets.appendChild(btn);
+            }
+            properties.appendChild(presets);
         }
         if (item.type === 'color_panel') {
             const backgroundField = document.createElement('label');
