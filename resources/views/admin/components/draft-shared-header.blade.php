@@ -298,6 +298,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-rule::before{
   width:var(--ffc-divider-width,1px)!important;
 }
+#fve-header-variant-preview .ff-simple .ff-shared-brand{transform:none!important}
 #fve-header-variant-preview .ff-simple .ff-shared-name{transform:none!important}
 #fve-header-variant-preview .ff-simple .ff-shared-name strong{
   position:relative;display:block;
