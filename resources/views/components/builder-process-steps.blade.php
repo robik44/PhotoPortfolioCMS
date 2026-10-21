@@ -22,10 +22,25 @@
     $headFont = \App\Services\SiteFontLibrary::css($design['heading_font'] ?? 'Georgia', $catalog, 'Georgia');
     $bodyFont = \App\Services\SiteFontLibrary::css($design['body_font'] ?? 'Arial', $catalog, 'Arial');
     $processTextParts = \App\Support\ProcessTypography::parts($process);
+    $decorativeId = (int)($design['decorative_photo_id'] ?? 0);
+    $decorativePhoto = $decorativeId > 0 ? \App\Models\Photo::find($decorativeId) : null;
+    $showNumbers = ($design['show_numbers'] ?? true) !== false;
+    $connectorStyle = in_array(($design['connector_style'] ?? 'line'), ['line','arrow','none'], true)
+        ? ($design['connector_style'] ?? 'line') : 'line';
+    if (($design['show_arrows'] ?? true) === false) $connectorStyle = 'none';
 @endphp
-<section class="ff-process {{ ($design['show_arrows'] ?? true) === false ? 'ff-process-hide-arrows' : '' }}"
+<section class="ff-process {{ $connectorStyle === 'none' ? 'ff-process-hide-arrows' : '' }} {{ $connectorStyle === 'arrow' ? 'ff-process-arrow-connectors' : '' }} {{ !$showNumbers ? 'ff-process-no-numbers' : '' }}"
     style="
-        --ff-process-background:{{ $color('background', '#ffffff') }};
+        --ff-process-background:{{ $color('background', '#faf9f4') }};
+        --ff-process-wash-color:{{ $color('wash_color', '#f1e7c9') }};
+        --ff-process-wash-opacity:{{ $num('wash_opacity', 53, 0, 100)/100 }};
+        --ff-process-branch-opacity:{{ $num('branch_opacity', 38, 0, 100)/100 }};
+        --ff-process-branch-width:{{ $num('branch_width', 250, 70, 650) }}px;
+        --ff-process-branch-x:{{ $num('branch_x', -65, -350, 350) }}px;
+        --ff-process-branch-y:{{ $num('branch_y', -16, -350, 350) }}px;
+        --ff-process-number-size:{{ $num('number_size', 38, 12, 100) }}px;
+        --ff-process-icon-border:{{ $num('icon_border_width', 1, 0, 8) }}px;
+        --ff-process-connector-length:{{ $num('connector_length', 26, 0, 110) }}px;
         --ff-process-text:{{ $color('text', '#24241f') }};
         --ff-process-muted:{{ $color('muted', '#64675e') }};
         --ff-process-accent:{{ $color('accent', '#a7b593') }};
@@ -45,6 +60,27 @@
         --ff-process-heading-font:{{ $headFont }};
         --ff-process-body-font:{{ $bodyFont }};
     ">
+    @if(($design['branch_visible'] ?? true) !== false)
+        <div class="ff-process-branch" aria-hidden="true">
+            <svg viewBox="0 0 310 410" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 395C37 332 17 257 89 197C123 168 127 119 160 80C179 58 199 44 221 22" stroke="#839771" stroke-width="2.2"/>
+                <path d="M70 258C23 237 13 206 14 187C60 200 81 221 70 258Z" fill="#b5c5a0" fill-opacity=".45" stroke="#98aa82"/>
+                <path d="M92 198C54 172 58 135 68 115C106 145 115 177 92 198Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
+                <path d="M133 123C101 99 107 66 125 45C148 76 157 107 133 123Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
+                <path d="M113 163C147 125 188 127 208 135C178 174 140 187 113 163Z" fill="#b5c5a0" fill-opacity=".38" stroke="#98aa82"/>
+                <path d="M166 73C183 34 221 21 245 22C231 62 194 88 166 73Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
+                <path d="M49 317C73 276 112 266 134 273C113 309 80 328 49 317Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
+            </svg>
+        </div>
+    @endif
+    @if($decorativePhoto)
+        <img class="ff-process-decorative-photo" src="{{ $decorativePhoto->imageUrl() }}" alt="" aria-hidden="true" loading="lazy"
+            style="width:{{ $num('decorative_photo_width', 340, 40, 900) }}px;
+                   left:{{ $num('decorative_photo_x', 0, -300, 100) }}%;
+                   top:{{ $num('decorative_photo_y', 0, -500, 500) }}px;
+                   opacity:{{ $num('decorative_photo_opacity', 35, 0, 100)/100 }};
+                   transform:rotate({{ $num('decorative_photo_rotate', 0, -180, 180) }}deg);">
+    @endif
     <div class="ff-process-intro">
         <div>
             <p class="ff-process-eyebrow" data-process-part="kicker" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['kicker'], $catalog) }}">{{ $process['process_kicker'] ?? 'JAK PRACUJĘ' }}</p>
@@ -59,6 +95,7 @@
                 $icon = in_array($step['icon'] ?? '', array_keys($icons), true) ? $step['icon'] : $defaultSteps[$i]['icon'];
             @endphp
             <article class="ff-process-step">
+                <span class="ff-process-number" aria-hidden="true">{{ sprintf('%02d', $i+1) }}</span>
                 <div class="ff-process-bubble">
                     <svg class="ff-process-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none"
                          stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
@@ -66,7 +103,7 @@
                     </svg>
                 </div>
                 <div>
-                    <h3 class="ff-process-step-title" data-process-part="step{{ $i+1 }}_title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_title'], $catalog) }}">{{ $step['title'] ?? '' }}</h3>
+                    <h3 class="ff-process-step-title" data-process-part="step{{ $i+1 }}_title" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_title'], $catalog) }}">{{ preg_replace('/^\\s*[1-3][.)]\\s*/u', '', (string)($step['title'] ?? '')) }}</h3>
                     <p class="ff-process-step-description" data-process-part="step{{ $i+1 }}_description" style="{{ \App\Support\BuilderTypography::inlineCss($processTextParts['step'.($i+1).'_description'], $catalog) }}">{{ $step['description'] ?? '' }}</p>
                 </div>
             </article>
