@@ -58,7 +58,7 @@
 <head>
     <meta charset="utf-8">
 
-    <meta name="viewport" content="width=1400">
+    <meta name="viewport" content="width=1400, user-scalable=yes, maximum-scale=8">
 
     @if(collect($sections)->contains('type', 'thumbnail_gallery'))
         <link rel="stylesheet" href="{{ asset('css/thumbnail-gallery.css') }}">
@@ -289,6 +289,16 @@
                 font-size: 7px;
             }
 
+        }
+    </style>
+    {{-- Fixed desktop composition on phones; users can pinch to zoom.
+         Do not rearrange columns or switch to the mobile layout. --}}
+    <style>
+        @media (hover: none) and (pointer: coarse) and (max-device-width: 600px) {
+            html, body { width: 1400px !important; min-width: 1400px !important; margin-left: 0; margin-right: 0; }
+            #fve-header-variant-preview.ff-public-header,
+            #fve-header-variant-preview.ff-public-header .ff-shared-stage { width: 1400px; }
+            .ff-public-sticky { width: 1400px; max-width: none; }
         }
     </style>
 </head>
