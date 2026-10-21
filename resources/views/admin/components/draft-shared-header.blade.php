@@ -6,6 +6,31 @@ $photo = $draftPreviewImage ?: ($builderHeaderSettings['preview_hero_image'] ?? 
 $full = $headerVariantValue === 'full';
 $heroHeight = max(480, min(900, (int)($builderHeaderSettings['draft_header_hero_height'] ?? 650)));
 $isPublicDraftHeader = (bool) ($isPublicDraftHeader ?? false);
+$nameTypography = $p['brand-text'] ?? [];
+$mainNameSize = max(15, min(100, (float)($nameTypography['font'] ?? 36)));
+$subtitleNameSize = max(7, min(48, (float)($nameTypography['subtitle_font'] ?? 11)));
+$mainNameSpacing = max(-2, min(20, (float)($nameTypography['spacing'] ?? 0)));
+$subtitleNameSpacing = max(-2, min(20, (float)($nameTypography['subtitle_spacing'] ?? 1.4)));
+$mainWordSpacing = max(-2, min(30, (float)($nameTypography['word_spacing'] ?? 0)));
+$subtitleWordSpacing = max(-2, min(30, (float)($nameTypography['subtitle_word_spacing'] ?? 0)));
+$mainNameWeight = in_array((int)($nameTypography['weight'] ?? 400), [300,400,500,600,700,800], true)
+    ? (int)($nameTypography['weight'] ?? 400) : 400;
+$validBrandColor = static fn($color) => is_string($color) && preg_match('/^#[0-9a-fA-F]{6}$/', $color);
+$mainNameColor = $validBrandColor($nameTypography['color'] ?? null) ? $nameTypography['color'] : '#222222';
+$subtitleNameColor = $validBrandColor($nameTypography['subtitle_color'] ?? null) ? $nameTypography['subtitle_color'] : '#222222';
+$brandCssVars = implode(';', [
+    '--ff-title-color:'.$mainNameColor,
+    '--ff-subtitle-color:'.$subtitleNameColor,
+    '--ff-title-spacing:'.$mainNameSpacing.'px',
+    '--ff-subtitle-spacing:'.$subtitleNameSpacing.'px',
+    '--ff-title-word-spacing:'.$mainWordSpacing.'px',
+    '--ff-subtitle-word-spacing:'.$subtitleWordSpacing.'px',
+    '--ff-title-weight:'.$mainNameWeight,
+    '--ff-subtitle-size:'.$subtitleNameSize.'px',
+    '--ff-compact-logo:'.max(30,min(150,round((float)($logo['w']??100)*.58))).'px',
+    '--ff-compact-name:'.max(17,min(70,round($mainNameSize*.78,1))).'px',
+    '--ff-compact-subtitle:'.max(7,min(40,round($subtitleNameSize*.82,1))).'px',
+]);
 $brand = $p['brand'] ?? [];
 $eyebrow = $p['eyebrow'] ?? [];
 $headline = $p['headline'] ?? [];
@@ -44,9 +69,9 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 };
 @endphp
 <div id="fve-header-variant-preview" class="{{ $isPublicDraftHeader ? 'ff-public-header' : 'ff-private-header' }}" data-variant="{{ $headerVariantValue }}">
-<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-hero-height:{{ $heroHeight }}px;--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
+<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-hero-height:{{ $heroHeight }}px;--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;{{ $brandCssVars }};--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
-<div class="ff-shared-bar">
+<div class="ff-shared-bar" style="{{ $brandCssVars }}">
 @if($isPublicDraftHeader)
 <a class="ff-shared-brand" href="{{ url('/') }}" aria-label="FoodFoto — strona główna">
 @else
@@ -153,8 +178,9 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-brand img{width:var(--ff-logo);height:auto;transform:translate(var(--ff-logo-x),var(--ff-logo-y))}
 #fve-header-variant-preview .ff-shared-brand>strong{font:900 32px/.8 Arial}
 #fve-header-variant-preview .ff-shared-rule{height:var(--ff-line);width:22px;position:relative;flex-shrink:0;transform:translate(var(--ff-line-x),var(--ff-line-y))}.ff-shared-rule:before{content:"";position:absolute;left:50%;top:0;height:100%;width:1px;background:#aaa}
-#fve-header-variant-preview .ff-shared-name{transform:translate(var(--ff-name-x),var(--ff-name-y))}.ff-shared-name strong{display:block;font:normal var(--ff-name) Georgia,serif;white-space:nowrap}
-#fve-header-variant-preview .ff-shared-name small{display:block;font:11px Arial;letter-spacing:.12em;white-space:nowrap}
+#fve-header-variant-preview .ff-shared-name{transform:translate(var(--ff-name-x),var(--ff-name-y))}
+#fve-header-variant-preview .ff-shared-name strong{display:block;font:var(--ff-title-weight,400) var(--ff-name) Georgia,serif;white-space:nowrap;letter-spacing:var(--ff-title-spacing,0px);word-spacing:var(--ff-title-word-spacing,0px);color:var(--ff-title-color,#222)}
+#fve-header-variant-preview .ff-shared-name small{display:block;font:var(--ff-subtitle-size,11px) Arial,sans-serif;letter-spacing:var(--ff-subtitle-spacing,1.4px);word-spacing:var(--ff-subtitle-word-spacing,0px);color:var(--ff-subtitle-color,#222);white-space:nowrap}
 #fve-header-variant-preview .ff-shared-menu{position:relative;top:auto;right:auto;margin-left:auto;z-index:5;display:flex;align-items:center;gap:8px;padding:8px 10px 8px 26px;border:1px solid #dedbd5;border-radius:var(--ff-radius);background:white;white-space:nowrap;flex-shrink:0;transform-origin:right center;transform:translate(var(--ff-menu-x),var(--ff-menu-y))}
 #fve-header-variant-preview .ff-shared-menu span{font:11px Arial;letter-spacing:.1em}
 #fve-header-variant-preview .ff-menu-links{display:flex;align-items:center;gap:22px;margin:0;padding:12px 6px;background:transparent;border:0;flex-wrap:nowrap}
@@ -180,9 +206,10 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 }
 #fve-header-variant-preview .ff-simple .ff-shared-hero{display:none}
 #fve-header-variant-preview .ff-simple .ff-shared-bar{padding-top:12px;padding-bottom:12px}
-#fve-header-variant-preview .ff-simple .ff-shared-brand img{width:55px}
+#fve-header-variant-preview .ff-simple .ff-shared-brand img{width:var(--ff-compact-logo,55px)}
 #fve-header-variant-preview .ff-simple .ff-shared-rule{height:55px}
-#fve-header-variant-preview .ff-simple .ff-shared-name strong{font-size:25px}
+#fve-header-variant-preview .ff-simple .ff-shared-name small{font-size:var(--ff-compact-subtitle,9px)}
+#fve-header-variant-preview .ff-simple .ff-shared-name strong{font-size:var(--ff-compact-name,25px)}
 #fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
 #fve-header-variant-preview .ff-shared-brand{color:inherit;text-decoration:none}
 #fve-header-variant-preview .ff-shared-menu a{color:#222;text-decoration:none;font:11px Arial,sans-serif;letter-spacing:.1em}
