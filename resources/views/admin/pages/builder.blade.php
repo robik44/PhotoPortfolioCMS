@@ -1066,6 +1066,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const galleryCollections =
         @json(\App\Models\GalleryCollection::orderBy('sort_order')->orderBy('name')->get(['id','name'])->values());
+    @php
+        $mosaicPageTargets = \App\Models\Page::where('published', true)->orderBy('title')->get()
+            ->map(fn ($target) => [
+                'title' => $target->title,
+                'url' => isset(\App\Support\ContentPages::PAGES[$target->slug])
+                    ? url('/'.$target->slug)
+                    : route('page.public', $target),
+                'photo_id' => $target->featured_photo_id,
+            ])->filter(fn ($target) => preg_match('/fotograf|styliz|opakowan|food\s*styling/i', $target['title']))
+            ->values()->all();
+    @endphp
+    const mosaicPages = @json($mosaicPageTargets);
+
 
     @php
         $menuItemsForEditor = \App\Models\MenuItem::query()
@@ -1415,8 +1428,9 @@ document.addEventListener("DOMContentLoaded", function () {
         const grid=mosaicNode('div','ff-mosaic-grid'+(item.mosaic_layout==='even'?' is-even':''));
         item.mosaic_cards.forEach((entry,index)=>{
             const gallery=galleries.find(g=>Number(g.id)===Number(entry.gallery_id));
-            const photo=gallery?.photos?.find(p=>Number(p.id)===Number(entry.photo_id));
-            const imageUrl=photo?.cover_url || gallery?.cover_url || '';
+            const photo=photos.find(p=>Number(p.id)===Number(entry.photo_id))
+                || gallery?.photos?.find(p=>Number(p.id)===Number(entry.photo_id));
+            const imageUrl=photo?.url || photo?.cover_url || gallery?.cover_url || '';
             const card=mosaicNode('article','ff-mosaic-card'+(index===item.mosaic_selected_index?' is-active':''));
             card.dataset.mosaicIndex=index;
             const media=mosaicNode('div','ff-mosaic-photo');
@@ -1511,22 +1525,22 @@ document.addEventListener("DOMContentLoaded", function () {
             item.mosaic_selected_index=other;render();showProperties(item);
         };
         up.onclick=()=>swap(-1);down.onclick=()=>swap(1);properties.appendChild(row);
-        selectField('Galeria / podstrona',card.gallery_id||'',[
-            ['','Wybierz galerię'],...galleries.filter(g=>g.published!==false).map(g=>[g.id,g.title])
-        ],v=>{card.gallery_id=v?Number(v):null;card.photo_id=null;});
-        const galleryPhotos=gallery?.photos||[];
-        selectField('Zdjęcie z wybranej galerii',card.photo_id||'',[
-            ['','Okładka galerii (automatycznie)'],
-            ...galleryPhotos.map(p=>[p.id,p.title||p.alt||('Zdjęcie '+p.id)])
+        selectField('Galeria (opcjonalnie — źródło okładki)',card.gallery_id||'',[
+            ['','Bez galerii — link do podstrony'],
+            ...galleries.filter(g=>g.published!==false).map(g=>[g.id,g.title])
+        ],v=>{card.gallery_id=v?Number(v):null;});
+        selectField('Zdjęcie z całej biblioteki',card.photo_id||'',[
+            ['','Automatyczna okładka galerii'],
+            ...photos.map(p=>[p.id,p.title||p.alt||('Zdjęcie '+p.id)])
         ],v=>card.photo_id=v?Number(v):null);
-        if(galleryPhotos.length){
+        if(photos.length){
             const photoList=mosaicNode('div');
-            photoList.style.cssText='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 16px';
-            galleryPhotos.forEach(photo=>{
+            photoList.style.cssText='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;max-height:270px;overflow:auto;margin:6px 0 16px;padding:4px;border:1px solid #e1e7df;border-radius:6px';
+            photos.forEach(photo=>{
                 const pick=mosaicNode('button');
                 pick.type='button';pick.title=photo.title||photo.alt||'Wybierz zdjęcie';
                 pick.style.cssText='border:2px solid '+(Number(card.photo_id)===Number(photo.id)?'#37784f':'#ddd')+';border-radius:4px;padding:2px;background:white;cursor:pointer';
-                const img=mosaicNode('img');img.src=photo.cover_url;img.alt=photo.alt||photo.title||'';
+                const img=mosaicNode('img');img.src=photo.thumbnail_url||photo.url;img.alt=photo.alt||photo.title||'';
                 img.loading='lazy';img.style.cssText='width:100%;height:65px;object-fit:cover;display:block';
                 pick.appendChild(img);
                 pick.addEventListener('click',()=>{card.photo_id=Number(photo.id);render();showProperties(item);});
@@ -1536,7 +1550,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
         field('Etykieta pod zdjęciem','text',card.category||'',v=>card.category=v);
         field('Krótki opis karty','textarea',card.description||'',v=>card.description=v);
-        selectField('Cel po kliknięciu',card.link||'',[
+        selectField('Podstrona lub galeria po kliknięciu',card.link||'',[
             ['','Otwórz wybraną galerię'],
             ...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])
         ],v=>card.link=v);
@@ -3153,14 +3167,15 @@ document.addEventListener("DOMContentLoaded", function () {
             item.mosaic_descriptions = true;
             item.mosaic_selected_index = 0;
             item.mosaic_cards = Array.from({length:6}, (_,i) => {
-                const gallery=galleries.filter(g=>g.published !== false)[i] || null;
+                const page=mosaicPages[i] || null;
+                const gallery=page ? null : (galleries.filter(g=>g.published !== false)[i] || null);
                 return {
                   gallery_id:gallery ? Number(gallery.id) : null,
-                  photo_id:null,
+                  photo_id:page?.photo_id ? Number(page.photo_id) : null,
                   title:'',
-                  category:gallery ? gallery.title : '',
+                  category:page?.title || gallery?.title || '',
                   description:'',
-                  link:'',
+                  link:page?.url || '',
                   crop_x:50,crop_y:50
                 };
             });
