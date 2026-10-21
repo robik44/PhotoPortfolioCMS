@@ -284,6 +284,24 @@ class ReplaceHomeSixCardsWithMosaic extends Command
         }
         if (count($out) !== 6) throw new RuntimeException('Brakuje kategorii lub wykryto duplikaty.');
 
+        // Some older pages added the six captions manually on top of a
+        // six-gallery block. Remove only exact, short, on-section duplicates.
+        if ($source === 'galeria CMS') {
+            foreach ($sections as $index => $section) {
+                if (in_array($index, array_merge($captionsToRemove,$descriptionsToRemove,[$headingIndex]), true)) continue;
+                if (!in_array($section['type'] ?? '', ['text','heading'], true)) continue;
+                $y = (float)($section['position_y'] ?? -99);
+                if ($y < $startY || $y >= $limitY) continue;
+                $text = trim(strip_tags((string)($section['content'] ?? '')));
+                $key = $this->topic($text);
+                if ($key && isset($usedKeys[$key]) && mb_strlen($text) < 90
+                    && !preg_match('/[.!?:]/u',$text)
+                    && $this->norm($text) === $this->norm($out[$key]['category'])) {
+                    $captionsToRemove[] = $index;
+                }
+            }
+        }
+
         // Preserve visible order in the old 3x2 grid: first row, second row.
         // The mosaic layout will place cards 1 and 6 high and the four others
         // in the center, without modifying their destination URLs.
