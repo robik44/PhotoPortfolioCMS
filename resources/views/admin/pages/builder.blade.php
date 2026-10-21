@@ -698,6 +698,12 @@
             <button class="fve-tool" data-fve-add="image">
                 + Zdjęcie
             </button>
+            <button class="fve-tool" data-fve-add="color_panel">
+                + Prostokąt / kolorowe tło
+            </button>
+            <small style="display:block;padding:4px 9px 12px;color:#677166;line-height:1.4">
+                Zmiana krycia i kolejności warstw: kliknij prostokąt lub zdjęcie.
+            </small>
 
             <button class="fve-tool" data-fve-add="thumbnail_gallery">+ Galeria miniaturek</button>
 
@@ -1031,6 +1037,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const photos =
         @json($photosForBuilder ?? []);
+    window.FoodfotoProcess.configurePhotos(photos);
 
     @php
         $galleriesForEditor = \App\Models\Gallery::with(["photos", "collection"])
@@ -1904,6 +1911,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     item.photo_title || "Zdjęcie";
 
                 image.style.width = "100%";
+                image.style.opacity = Math.max(0,Math.min(100,Number(item.image_opacity ?? 100))) / 100;
 
                 const imageFit = item.image_fit === "contain" ? "contain" : "cover";
                 const imageRatio = item.image_ratio || "auto";
@@ -2351,9 +2359,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
             element.style.zIndex =
                 (item.type === 'color_panel')
-                    ? Math.max(0, Math.min(50, Number(item.panel_layer) || 2))
+                    ? Math.max(0, Math.min(150, Number(item.panel_layer ?? 2)))
                     : (item.type === 'image' && Number(item.image_layer) >= 0
-                        ? Math.max(0, Math.min(50, Number(item.image_layer)))
+                        ? Math.max(0, Math.min(150, Number(item.image_layer)))
                         : (layerMap[item.type] || 100));
 
             if (selectedIds.has(item.id)) {
@@ -2890,6 +2898,30 @@ document.addEventListener("DOMContentLoaded", function () {
             field('Kolor ikony', 'color', item.icon_color || '#222222',
                 value => { item.icon_color = value; });
         }
+        if (item.type === 'color_panel' || item.type === 'image') {
+            const decorative = item.type === 'color_panel';
+            const layerKey = decorative ? 'panel_layer' : 'image_layer';
+            const currentLayer = Number(item[layerKey] ?? (decorative ? 2 : 10));
+            const layerText = document.createElement('p');
+            layerText.style.cssText = 'font:12px/1.5 Arial;color:#57705f;margin:15px 0 5px;';
+            layerText.textContent = 'Kolejność warstw: 0–49 za tekstami, 100+ przed tekstami. Kliknij + / − aby przesuwać element.';
+            properties.appendChild(layerText);
+            field('Poziom warstwy (0–150)', 'number', currentLayer,
+                v=>{item[layerKey]=Math.max(0,Math.min(150,Math.round(Number(v)||0)));render();},
+                {min:0,max:150,step:1});
+            const actions = document.createElement('div');
+            actions.style.cssText='display:flex;gap:6px;margin:5px 0 12px';
+            for (const [label,delta] of [['← Do tyłu',-1],['Do przodu →',1]]) {
+                const btn=document.createElement('button');
+                btn.type='button';btn.className='fve-button';btn.textContent=label;btn.style.flex='1';
+                btn.addEventListener('click',()=>{
+                    item[layerKey]=Math.max(0,Math.min(150,Number(item[layerKey]??currentLayer)+delta));
+                    render();showProperties(item);
+                });
+                actions.appendChild(btn);
+            }
+            properties.appendChild(actions);
+        }
         if (item.type === 'color_panel') {
             const backgroundField = document.createElement('label');
             backgroundField.className = 'fve-field';
@@ -3153,6 +3185,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
         if (item.type === "image") {
 
+            field('Krycie zdjęcia (%) — 0 niewidoczne, 100 pełne',
+                'number',item.image_opacity ?? 100,
+                value=>{item.image_opacity=Math.max(0,Math.min(100,Number(value)||0));render();},
+                {min:0,max:100,step:1});
             selectField(
                 "Po kliknięciu zdjęcia",
                 item.image_lightbox ? "__lightbox__" : (item.image_link || ""),
@@ -3452,6 +3488,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
         window.builderTypography.initialize(item);
         if (type === 'heading') item.heading_level = 'h2';
+        if (type === 'color_panel') {
+            item.element_width = 90;
+            item.element_height = 400;
+            item.panel_color = '#f1e7c9';
+            item.panel_opacity = 55;
+            item.panel_layer = 2;
+            item.flow_mode = 'free';
+        }
+        if (type === 'image') {
+            item.image_opacity = 100;
+            item.image_layer = 10;
+        }
         if (type === 'process_steps') {
             window.FoodfotoProcess.initialize(item);
             item.element_width = 90;
