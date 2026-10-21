@@ -573,7 +573,112 @@
       ['branch_y','Pozycja gałązki w pionie (px)',-350,350]
     ])field(container,label,d[key],'number',v=>d[key]=v,{min,max,step:1});
     sectionTitle('Własny obrazek dekoracyjny pod tekstami');
-    field(container,'Obraz z biblioteki zdjęć',d.decorative_photo_id||'','select',v=>d.decorative_photo_id=v?Number(v):null,{choices:[['','Bez dodatkowego obrazka'],...mediaPhotos.map(photo=>[photo.id,photo.title||photo.alt||('Zdjęcie '+photo.id)])]});
+    field(container,'Obraz z biblioteki zdjęć',d.decorative_photo_id||'','select',v=>{
+      d.decorative_photo_id=v?Number(v):null;
+      refreshPhotoSelection();
+    },{choices:[['','Bez dodatkowego obrazka'],...mediaPhotos.map(photo=>[photo.id,photo.title||photo.alt||('Zdjęcie '+photo.id)])]});
+    const browser=tag('div','ff-process-photo-browser');
+    browser.style.cssText='border:1px solid #d8dfd4;border-radius:10px;padding:10px;margin:10px 0 15px;background:#fafbf9';
+    const browserHeading=tag('strong','', 'Zdjęcia z biblioteki — kliknij miniaturę');
+    browserHeading.style.cssText='display:block;font:600 13px Arial;color:#344d37;margin-bottom:8px';
+    browser.appendChild(browserHeading);
+    const current=tag('div','ff-process-photo-current');
+    current.style.cssText='display:flex;align-items:center;gap:9px;margin-bottom:10px;font:12px/1.35 Arial;color:#526052';
+    browser.appendChild(current);
+    const search=tag('input');
+    search.type='search';
+    search.placeholder='Szukaj zdjęcia po nazwie lub ALT';
+    search.setAttribute('aria-label','Szukaj zdjęcia w bibliotece');
+    search.style.cssText='display:block;width:100%;padding:9px 10px;margin-bottom:10px;border:1px solid #cfd7cd;border-radius:7px;font:13px Arial';
+    browser.appendChild(search);
+    const grid=tag('div','ff-process-photo-grid');
+    grid.style.cssText='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;max-height:335px;overflow-y:auto;padding:2px';
+    browser.appendChild(grid);
+    const tiles=[];
+    const photoSrc=photo=>photo.thumbnail_url||photo.url||'';
+    const photoName=photo=>photo.title||photo.alt||('Zdjęcie '+photo.id);
+    const empty=tag('p','','Brak zdjęć w bibliotece.');
+    empty.style.cssText='font:12px Arial;color:#7b837a';
+    if(!mediaPhotos.length)browser.appendChild(empty);
+    mediaPhotos.forEach(photo=>{
+      const tile=tag('button','ff-process-photo-tile');
+      tile.type='button';
+      tile.dataset.photoId=String(photo.id);
+      tile.title=photoName(photo);
+      tile.setAttribute('aria-label','Wybierz: '+photoName(photo));
+      tile.setAttribute('aria-pressed','false');
+      tile.style.cssText='min-width:0;border:2px solid #d6ded5;border-radius:7px;padding:3px;background:#fff;cursor:pointer;text-align:left';
+      const thumbnail=tag('img');
+      thumbnail.src=photoSrc(photo);
+      thumbnail.alt=photo.alt||photo.title||'';
+      thumbnail.loading='lazy';
+      thumbnail.style.cssText='display:block;width:100%;height:77px;object-fit:cover;border-radius:3px;background:#f1f3ef';
+      tile.appendChild(thumbnail);
+      const caption=tag('span','',photoName(photo));
+      caption.style.cssText='display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font:10px/1.4 Arial;padding:3px 2px 0;color:#465044';
+      tile.appendChild(caption);
+      tile.addEventListener('click',()=>{
+        d.decorative_photo_id=Number(photo.id);
+        const select=container.querySelector('.ff-process-photo-browser')?.previousElementSibling?.querySelector('select');
+        if(select)select.value=String(photo.id);
+        refreshPhotoSelection();
+        rerender();
+      });
+      tiles.push({photo,tile});
+      grid.appendChild(tile);
+    });
+    const noMatches=tag('p','','Nie znaleziono zdjęć dla tego wyszukiwania.');
+    noMatches.style.cssText='display:none;font:12px Arial;color:#6b736a;margin-top:8px';
+    browser.appendChild(noMatches);
+    const clearPhoto=tag('button','fve-button','Usuń obrazek z tej sekcji');
+    clearPhoto.type='button';
+    clearPhoto.style.cssText='width:100%;margin-top:10px';
+    clearPhoto.addEventListener('click',()=>{
+      d.decorative_photo_id=null;
+      const select=container.querySelector('.ff-process-photo-browser')?.previousElementSibling?.querySelector('select');
+      if(select)select.value='';
+      refreshPhotoSelection();
+      rerender();
+    });
+    browser.appendChild(clearPhoto);
+    function refreshPhotoSelection(){
+      const photo=mediaPhotos.find(p=>Number(p.id)===Number(d.decorative_photo_id));
+      current.replaceChildren();
+      if(photo){
+        const thumb=tag('img');
+        thumb.src=photoSrc(photo);
+        thumb.alt='';
+        thumb.style.cssText='width:58px;height:45px;object-fit:cover;border-radius:4px;flex-shrink:0';
+        current.appendChild(thumb);
+        const label=tag('span','', 'Wybrano: '+photoName(photo));
+        label.style.overflowWrap='anywhere';
+        current.appendChild(label);
+      }else{
+        current.appendChild(tag('span','', 'Nie wybrano zdjęcia dekoracyjnego.'));
+      }
+      for(const {photo:p,tile} of tiles){
+        const selected=Number(p.id)===Number(d.decorative_photo_id) && d.decorative_photo_id!=null;
+        tile.style.borderColor=selected?'#33784e':'#d6ded5';
+        tile.style.boxShadow=selected?'0 0 0 1px #33784e':'none';
+        tile.setAttribute('aria-pressed',String(selected));
+      }
+      clearPhoto.disabled=!photo;
+    }
+    search.addEventListener('input',()=>{
+      const q=search.value.trim().toLocaleLowerCase('pl-PL');
+      let shown=0;
+      for(const {photo,tile} of tiles){
+        const found=!q||[photo.title,photo.alt,String(photo.id)].some(value=>
+          String(value||'').toLocaleLowerCase('pl-PL').includes(q)
+        );
+        tile.hidden=!found;
+        tile.style.display=found?'':'none';
+        if(found)shown++;
+      }
+      noMatches.style.display=shown===0&&mediaPhotos.length?'block':'none';
+    });
+    refreshPhotoSelection();
+    container.appendChild(browser);
     for(const [key,label,min,max] of [
       ['decorative_photo_opacity','Krycie dekoracji (%)',0,100],
       ['decorative_photo_width','Szerokość obrazka (px)',40,900],
