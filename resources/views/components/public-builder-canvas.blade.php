@@ -53,9 +53,9 @@
             $top = ($y / 100) * $designHeight;
             $zIndex = $layerMap[$type] ?? 100;
             if ($type === 'color_panel') {
-                $zIndex = max(0, min(50, (int) ($element['panel_layer'] ?? 2)));
+                $zIndex = max(0, min(150, (int) ($element['panel_layer'] ?? 2)));
             } elseif ($type === 'image' && isset($element['image_layer'])) {
-                $zIndex = max(0, min(50, (int) $element['image_layer']));
+                $zIndex = max(0, min(150, (int) $element['image_layer']));
             }
 
             $fontFamily = \App\Services\SiteFontLibrary::css($style['font_family'] ?? null, $fontCatalog);
@@ -164,6 +164,7 @@
                     $photoFile = $photoRecord ? public_path('storage/'.\App\Models\Photo::storagePath($photoRecord->webp ?: $photoRecord->filename)) : null;
                     $photoSize = $photoFile && is_file($photoFile) ? @getimagesize($photoFile) : false;
                     $imageRadius = max(0, (int) ($element['image_radius'] ?? 0));
+                    $imageOpacity = max(0, min(100, (float)($element['image_opacity'] ?? 100))) / 100;
                     $imageHeight = max(0, (int) ($element['image_height'] ?? $element['element_height'] ?? 0));
                     $imageFit = ($element['image_fit'] ?? 'cover') === 'contain' ? 'contain' : 'cover';
                     $imageRatio = in_array(($element['image_ratio'] ?? 'auto'), ['auto', '1 / 1', '4 / 3', '3 / 2', '16 / 9'], true)
@@ -202,6 +203,7 @@
                         style="
                             display:block;
                             width:100%;
+                            opacity:{{ $imageOpacity }};
                             @if($imageHeight > 0)
                                 height:{{ $imageHeight }}px;
                                 object-fit:{{ $imageFit }};
