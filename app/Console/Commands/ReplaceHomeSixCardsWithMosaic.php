@@ -131,10 +131,11 @@ class ReplaceHomeSixCardsWithMosaic extends Command
         $heading = $sections[$headingIndex];
         $startY = (float) ($heading['position_y'] ?? 0);
         $nextY = $items
-            ->filter(fn ($item) => ($item['type'] ?? '') === 'heading'
+            ->filter(fn ($item) => in_array(($item['type'] ?? ''), ['heading','text'], true)
                 && (float)($item['position_y'] ?? -1) > $startY + 25
                 && (
                     str_contains($this->norm($item['content'] ?? ''), 'smak w kadrach')
+                    || str_contains($this->norm($item['content'] ?? ''), 'galerie wybrane realizacje')
                     || str_contains($this->norm($item['content'] ?? ''), 'od pomyslu')
                     || str_contains($this->norm($item['content'] ?? ''), 'wiecej niz')
                 )
