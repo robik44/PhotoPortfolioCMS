@@ -72,8 +72,19 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand-image-piece img{display:block;width:100%;max-width:none!important;max-height:none!important;height:auto}
 .brand-name-piece{display:flex;flex-direction:column;min-width:max-content}
 .brand-name-piece strong,.brand-name-piece small{display:block;white-space:nowrap}
-.brand-name-piece strong{font-size:var(--brand-name-size,25px)!important}
-.brand-name-piece small{font-size:calc(var(--brand-name-size,25px) * .36)!important}
+.brand-name-piece strong{
+font-size:var(--brand-name-size,25px)!important;
+color:var(--brand-main-color,#171717);
+font-weight:var(--brand-main-weight,400)!important;
+letter-spacing:var(--brand-main-spacing,normal)!important;
+word-spacing:var(--brand-main-word-spacing,normal);
+}
+.brand-name-piece small{
+font-size:var(--brand-subtitle-size,calc(var(--brand-name-size,25px) * .36))!important;
+color:var(--brand-subtitle-color,#171717);
+letter-spacing:var(--brand-subtitle-spacing,.16em)!important;
+word-spacing:var(--brand-subtitle-word-spacing,normal);
+}
 .brand .divider[data-drag="brand-divider"]{display:block;flex:0 0 auto!important;align-self:center!important;width:22px!important;min-width:22px;height:52px;min-height:0;margin:0 2px;background:transparent!important;cursor:move;position:relative;z-index:6}
 .brand .divider[data-drag="brand-divider"]::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:var(--divider-stroke,1px);transform:translateX(-50%);background:#aaa;pointer-events:none}
 .brand .divider[data-drag="brand-divider"]:hover{background:rgba(80,116,70,.12)!important}
@@ -83,10 +94,10 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 .brand[data-drag="brand"]{min-width:0}
 .brand[data-drag="brand"].selected{outline-offset:8px}
 .brand-image-piece .resize-handle,.brand-name-piece .resize-handle{bottom:-9px}
-.compact-header .brand-image-piece{width:55px!important}
+.compact-header .brand-image-piece{width:var(--brand-compact-logo,55px)!important}
 .compact-header .brand-image-piece img{width:100%}
 .compact-header .brand-name-piece{width:auto!important}
-.compact-header .brand-name-piece strong{font-size:25px!important}.compact-header .brand-name-piece small{font-size:9px!important}
+.compact-header .brand-name-piece strong{font-size:var(--brand-compact-name,25px)!important}.compact-header .brand-name-piece small{font-size:var(--brand-compact-subtitle,9px)!important}
 .compact-header .brand .divider{height:55px!important}
 @media(max-width:900px){.compact-header{padding:8px 3vw;gap:10px}.compact-header .brand-image-piece{width:43px!important}.compact-header .brand-name-piece strong{font-size:20px!important}.compact-header .brand-name-piece small{font-size:8px!important}.compact-header .header-actions nav a{font-size:10px}}
 </style></head>
@@ -118,6 +129,16 @@ nav a{font:11px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;co
 <label>Rozmiar pisma <input id="font-size" type="number" min="8" max="120" step=".1" style="width:65px" disabled></label>
 <label>Odstęp liter <input id="letter-space" type="number" min="-2" max="20" step=".1" style="width:60px" disabled></label>
 <label>Interlinia <input id="line-height" type="number" min=".7" max="3" step=".05" style="width:60px" disabled></label>
+<div id="brand-typography-controls" style="display:none;align-items:center;flex-wrap:wrap;gap:10px;padding:8px 12px;background:#eef3ed;border:1px solid #d1dfcb;border-radius:8px;font:12px Arial,sans-serif">
+<b>Magda Gugała / podpis</b>
+<label>Podpis · wielkość <input data-brand-setting="subtitle_font" type="number" min="7" max="48" step=".1" style="width:66px"></label>
+<label>Podpis · litery <input data-brand-setting="subtitle_spacing" type="number" min="-2" max="20" step=".1" style="width:60px"></label>
+<label>Nazwisko · słowa <input data-brand-setting="word_spacing" type="number" min="-2" max="30" step=".1" style="width:60px"></label>
+<label>Podpis · słowa <input data-brand-setting="subtitle_word_spacing" type="number" min="-2" max="30" step=".1" style="width:60px"></label>
+<label>Nazwisko · kolor <input data-brand-setting="color" type="color" value="#171717"></label>
+<label>Podpis · kolor <input data-brand-setting="subtitle_color" type="color" value="#171717"></label>
+<label>Grubość <select data-brand-setting="weight"><option value="300">Lekka</option><option value="400">Normalna</option><option value="500">Średnia</option><option value="600">Półgruba</option><option value="700">Gruba</option><option value="800">Bardzo gruba</option></select></label>
+</div>
 <button type="button" class="secondary" id="reset-layout">Wyzeruj przesunięcia</button>
 <output id="builder-status" role="status">Gotowy</output>
 </div>
@@ -234,10 +255,40 @@ updateCompact();
 function snapshot(){return JSON.stringify({positions:pos,height:heroHeight})}
 function checkpoint(){history.push(snapshot());if(history.length>60)history.shift();future.length=0}
 function apply(el,p){const id=el.dataset.drag;pos[id]={...p};el.style.transform='translate('+(p.x||0)+'px,'+(p.y||0)+'px)';
- el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image')el.style.width=(p.w||58)+'px';if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){el.style.width='';el.style.setProperty('--brand-name-size',(p.font||25)+'px')}if(id==='menu-panel'){el.style.width='';setMenuAppearance(p)}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
+ el.style.width=p.w?p.w+'px':'';if(id==='brand'){el.style.width='';el.style.scale='';}if(id==='brand-image'){el.style.width=(p.w||58)+'px';const clone=compact.querySelector('.brand-image-piece');if(clone)clone.style.setProperty('--brand-compact-logo',clamp((p.w||58)*.95,26,140)+'px');}if(id==='brand-divider'){el.style.width='22px';el.style.setProperty('--divider-stroke',(p.w||1)+'px');el.style.height=(p.h||52)+'px';}if(id==='brand-text'){
+ el.style.width='';
+ const titleFont=clamp(Number(p.font)||25,8,120);
+ const subtitleFont=clamp(Number(p.subtitle_font)||(titleFont*.36),7,48);
+ const compactEl=compact.querySelector('.brand-name-piece');
+ for(const target of [el,compactEl].filter(Boolean)){
+  target.style.setProperty('--brand-name-size',titleFont+'px');
+  target.style.setProperty('--brand-subtitle-size',subtitleFont+'px');
+  target.style.setProperty('--brand-main-spacing',p.spacing!==undefined?p.spacing+'px':'normal');
+  target.style.setProperty('--brand-main-word-spacing',p.word_spacing!==undefined?p.word_spacing+'px':'normal');
+  target.style.setProperty('--brand-subtitle-spacing',p.subtitle_spacing!==undefined?p.subtitle_spacing+'px':'.16em');
+  target.style.setProperty('--brand-subtitle-word-spacing',p.subtitle_word_spacing!==undefined?p.subtitle_word_spacing+'px':'normal');
+  target.style.setProperty('--brand-main-color',p.color||'#171717');
+  target.style.setProperty('--brand-subtitle-color',p.subtitle_color||'#171717');
+  target.style.setProperty('--brand-main-weight',String(p.weight||400));
+  target.style.setProperty('--brand-compact-name',clamp(titleFont*.78,15,60)+'px');
+  target.style.setProperty('--brand-compact-subtitle',clamp(subtitleFont*.82,7,40)+'px');
+ }
+}if(id==='menu-panel'){el.style.width='';setMenuAppearance(p)}el.style.fontSize=p.font?p.font+'px':'';el.style.letterSpacing=p.spacing!==undefined?p.spacing+'px':'';el.style.lineHeight=p.line||'';
 }
 function restore(raw){const state=JSON.parse(raw);const values=state.positions||state;els.forEach(e=>apply(e,values[e.dataset.drag]||{x:0,y:0}));if(state.height!==undefined)setHeroHeight(state.height);sync()}
-function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));cornerPanel.style.display=selected.size===1&&selected.has('menu-panel')?'flex':'none';if(selected.has('menu-panel')){const p=pos['menu-panel']||{};cornerKeys.forEach((k,i)=>cornerPanel.querySelector('[data-corner="'+k+'"]').value=menuRadii(p)[i]);}const id=[...selected][0],p=pos[id]||{};
+function sync(){els.forEach(e=>e.classList.toggle('selected',selected.has(e.dataset.drag)));
+const showBrandSettings=selected.size===1&&selected.has('brand-text');
+const brandSettings=document.getElementById('brand-typography-controls');
+brandSettings.style.display=showBrandSettings?'flex':'none';
+if(showBrandSettings){
+ const p=pos['brand-text']||{};
+ for(const input of brandSettings.querySelectorAll('[data-brand-setting]')){
+  const key=input.dataset.brandSetting;
+  const fallback={subtitle_font:((p.font||25)*.36),subtitle_spacing:1.44,word_spacing:0,subtitle_word_spacing:0,color:'#171717',subtitle_color:'#171717',weight:400};
+  input.value=p[key]??fallback[key];
+ }
+}
+cornerPanel.style.display=selected.size===1&&selected.has('menu-panel')?'flex':'none';if(selected.has('menu-panel')){const p=pos['menu-panel']||{};cornerKeys.forEach((k,i)=>cornerPanel.querySelector('[data-corner="'+k+'"]').value=menuRadii(p)[i]);}const id=[...selected][0],p=pos[id]||{};
  for(const f of [size,spacing,line])f.disabled=selected.size!==1;
  size.value=p.font|| (id?parseFloat(getComputedStyle(byId[id]).fontSize):'');
  spacing.value=p.spacing??0;line.value=p.line||1.2;
@@ -287,6 +338,16 @@ input.addEventListener('change',()=>{const key='r'+input.dataset.corner;apply(me
 document.getElementById('undo-layout').onclick=()=>{if(!history.length)return;future.push(snapshot());restore(history.pop());status.textContent='Cofnięto'};
 document.getElementById('redo-layout').onclick=()=>{if(!future.length)return;history.push(snapshot());restore(future.pop());status.textContent='Ponowiono'};
 document.getElementById('reset-layout').onclick=()=>{checkpoint();els.forEach(e=>apply(e,{x:0,y:0}));status.textContent='Wyzerowano — zapisz'};
+document.querySelectorAll('#brand-typography-controls [data-brand-setting]').forEach(input=>{
+ input.addEventListener('focus',checkpoint);
+ input.addEventListener('change',()=>{
+  if(selected.size!==1||!selected.has('brand-text'))return;
+  const key=input.dataset.brandSetting;
+  const raw=input.type==='number'?Number(input.value):input.value;
+  apply(byId['brand-text'],{...(pos['brand-text']||{}),[key]:raw});
+  status.textContent='Zmieniono typografię logo — zapisz układ';
+ });
+});
 for(const [input,key,a,b] of [[size,'font',8,120],[spacing,'spacing',-2,20],[line,'line',.7,3]]){
  input.onfocus=()=>checkpoint();
  input.onchange=()=>{if(selected.size!==1)return;let id=[...selected][0];apply(byId[id],{...pos[id],[key]:clamp(Number(input.value),a,b)});status.textContent='Typografia zmieniona — zapisz';};
