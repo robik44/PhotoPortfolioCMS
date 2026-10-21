@@ -50,7 +50,7 @@ class ProcessTypography
                     'font_family' => $font,
                     'font_size' => $size,
                     'font_weight' => $kicker ? 600 : ($title ? ($design['title_weight'] ?? 400) : 400),
-                    'font_style' => 'normal',
+                    'font_style' => $title && ($design['heading_italic'] ?? true) !== false ? 'italic' : 'normal',
                     'text_transform' => $kicker ? 'uppercase' : 'none',
                     'text_align' => 'left',
                     'line_height' => $kicker ? 1.5 : ($title ? 1.08 : ($intro ? 1.62 : ($heading ? 1.18 : 1.55))),
