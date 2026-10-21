@@ -14,6 +14,11 @@ $font = static fn ($item, $default) => max(8,min(120,(float)($item['font'] ?? $d
 $xy = static fn ($item,$axis) => max(-400,min(400,(int)($item[$axis] ?? 0)));
 
 $blocks = ['eyebrow' => $p['eyebrow'] ?? [], 'headline' => $p['headline'] ?? [], 'description' => $p['description'] ?? [], 'cta' => $p['cta'] ?? []];
+$ctaX = max(-400, min(400, (int)($p['cta']['x'] ?? 0)));
+$ctaY = max(-300, min(300, (int)($p['cta']['y'] ?? 0)));
+$publishedCtaOffset = $isPublicDraftHeader
+    ? "transform:translate({$ctaX}px,{$ctaY}px);"
+    : '';
 $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
   $x = max(-400,min(400,(int)($item['x']??0)));
   $y = max(-300,min(300,(int)($item['y']??0)));
@@ -99,7 +104,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 <h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $pageBannerDraft['title'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności") }}</h1>
 <p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $pageBannerDraft['description'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.') }}</p>
 @if($isPublicDraftHeader)
-<a href="{{ url('/#portfolio') }}" class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
+<a href="{{ url('/#portfolio') }}" class="ff-cta" data-offset-x="{{ $ctaX }}" data-offset-y="{{ $ctaY }}" style="{{ $styleFor($blocks['cta'],14,300) }};{{ $publishedCtaOffset }}">
 @else
 <span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
 @endif{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→@if($isPublicDraftHeader)</a>@else</span>@endif
