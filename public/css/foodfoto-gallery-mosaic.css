@@ -22,6 +22,11 @@
   outline:1px dashed #46774e;
   outline-offset:3px;
 }
+.ff-mosaic.is-editing .ff-mosaic-typography-target.is-typography-selected{
+  outline:2px dashed #3c7b4d;
+  outline-offset:4px;
+}
+
 .ff-mosaic.is-editing .ff-mosaic-inline-edit,
 .ff-mosaic.is-editing .ff-mosaic-inline-edit:focus{
   cursor:text!important;
