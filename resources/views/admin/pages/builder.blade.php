@@ -2168,8 +2168,11 @@ document.addEventListener("DOMContentLoaded", function () {
             box.appendChild(window.FoodfotoProcess.render(item, function (part) {
                 selectOnly(item.id);
                 window.FoodfotoProcess.activate(item,part);
-                showProperties(item);
                 render();
+                showProperties(item);
+                const sidebar=properties.closest('.fve-sidebar.right');
+                if(sidebar)sidebar.scrollTop=0;
+                properties.scrollTop=0;
             }));
 
         } else if (item.type === "text") {
@@ -2807,6 +2810,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(heading);
 
+        if (item.type === 'process_steps') {
+            // All twelve text styles and individual X/Y controls must be
+            // immediately visible, not buried below generic builder options.
+            const processTools = document.createElement('section');
+            processTools.className='fve-process-tools';
+            properties.appendChild(processTools);
+            window.FoodfotoProcess.panel(processTools, item, render);
+        }
+
         if (item.type === 'gallery_mosaic') {
             renderMosaicProperties(item);
             return;
@@ -2960,9 +2972,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 { min:0, max:100, step:1 });
         }
 
-        if (item.type === 'process_steps') {
-            window.FoodfotoProcess.panel(properties, item, render);
-        }
+
         if (['heading', 'text'].includes(item.type)) {
             const currentSemanticTag = item.semantic_tag
                 || (item.type === 'heading' ? (item.heading_level || 'div') : 'p');
