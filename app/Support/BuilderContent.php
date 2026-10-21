@@ -106,6 +106,7 @@ class BuilderContent
                     'mosaic_title' => ['required', 'string', 'max:240'],
                     'mosaic_intro' => ['nullable', 'string', 'max:800'],
                     'mosaic_more_label' => ['nullable', 'string', 'max:120'],
+                    'mosaic_more_action_text' => ['sometimes', 'string', 'max:24'],
                     'mosaic_more_link' => ['nullable', 'string', 'max:2048'],
                     'mosaic_gap' => ['required', 'numeric', 'between:0,60'],
                     'mosaic_row_height' => ['required', 'numeric', 'between:150,550'],
