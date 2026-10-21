@@ -272,6 +272,10 @@ class ReplaceHomeSixCardsWithMosaic extends Command
                 .(parse_url($link, PHP_URL_QUERY) ? '?'.parse_url($link, PHP_URL_QUERY) : '')
                 .(parse_url($link, PHP_URL_FRAGMENT) ? '#'.parse_url($link, PHP_URL_FRAGMENT) : '');
 
+            // Persist the caption discovered for an independently placed image.
+            // foreach iterates by value: without writing it back the later
+            // ordering step sees six empty titles and looks up $out[''].
+            $cards[$position] = $card;
             $out[$knownKey] = [
                 'gallery_id' => $card['gallery_id'],
                 'photo_id' => $card['photo_id'],
@@ -307,8 +311,14 @@ class ReplaceHomeSixCardsWithMosaic extends Command
         // The mosaic layout will place cards 1 and 6 high and the four others
         // in the center, without modifying their destination URLs.
         $ordered = [];
-        foreach ($cards as $card) {
-            $key = $this->topic($card['title']);
+        foreach ($cards as $position => $card) {
+            $key = $this->topic((string)($card['title'] ?? ''));
+            if ($key === null || !isset($out[$key])) {
+                throw new RuntimeException(
+                    'Nie udało się zachować podpisu i linku karty nr '.($position + 1)
+                    .'. Podmiana zatrzymana bez zapisywania strony.'
+                );
+            }
             $ordered[] = $out[$key];
         }
 
