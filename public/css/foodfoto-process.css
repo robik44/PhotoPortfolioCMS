@@ -150,6 +150,57 @@
     outline-offset:4px;
 }
 
+.ff-process [data-process-move]:not(.ff-process-branch):not(.ff-process-decorative-photo):not(.ff-process-connector) {
+    position:relative;
+}
+.ff-process .ff-process-decorative-photo-image {
+    display:block;
+    width:100%;
+    height:auto;
+    user-select:none;
+    pointer-events:none;
+}
+.ff-process.is-editing .ff-process-resize-handle { z-index:35; }
+.ff-process.is-editing .ff-process-resize-handle:hover {
+    background:#235c32;
+    box-shadow:0 0 0 3px #d6eddb;
+}
+.ff-process .ff-process-editor-overlay {
+    position:absolute;inset:0;z-index:22;
+    pointer-events:none;overflow:hidden;
+}
+.ff-process .ff-process-guide {
+    position:absolute;z-index:2;pointer-events:none;
+    background:rgba(52,129,79,.85);
+    display:none;
+    box-shadow:0 0 1px #fff;
+}
+.ff-process .ff-process-guide-x { width:1px;top:0;bottom:0; }
+.ff-process .ff-process-guide-y { height:1px;left:0;right:0; }
+.ff-process .ff-process-ruler { display:none;position:absolute;z-index:3;pointer-events:none;
+    background-color:rgba(250,252,247,.91);color:#57705d;
+    font:9px/1 Arial,sans-serif;
+}
+.ff-process.has-rulers .ff-process-ruler { display:block; }
+.ff-process .ff-process-ruler-x {
+    left:0;right:0;top:0;height:23px;
+    border-bottom:1px solid #94a992;
+    background-image:repeating-linear-gradient(90deg,#94a992 0 1px,transparent 1px 10px);
+    background-size:10px 6px;
+    background-repeat:repeat-x;
+    background-position:left bottom;
+}
+.ff-process .ff-process-ruler-y {
+    top:0;bottom:0;left:0;width:23px;
+    border-right:1px solid #94a992;
+    background-image:repeating-linear-gradient(180deg,#94a992 0 1px,transparent 1px 10px);
+    background-size:6px 10px;
+    background-repeat:repeat-y;
+    background-position:right top;
+}
+.ff-process-ruler-label { position:absolute; }
+.ff-process-ruler-x .ff-process-ruler-label { top:2px;transform:translateX(3px); }
+.ff-process-ruler-y .ff-process-ruler-label { left:2px;transform:translateY(2px); }
 .ff-process .ff-process-branch-art { display:block; }
 .ff-process.is-editing .ff-process-height-handle {
     position:absolute;
