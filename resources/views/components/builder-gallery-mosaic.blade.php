@@ -68,7 +68,7 @@
                 </div>
                 <div class="ff-mosaic-card-meta">
                     <div class="ff-mosaic-text">
-                        <div class="ff-mosaic-card-category" style="{{ $mosaicTextCss('category', $mosaicCard) }}">{{ $cardCategory }}</div>
+                        <h3 class="ff-mosaic-card-category" style="{{ $mosaicTextCss('category', $mosaicCard) }}">{{ $cardCategory }}</h3>
                         @if($mosaicShowDescriptions && $cardDescription !== '')
                             <p class="ff-mosaic-card-description" style="{{ $mosaicTextCss('description', $mosaicCard) }}">{{ $cardDescription }}</p>
                         @endif
