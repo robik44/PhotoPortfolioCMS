@@ -371,6 +371,39 @@
       steps.appendChild(col);
     });
     section.appendChild(steps);
+    if(onTextClick){
+      const heightHandle=tag('div','ff-process-height-handle');
+      heightHandle.title='Złap dolny prawy róg, aby zmienić wysokość całej sekcji';
+      heightHandle.setAttribute('aria-label','Zmień wysokość całej sekcji');
+      heightHandle.addEventListener('mousedown',e=>e.stopPropagation());
+      heightHandle.addEventListener('pointerdown',event=>{
+        if(event.button!==0)return;
+        event.preventDefault();event.stopPropagation();
+        const initialHeight=Math.max(250,section.offsetHeight);
+        const startY=event.clientY;
+        const zoom=section.getBoundingClientRect().height/Math.max(1,section.offsetHeight);
+        const pointerId=event.pointerId;
+        heightHandle.setPointerCapture(pointerId);
+        const onMove=e=>{
+          if(e.pointerId!==pointerId)return;
+          d.section_height=Math.round(Math.max(250,Math.min(1600,
+            initialHeight+(e.clientY-startY)/Math.max(.1,zoom))));
+          section.style.setProperty('--ff-process-section-height',d.section_height+'px');
+        };
+        const stop=e=>{
+          if(e.pointerId!==pointerId)return;
+          heightHandle.removeEventListener('pointermove',onMove);
+          heightHandle.removeEventListener('pointerup',stop);
+          heightHandle.removeEventListener('pointercancel',stop);
+          if(heightHandle.hasPointerCapture(pointerId))heightHandle.releasePointerCapture(pointerId);
+          if(onTextClick)onTextClick(selectedMoves.get(item)||currentPart(item));
+        };
+        heightHandle.addEventListener('pointermove',onMove);
+        heightHandle.addEventListener('pointerup',stop);
+        heightHandle.addEventListener('pointercancel',stop);
+      });
+      section.appendChild(heightHandle);
+    }
     return section;
   }
   function panel(container,item,rerender) {
