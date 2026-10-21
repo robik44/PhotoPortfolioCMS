@@ -112,6 +112,15 @@ class BuilderContent
                     'mosaic_side_width' => ['required', 'numeric', 'between:17,34'],
                     'mosaic_title_size' => ['required', 'numeric', 'between:22,76'],
                     'mosaic_descriptions' => ['sometimes', 'boolean'],
+                    'mosaic_more_button' => ['sometimes', 'boolean'],
+                    'mosaic_more_bg' => ['sometimes', 'regex:/^#[0-9a-fA-F]{6}$/'],
+                    'mosaic_more_border' => ['sometimes', 'regex:/^#[0-9a-fA-F]{6}$/'],
+                    'mosaic_more_radius' => ['sometimes', 'numeric', 'between:0,100'],
+                    'mosaic_more_padding_x' => ['sometimes', 'numeric', 'between:0,80'],
+                    'mosaic_more_padding_y' => ['sometimes', 'numeric', 'between:0,50'],
+                    'mosaic_typography' => ['sometimes', 'array'],
+                    'mosaic_cards.*.typography' => ['sometimes', 'array'],
+                    'mosaic_cards.*.action_text' => ['sometimes', 'string', 'max:24'],
                     'mosaic_cards' => ['required', 'array', 'list', 'size:6'],
                     'mosaic_cards.*' => ['required', 'array'],
                     'mosaic_cards.*.gallery_id' => ['nullable', 'integer', 'exists:galleries,id'],
@@ -123,6 +132,7 @@ class BuilderContent
                     'mosaic_cards.*.crop_x' => ['required', 'integer', 'between:0,100'],
                     'mosaic_cards.*.crop_y' => ['required', 'integer', 'between:0,100'],
                 ])->validate();
+                MosaicTypography::validate($element);
                 foreach ($element['mosaic_cards'] as $card) {
                     $url = trim((string) ($card['link'] ?? ''));
                     if ($url !== '' && BuilderButton::href($url) === null) {
