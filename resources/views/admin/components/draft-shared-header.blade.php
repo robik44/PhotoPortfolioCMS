@@ -143,8 +143,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-hero h1{position:relative;font-size:var(--fs,83px);line-height:var(--lh,1.04);letter-spacing:var(--ls,-.04em);max-width:var(--lw,850px)}
 #fve-header-variant-preview .ff-shared-hero p{position:relative;font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px);margin:0 0 8px}
 #fve-header-variant-preview .ff-cta{position:relative;font-size:var(--fs,14px);margin-top:8px}
-#fve-header-variant-preview .ff-cta{letter-spacing:var(--ls,.12em)}
-#fve-header-variant-preview.ff-public-header .ff-cta{transform:translateX(var(--dx,0px));margin-top:19px}
+#fve-header-variant-preview .ff-cta{transform:translateX(var(--dx,0px));margin-top:19px;letter-spacing:var(--ls,.12em)}
 #fve-header-variant-preview .ff-simple .ff-shared-hero{display:none}
 #fve-header-variant-preview .ff-simple .ff-shared-bar{padding-top:12px;padding-bottom:12px}
 #fve-header-variant-preview .ff-simple .ff-shared-brand img{width:55px}
