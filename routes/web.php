@@ -149,6 +149,8 @@ Route::middleware(["auth"])->group(function () {
     Route::post('/admin/home-hero-draft/photo', [DraftHeaderController::class, 'uploadHomeHeroPhoto'])->name('home-hero-draft.photo');
     Route::put('/admin/home-hero-draft', [DraftHeaderController::class, 'saveHomeHero'])->name('home-hero-draft.save');
     Route::get('/admin/header-draft/preview', [DraftHeaderController::class, 'preview'])->name('draft-header.preview');
+    Route::get('/admin/header-draft/compact-editor', [DraftHeaderController::class, 'compactEditor'])->name('draft-header.compact-editor');
+    Route::put('/admin/header-draft/compact-layout', [DraftHeaderController::class, 'saveCompactLayout'])->name('draft-header.compact-layout');
     Route::get('/admin/header-draft/publication-review', [DraftHeaderController::class, 'publicationReview'])->name('draft-header.review');
     Route::post('/admin/header-draft/publication/enable', [DraftHeaderController::class, 'publishDraftHeader'])->name('draft-header.publish');
     Route::post('/admin/header-draft/publication/disable', [DraftHeaderController::class, 'rollbackDraftHeader'])->name('draft-header.rollback');
