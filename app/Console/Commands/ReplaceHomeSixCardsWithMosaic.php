@@ -65,6 +65,7 @@ class ReplaceHomeSixCardsWithMosaic extends Command
             $this->line('Wykryto źródło: '.$report['source']);
             $this->line('Usuwane stare bloki: '.implode(', ', $report['removed']));
             $this->line('Utworzony/uzupełniony element: '.$report['target']);
+            $this->line('Wysokość rzędów nowej mozaiki: '.$report['row_height'].' px (dopasowana do miejsca).');
             $this->line('Zachowane pozostałe elementy: '.$report['preserved']);
             if ($this->option('show-source')) {
                 $this->line('Oryginalne indeksy sekcji: '.implode(', ', $report['indexes']));
@@ -217,6 +218,9 @@ class ReplaceHomeSixCardsWithMosaic extends Command
             });
         }
 
+        if ($source === 'galeria CMS' && count($imageIndexes) >= 3) {
+            throw new RuntimeException('W sekcji są jednocześnie galeria i osobne zdjęcia. Odmawiam niejednoznacznej podmiany.');
+        }
         if (count($cards) !== 6) throw new RuntimeException('Nie znaleziono dokładnie sześciu kart.');
 
         $usedKeys = [];
@@ -329,6 +333,19 @@ class ReplaceHomeSixCardsWithMosaic extends Command
         $new['mosaic_kicker'] = 'WYBRANE REALIZACJE';
         $new['mosaic_cards'] = $ordered;
         $new['mosaic_selected_index'] = 0;
+        // Keep the new block within the old section's reserved vertical
+        // space. This prevents it from covering the following portfolio.
+        if (is_numeric($nextY)) {
+            $spacePx = ((float)$nextY - $startY) * 9;
+            if ($spacePx < 510) {
+                throw new RuntimeException('Następna sekcja zaczyna się zbyt blisko, aby bezpiecznie zamienić układ.');
+            }
+            $maxRow = (int)floor(($spacePx - 196) / 2);
+            $new['mosaic_row_height'] = min(
+                (int)($new['mosaic_row_height'] ?? 260),
+                max(150, min(550, $maxRow))
+            );
+        }
 
         // Don't delete unrelated page sections. Replace only identified
         // originals; if an empty mosaic was already added, keep its typography.
@@ -351,6 +368,7 @@ class ReplaceHomeSixCardsWithMosaic extends Command
             'removed' => $removeIds,
             'indexes' => $remove,
             'target' => $new['id'],
+            'row_height' => $new['mosaic_row_height'],
             'preserved' => count($remaining) - 1,
             'cards' => array_map(fn ($c) => [
                 $c['category'], $c['photo_id'], $c['link'],
