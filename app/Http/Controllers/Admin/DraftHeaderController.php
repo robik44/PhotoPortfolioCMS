@@ -172,6 +172,8 @@ class DraftHeaderController extends Controller
             'positions.*.font' => ['sometimes', 'numeric', 'between:8,120'],
             'positions.*.spacing' => ['sometimes', 'numeric', 'between:-2,20'],
             'positions.*.line' => ['sometimes', 'numeric', 'between:0.7,3'],
+            'positions.*.scene_x_percent' => ['sometimes', 'numeric', 'between:-100,200'],
+            'positions.*.scene_y_percent' => ['sometimes', 'numeric', 'between:-100,200'],
         ]);
         $allowed = ['brand', 'brand-image', 'brand-divider', 'brand-text', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
         $positions = array_intersect_key($data['positions'], array_flip($allowed));
