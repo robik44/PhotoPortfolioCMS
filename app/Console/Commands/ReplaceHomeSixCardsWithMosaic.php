@@ -181,7 +181,7 @@ class ReplaceHomeSixCardsWithMosaic extends Command
                         'gallery_id' => $gallery->id,
                         'photo_id' => $cover->id,
                         'title' => $gallery->title,
-                        'link' => route('portfolio.gallery', $gallery),
+                        'link' => route('portfolio.gallery', ['gallery' => $gallery->slug]),
                         '_x' => 0, '_y' => 0,
                         '_source_index' => $index,
                     ];
@@ -504,7 +504,7 @@ class ReplaceHomeSixCardsWithMosaic extends Command
             throw new RuntimeException('Nie ma jednej opublikowanej podstrony dla: '.self::TOPICS[$topic]
                 .' (znaleziono '.$pages->count().'). Nie zgaduję URL.');
         }
-        return route('page.public', $pages->first());
+        return route('page.public', ['page' => $pages->first()->slug]);
     }
 
     private function topic(?string $label): ?string
