@@ -269,7 +269,8 @@ class ReplaceHomeSixCardsWithMosaic extends Command
                 throw new RuntimeException('Link karty prowadzi poza foodfoto.pl: '.$link);
             }
             if ($host) $link = (string)(parse_url($link, PHP_URL_PATH) ?: '/')
-                .(parse_url($link, PHP_URL_QUERY) ? '?'.parse_url($link, PHP_URL_QUERY) : '');
+                .(parse_url($link, PHP_URL_QUERY) ? '?'.parse_url($link, PHP_URL_QUERY) : '')
+                .(parse_url($link, PHP_URL_FRAGMENT) ? '#'.parse_url($link, PHP_URL_FRAGMENT) : '');
 
             $out[$knownKey] = [
                 'gallery_id' => $card['gallery_id'],
