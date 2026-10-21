@@ -97,6 +97,47 @@ class BuilderContent
                     \App\Support\BuilderTypography::validate($textPart, $index);
                 }
             }
+            if (($element['type'] ?? null) === 'gallery_mosaic') {
+                // One self-contained composition: six independently configured
+                // gallery covers, safely linked to actual CMS pages/galleries.
+                Validator::make($element, [
+                    'mosaic_layout' => ['required', 'in:editorial,even'],
+                    'mosaic_kicker' => ['nullable', 'string', 'max:120'],
+                    'mosaic_title' => ['required', 'string', 'max:240'],
+                    'mosaic_intro' => ['nullable', 'string', 'max:800'],
+                    'mosaic_more_label' => ['nullable', 'string', 'max:120'],
+                    'mosaic_more_link' => ['nullable', 'string', 'max:2048'],
+                    'mosaic_gap' => ['required', 'numeric', 'between:0,60'],
+                    'mosaic_row_height' => ['required', 'numeric', 'between:150,550'],
+                    'mosaic_side_width' => ['required', 'numeric', 'between:17,34'],
+                    'mosaic_title_size' => ['required', 'numeric', 'between:22,76'],
+                    'mosaic_descriptions' => ['sometimes', 'boolean'],
+                    'mosaic_cards' => ['required', 'array', 'list', 'size:6'],
+                    'mosaic_cards.*' => ['required', 'array'],
+                    'mosaic_cards.*.gallery_id' => ['nullable', 'integer', 'exists:galleries,id'],
+                    'mosaic_cards.*.photo_id' => ['nullable', 'integer', 'exists:photos,id'],
+                    'mosaic_cards.*.title' => ['nullable', 'string', 'max:160'],
+                    'mosaic_cards.*.category' => ['nullable', 'string', 'max:160'],
+                    'mosaic_cards.*.description' => ['nullable', 'string', 'max:300'],
+                    'mosaic_cards.*.link' => ['nullable', 'string', 'max:2048'],
+                    'mosaic_cards.*.crop_x' => ['required', 'integer', 'between:0,100'],
+                    'mosaic_cards.*.crop_y' => ['required', 'integer', 'between:0,100'],
+                ])->validate();
+                foreach ($element['mosaic_cards'] as $card) {
+                    $url = trim((string) ($card['link'] ?? ''));
+                    if ($url !== '' && BuilderButton::href($url) === null) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'mosaic_cards' => 'Wybierz prawidłowy link do podstrony dla karty galerii.',
+                        ]);
+                    }
+                }
+                $moreUrl = trim((string)($element['mosaic_more_link'] ?? ''));
+                if ($moreUrl !== '' && BuilderButton::href($moreUrl) === null) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        'mosaic_more_link' => 'Wybierz prawidłowy link do portfolio.',
+                    ]);
+                }
+            }
             if (($element['type'] ?? null) === 'thumbnail_gallery') {
                 Validator::make($element, [
                     'photo_ids' => ['present', 'array', 'list', 'max:2000'],
