@@ -112,6 +112,7 @@ word-spacing:var(--brand-subtitle-word-spacing,normal);
 <span>Przeciągaj zaznaczone elementy • linie pomagają wyrównywać</span>
 <label>Strona <select id="page-variant"><option value="home">Strona główna</option><option value="inner">Podstrony (jasne tło)</option></select></label>
 <button type="button" id="compact-demo" class="secondary">Pokaż kompaktowy</button>
+<a href="{{ route('draft-header.compact-editor') }}" style="padding:9px 14px;border:1px solid #aec3ac;border-radius:7px;color:#244c35;background:#edf4ed;text-decoration:none;font:bold 13px Arial,sans-serif">Edytuj wspólny nagłówek uproszczony ↗</a>
 <span id="menu-corners" style="display:none;align-items:center;gap:8px;flex-wrap:wrap">
 <b>Narożniki menu</b>
 <label>↖ <input data-corner="tl" aria-label="Lewy górny" type="number" min="0" max="120" step="1" value="8" style="width:55px"></label>
