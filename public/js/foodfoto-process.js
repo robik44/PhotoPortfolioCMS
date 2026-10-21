@@ -364,7 +364,41 @@
     };
     const sectionTitle=text=>{const h=tag('h4','',text);h.style.cssText='margin:24px 0 6px;font-weight:700;border-top:1px solid #ddd;padding-top:12px;';container.appendChild(h);};
     const d=item.process_design;
-    sectionTitle('Pełna typografia — pojedyncze napisy');
+    sectionTitle('Położenie każdego elementu — przesuń myszą');
+    const dragIsOn=moveModes.get(item)===true;
+    field(container,'Tryb swobodnego przesuwania',dragIsOn?'yes':'no','select',value=>{
+      moveModes.set(item,value==='yes');
+      container.innerHTML='';
+      panel(container,item,rerender);
+      rerender();
+    },{choices:[['no','Wyłączony — kliknięcie otwiera typografię'],['yes','WŁĄCZONY — złap każdy element i przeciągnij']]});
+    const info=tag('p','', 'Włącz przesuwanie i przeciągaj pojedyncze teksty, numery, ikony, gałązkę oraz linie między etapami. Możesz również wprowadzić dokładne X i Y poniżej.');
+    info.style.cssText='font:12px/1.5 Arial;color:#657368';
+    container.appendChild(info);
+    const selectedKey=selectedMoves.get(item)||currentPart(item);
+    field(container,'Wybrany element',selectedKey,'select',value=>{
+      selectedMoves.set(item,value);
+      if(typographyParts.some(part=>part[0]===value))activate(item,value);
+      container.innerHTML='';
+      panel(container,item,rerender);
+    },{choices:moveKeys.map(([key,name])=>[key,name])});
+    const coord=movePosition(item,selectedKey);
+    field(container,'Przesunięcie poziome X (px)',coord.x,'number',value=>{
+      item.process_positions[selectedKey]={...movePosition(item,selectedKey),x:Math.round(value)};
+    },{min:-1800,max:1800,step:1});
+    field(container,'Przesunięcie pionowe Y (px)',coord.y,'number',value=>{
+      item.process_positions[selectedKey]={...movePosition(item,selectedKey),y:Math.round(value)};
+    },{min:-1000,max:1000,step:1});
+    const reset=tag('button','fve-button','Wyzeruj położenie wybranego elementu');
+    reset.type='button';reset.style.cssText='width:100%;margin:8px 0 12px';
+    reset.onclick=()=>{
+      delete item.process_positions[selectedKey];
+      container.innerHTML='';
+      panel(container,item,rerender);
+      rerender();
+    };
+    container.appendChild(reset);
+    sectionTitle('Pełna typografia — wszystkie 12 napisów');
     const picker = field(container,'Wybierz napis do edycji',currentPart(item),'select',key=>{
       activate(item,key);
       // Rebuild only this module panel; do not discard other elements or settings.
