@@ -41,7 +41,7 @@
             <h2 class="ff-mosaic-heading" style="{{ $mosaicTextCss('heading') }}">{{ $mosaicHeaderTitle }}</h2>
         </div>
         <p class="ff-mosaic-intro" style="{{ $mosaicTextCss('intro') }}">{{ $element['mosaic_intro'] ?? 'Fotografia żywności i stylizacja, które podkreślają charakter produktu i marki.' }}</p>
-        <a class="ff-mosaic-more {{ $mosaicMoreButton ? 'is-button' : '' }}" href="{{ $mosaicMoreLink }}" style="{{ $mosaicTextCss('more') }};--fm-more-bg:{{ $mosaicMoreBg }};--fm-more-border:{{ $mosaicMoreBorder }};--fm-more-radius:{{ $mosaicMoreRadius }}px;--fm-more-pad-x:{{ $mosaicMorePadX }}px;--fm-more-pad-y:{{ $mosaicMorePadY }}px">{{ $element['mosaic_more_label'] ?? 'ZOBACZ WSZYSTKIE REALIZACJE' }} →</a>
+        <a class="ff-mosaic-more {{ $mosaicMoreButton ? 'is-button' : '' }}" href="{{ $mosaicMoreLink }}" style="{{ $mosaicTextCss('more') }};--fm-more-bg:{{ $mosaicMoreBg }};--fm-more-border:{{ $mosaicMoreBorder }};--fm-more-radius:{{ $mosaicMoreRadius }}px;--fm-more-pad-x:{{ $mosaicMorePadX }}px;--fm-more-pad-y:{{ $mosaicMorePadY }}px">{{ $element['mosaic_more_label'] ?? 'ZOBACZ WSZYSTKIE REALIZACJE' }} {{ $element['mosaic_more_action_text'] ?? '→' }}</a>
     </div>
     <div class="ff-mosaic-grid {{ $mosaicLayout === 'even' ? 'is-even' : '' }}">
         @foreach($mosaicCards as $i => $mosaicCard)
