@@ -252,7 +252,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-simple .ff-shared-rule{height:55px}
 #fve-header-variant-preview .ff-simple .ff-shared-name small{font-size:var(--ff-compact-subtitle,9px)}
 #fve-header-variant-preview .ff-simple .ff-shared-name strong{font-size:var(--ff-compact-name,25px)}
-#fve-header-variant-preview .ff-simple .ff-shared-menu{transform:none}
+#fve-header-variant-preview .ff-simple .ff-shared-menu{border-radius:8px 8px 24px 40px;transform:none}
 #fve-header-variant-preview .ff-shared-brand{color:inherit;text-decoration:none}
 #fve-header-variant-preview .ff-shared-menu a{color:#222;text-decoration:none;font:11px Arial,sans-serif;letter-spacing:.1em}
 #fve-header-variant-preview .ff-shared-menu a:hover{opacity:.65}
