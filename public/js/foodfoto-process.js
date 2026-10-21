@@ -333,7 +333,7 @@
       setMove(node,item,key);
       if(selectedMoves.get(item)===key) node.classList.add('ff-active-part');
       if(!onTextClick) return node;
-      node.setAttribute('title',moveName(key)+' — kliknij, aby wybrać. Tryb przesuwania: przeciągnij.');
+      node.setAttribute('title',moveName(key)+' — przeciągnij, aby przesunąć; narożnik zmienia wielkość.');
       // Prevent the page builder from treating icon/number clicks as
       // attempts to drag the entire three-step section.
       node.addEventListener('mousedown',event=>event.stopPropagation());
@@ -613,11 +613,9 @@
     field(container,'Przesunięcie pionowe Y (px)',coord.y,'number',value=>{
       item.process_positions[selectedKey]={...movePosition(item,selectedKey),y:Math.round(value)};
     },{min:-1000,max:1000,step:1});
-    if(typographyParts.some(([key])=>key===selectedKey)){
-      field(container,'Skala tekstu (% — proporcjonalnie)',Math.round(coord.scale*100),'number',value=>{
-        item.process_positions[selectedKey]={...movePosition(item,selectedKey),scale:Math.round(value)/100};
-      },{min:40,max:350,step:1});
-    }
+    field(container,'Skala elementu (% — proporcjonalnie)',Math.round(coord.scale*100),'number',value=>{
+      item.process_positions[selectedKey]={...movePosition(item,selectedKey),scale:Math.round(value)/100};
+    },{min:40,max:350,step:1});
     const reset=tag('button','fve-button','Wyzeruj położenie wybranego elementu');
     reset.type='button';reset.style.cssText='width:100%;margin:8px 0 12px';
     reset.onclick=()=>{
