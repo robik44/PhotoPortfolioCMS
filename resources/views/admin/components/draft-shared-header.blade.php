@@ -339,13 +339,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Skipping this used to clip its right-hand contact button.
 
         const style = getComputedStyle(stage);
-
+        const isSimple = stage.classList.contains('ff-simple');
         const x = Number.parseFloat(style.getPropertyValue(isSimple ? '--ffc-menu-x' : '--ff-menu-x')) || 0;
         const touchPublic = root.classList.contains('ff-public-header')
             && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
         const y = touchPublic && !isSimple ? 0 : (Number.parseFloat(style.getPropertyValue(isSimple ? '--ffc-menu-y' : '--ff-menu-y')) || 0);
         const targetWidth = Number.parseFloat(stage.dataset.menuWidth) || 0;
-        const isSimple = stage.classList.contains('ff-simple');
         const viewScale = stageRect.width / (stage.offsetWidth || 1);
         if (!Number.isFinite(viewScale) || viewScale <= 0) return;
 
