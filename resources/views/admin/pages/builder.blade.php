@@ -1597,6 +1597,46 @@ document.addEventListener("DOMContentLoaded", function () {
         selectField('Dokąd prowadzi odnośnik?',item.mosaic_more_link || '/#portfolio',
             [['/#portfolio','Do portfolio na stronie'],...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])],
             v=>item.mosaic_more_link=v);
+        title('Typografia — wszystkie napisy i przyciski');
+        const scope = item.mosaic_typography_scope === 'card' ? 'card' : 'shared';
+        selectField('Zakres zmian',scope,[
+            ['shared','Wspólna — napisy sekcji i wszystkie karty'],
+            ['card','Tylko wybrana karta (podpis, opis, strzałka)']
+        ],v=>{
+            item.mosaic_typography_scope=v;
+            if(v==='card' && !['category','description','arrow'].includes(item.mosaic_typography_role)){
+                item.mosaic_typography_role='category';
+            }
+        });
+        const roles = scope==='card' ? ['category','description','arrow']
+            : ['kicker','heading','intro','more','category','description','arrow'];
+        const activeRole=roles.includes(item.mosaic_typography_role)
+            ? item.mosaic_typography_role : (scope==='card' ? 'category' : 'heading');
+        selectField('Który tekst formatujesz?',activeRole,
+            roles.map(role=>[role,mosaicRoleLabels[role]]),
+            v=>item.mosaic_typography_role=v);
+        renderMosaicTypographyFields(item,activeRole,scope);
+        title('Wygląd odnośnika nad zdjęciami');
+        selectField('Styl linku „ZOBACZ WSZYSTKIE REALIZACJE”',
+            item.mosaic_more_button?'button':'link',[
+                ['link','Link z podkreśleniem'],
+                ['button','Przycisk z tłem, obramowaniem i zaokrągleniem']
+            ],v=>item.mosaic_more_button=v==='button');
+        if(item.mosaic_more_button){
+            field('Kolor tła przycisku','color',item.mosaic_more_bg||'#58754a',
+                v=>item.mosaic_more_bg=v);
+            field('Kolor ramki przycisku','color',item.mosaic_more_border||'#58754a',
+                v=>item.mosaic_more_border=v);
+            field('Zaokrąglenie (px)','number',item.mosaic_more_radius??40,
+                v=>item.mosaic_more_radius=Math.max(0,Math.min(100,Number(v)||0)),
+                {min:0,max:100,step:1});
+            field('Margines wewnętrzny poziomy (px)','number',item.mosaic_more_padding_x??22,
+                v=>item.mosaic_more_padding_x=Math.max(0,Math.min(80,Number(v)||0)),
+                {min:0,max:80,step:1});
+            field('Margines wewnętrzny pionowy (px)','number',item.mosaic_more_padding_y??12,
+                v=>item.mosaic_more_padding_y=Math.max(0,Math.min(50,Number(v)||0)),
+                {min:0,max:50,step:1});
+        }
         title('Rozmieszczenie kart');
         selectField('Wariant kompozycji',item.mosaic_layout||'editorial',[
             ['editorial','Mozaika: dwie wysokie karty po bokach'],
@@ -1655,6 +1695,8 @@ document.addEventListener("DOMContentLoaded", function () {
             properties.appendChild(photoList);
         }
         field('Etykieta pod zdjęciem','text',card.category||'',v=>card.category=v);
+        field('Napis na przycisku / strzałce karty','text',card.action_text??'→',
+            v=>card.action_text=String(v).slice(0,24));
         field('Krótki opis karty','textarea',card.description||'',v=>card.description=v);
         selectField('Podstrona lub galeria po kliknięciu',card.link||'',[
             ['','Otwórz wybraną galerię'],
