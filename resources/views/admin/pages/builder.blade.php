@@ -1379,6 +1379,172 @@ document.addEventListener("DOMContentLoaded", function () {
         // Header is rendered by the same shared Blade component as the public site.
     }
 
+
+    function ensureMosaicCards(item) {
+        if (!Array.isArray(item.mosaic_cards)) item.mosaic_cards=[];
+        item.mosaic_cards=item.mosaic_cards.slice(0,6);
+        while(item.mosaic_cards.length<6) item.mosaic_cards.push({gallery_id:null,photo_id:null,title:'',category:'',description:'',link:'',crop_x:50,crop_y:50});
+        item.mosaic_cards=item.mosaic_cards.map(card=>({
+            gallery_id:null,photo_id:null,title:'',category:'',description:'',link:'',crop_x:50,crop_y:50,
+            ...(card && typeof card==='object' && !Array.isArray(card) ? card : {})
+        }));
+        item.mosaic_selected_index=Math.max(0,Math.min(5,Number(item.mosaic_selected_index)||0));
+    }
+    function mosaicNode(tag,cls,textValue) {
+        const node=document.createElement(tag);
+        if(cls)node.className=cls;
+        if(textValue!==undefined)node.textContent=String(textValue);
+        return node;
+    }
+    function renderGalleryMosaic(item) {
+        ensureMosaicCards(item);
+        const root=mosaicNode('section','ff-mosaic ff-mosaic-desktop-fixed is-editing');
+        root.style.setProperty('--fm-gap',Math.max(0,Math.min(60,Number(item.mosaic_gap)||0))+'px');
+        root.style.setProperty('--fm-row',Math.max(150,Math.min(550,Number(item.mosaic_row_height)||260))+'px');
+        root.style.setProperty('--fm-side',Math.max(17,Math.min(34,Number(item.mosaic_side_width)||26))+'%');
+        root.style.setProperty('--fm-title',Math.max(22,Math.min(76,Number(item.mosaic_title_size)||44))+'px');
+        const header=mosaicNode('div','ff-mosaic-header');
+        const titleArea=mosaicNode('div');
+        titleArea.appendChild(mosaicNode('span','ff-mosaic-kicker',item.mosaic_kicker ?? 'WYBRANE REALIZACJE'));
+        titleArea.appendChild(mosaicNode('h2','ff-mosaic-heading',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii'));
+        header.appendChild(titleArea);
+        header.appendChild(mosaicNode('p','ff-mosaic-intro',item.mosaic_intro ?? 'Fotografia żywności dla Twojej marki'));
+        header.appendChild(mosaicNode('span','ff-mosaic-more',(item.mosaic_more_label || 'ZOBACZ WSZYSTKIE REALIZACJE')+' →'));
+        root.appendChild(header);
+        const grid=mosaicNode('div','ff-mosaic-grid'+(item.mosaic_layout==='even'?' is-even':''));
+        item.mosaic_cards.forEach((entry,index)=>{
+            const gallery=galleries.find(g=>Number(g.id)===Number(entry.gallery_id));
+            const photo=gallery?.photos?.find(p=>Number(p.id)===Number(entry.photo_id));
+            const imageUrl=photo?.cover_url || gallery?.cover_url || '';
+            const card=mosaicNode('article','ff-mosaic-card'+(index===item.mosaic_selected_index?' is-active':''));
+            card.dataset.mosaicIndex=index;
+            const media=mosaicNode('div','ff-mosaic-photo');
+            if(imageUrl){
+                const img=mosaicNode('img','ff-mosaic-image');
+                img.src=imageUrl;
+                img.alt=photo?.alt||gallery?.title||'';
+                img.loading='lazy';
+                img.style.objectPosition=Math.max(0,Math.min(100,Number(entry.crop_x)||0))+'% '+Math.max(0,Math.min(100,Number(entry.crop_y)||0))+'%';
+                media.appendChild(img);
+            }else{
+                media.appendChild(mosaicNode('div','ff-mosaic-placeholder','Wybierz zdjęcie / galerię'));
+            }
+            card.appendChild(media);
+            const meta=mosaicNode('div','ff-mosaic-card-meta');
+            const text=mosaicNode('div','ff-mosaic-text');
+            text.appendChild(mosaicNode('div','ff-mosaic-card-category',entry.category || gallery?.title || 'Wybierz galerię'));
+            if(item.mosaic_descriptions!==false && entry.description){
+                text.appendChild(mosaicNode('p','ff-mosaic-card-description',entry.description));
+            }
+            meta.appendChild(text);
+            meta.appendChild(mosaicNode('span','ff-mosaic-arrow','→'));
+            card.appendChild(meta);
+            card.addEventListener('mousedown',e=>e.stopPropagation());
+            card.addEventListener('click',e=>{
+                e.preventDefault();e.stopPropagation();
+                item.mosaic_selected_index=index;
+                selectOnly(item.id);
+                render();
+                showProperties(item);
+            });
+            grid.appendChild(card);
+        });
+        root.appendChild(grid);
+        return root;
+    }
+    function renderMosaicProperties(item){
+        ensureMosaicCards(item);
+        const intro=mosaicNode('p',null,'Cała mozaika jest jednym elementem. Kliknij kartę na stronie, aby edytować jej zdjęcie, podpis i link. Przeciągaj narożnik całego bloku, aby zmienić jego szerokość.');
+        intro.style.cssText='font:12px/1.5 Arial;color:#606b62;margin:6px 0 16px';
+        properties.appendChild(intro);
+        function title(text){
+            const h=mosaicNode('h4',null,text);
+            h.style.cssText='margin:20px 0 8px;font:700 13px Arial;color:#2b4e38;border-bottom:1px solid #ddd;padding-bottom:7px';
+            properties.appendChild(h);
+        }
+        function action(label,handler){
+            const b=mosaicNode('button','fve-button',label);
+            b.type='button'; b.style.cssText='width:100%;margin-bottom:8px';
+            b.addEventListener('click',()=>{handler();render();showProperties(item);});
+            properties.appendChild(b);
+        }
+        title('Teksty nad mozaiką');
+        field('Mały nagłówek','text',item.mosaic_kicker ?? 'WYBRANE REALIZACJE',v=>item.mosaic_kicker=v);
+        field('Nagłówek sekcji','textarea',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii',v=>item.mosaic_title=v);
+        field('Opis sekcji','textarea',item.mosaic_intro ?? '',v=>item.mosaic_intro=v);
+        field('Tekst odnośnika','text',item.mosaic_more_label ?? 'ZOBACZ WSZYSTKIE REALIZACJE',v=>item.mosaic_more_label=v);
+        selectField('Dokąd prowadzi odnośnik?',item.mosaic_more_link || '/#portfolio',
+            [['/#portfolio','Do portfolio na stronie'],...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])],
+            v=>item.mosaic_more_link=v);
+        title('Rozmieszczenie kart');
+        selectField('Wariant kompozycji',item.mosaic_layout||'editorial',[
+            ['editorial','Mozaika: dwie wysokie karty po bokach'],
+            ['even','Równe karty: trzy kolumny × dwa rzędy']
+        ],v=>item.mosaic_layout=v);
+        field('Odstępy między kartami (px)','number',item.mosaic_gap ?? 12,
+            v=>item.mosaic_gap=Math.max(0,Math.min(60,Math.round(Number(v)||0))),{min:0,max:60,step:1});
+        field('Wysokość jednego rzędu (px)','number',item.mosaic_row_height ?? 260,
+            v=>item.mosaic_row_height=Math.max(150,Math.min(550,Math.round(Number(v)||260))),{min:150,max:550,step:1});
+        if(item.mosaic_layout !== 'even'){
+            field('Szerokość skrajnych kart (%)','number',item.mosaic_side_width ?? 26,
+                v=>item.mosaic_side_width=Math.max(17,Math.min(34,Number(v)||26)),{min:17,max:34,step:0.5});
+        }
+        field('Rozmiar nagłówka (px)','number',item.mosaic_title_size ?? 44,
+            v=>item.mosaic_title_size=Math.max(22,Math.min(76,Number(v)||44)),{min:22,max:76,step:0.1});
+        selectField('Podpisy opisowe kart',item.mosaic_descriptions===false?'off':'on',
+            [['on','Pokaż opisy'],['off','Ukryj opisy']],v=>item.mosaic_descriptions=v==='on');
+        title('Karty galerii: 6 pozycji');
+        selectField('Edytowana karta',String(item.mosaic_selected_index),item.mosaic_cards.map((c,i)=>[
+            String(i),String(i+1)+'. '+(c.category || galleries.find(g=>Number(g.id)===Number(c.gallery_id))?.title || 'Bez galerii')
+        ]),v=>item.mosaic_selected_index=Number(v));
+        const idx=item.mosaic_selected_index,card=item.mosaic_cards[idx];
+        const gallery=galleries.find(g=>Number(g.id)===Number(card.gallery_id));
+        const row=document.createElement('div');row.style.cssText='display:flex;gap:6px;margin:8px 0';
+        const up=mosaicNode('button','fve-button','← Wcześniej');
+        const down=mosaicNode('button','fve-button','Później →');
+        for(const button of [up,down]){button.type='button';button.style.flex='1';row.appendChild(button);}
+        up.disabled=idx===0;down.disabled=idx===5;
+        const swap=delta=>{
+            const other=idx+delta;if(other<0||other>5)return;
+            [item.mosaic_cards[idx],item.mosaic_cards[other]]=[item.mosaic_cards[other],item.mosaic_cards[idx]];
+            item.mosaic_selected_index=other;render();showProperties(item);
+        };
+        up.onclick=()=>swap(-1);down.onclick=()=>swap(1);properties.appendChild(row);
+        selectField('Galeria / podstrona',card.gallery_id||'',[
+            ['','Wybierz galerię'],...galleries.filter(g=>g.published!==false).map(g=>[g.id,g.title])
+        ],v=>{card.gallery_id=v?Number(v):null;card.photo_id=null;});
+        const galleryPhotos=gallery?.photos||[];
+        selectField('Zdjęcie z wybranej galerii',card.photo_id||'',[
+            ['','Okładka galerii (automatycznie)'],
+            ...galleryPhotos.map(p=>[p.id,p.title||p.alt||('Zdjęcie '+p.id)])
+        ],v=>card.photo_id=v?Number(v):null);
+        if(galleryPhotos.length){
+            const photoList=mosaicNode('div');
+            photoList.style.cssText='display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:6px 0 16px';
+            galleryPhotos.forEach(photo=>{
+                const pick=mosaicNode('button');
+                pick.type='button';pick.title=photo.title||photo.alt||'Wybierz zdjęcie';
+                pick.style.cssText='border:2px solid '+(Number(card.photo_id)===Number(photo.id)?'#37784f':'#ddd')+';border-radius:4px;padding:2px;background:white;cursor:pointer';
+                const img=mosaicNode('img');img.src=photo.cover_url;img.alt=photo.alt||photo.title||'';
+                img.loading='lazy';img.style.cssText='width:100%;height:65px;object-fit:cover;display:block';
+                pick.appendChild(img);
+                pick.addEventListener('click',()=>{card.photo_id=Number(photo.id);render();showProperties(item);});
+                photoList.appendChild(pick);
+            });
+            properties.appendChild(photoList);
+        }
+        field('Etykieta pod zdjęciem','text',card.category||'',v=>card.category=v);
+        field('Krótki opis karty','textarea',card.description||'',v=>card.description=v);
+        selectField('Cel po kliknięciu',card.link||'',[
+            ['','Otwórz wybraną galerię'],
+            ...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])
+        ],v=>card.link=v);
+        field('Kadrowanie poziome (%)','number',card.crop_x??50,
+            v=>card.crop_x=Math.max(0,Math.min(100,Math.round(Number(v)||0))),{min:0,max:100,step:1});
+        field('Kadrowanie pionowe (%)','number',card.crop_y??50,
+            v=>card.crop_y=Math.max(0,Math.min(100,Math.round(Number(v)||0))),{min:0,max:100,step:1});
+    }
+
     function createElementContent(item) {
 
         const semanticTags = ['div', 'p', 'h1', 'h2', 'h3', 'small'];
