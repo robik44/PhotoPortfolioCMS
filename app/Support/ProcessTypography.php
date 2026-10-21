@@ -83,6 +83,7 @@ class ProcessTypography
         if (!is_array($position)) $position = [];
         $x = is_numeric($position['x'] ?? null) ? max(-1800, min(1800, (float)$position['x'])) : 0;
         $y = is_numeric($position['y'] ?? null) ? max(-1000, min(1000, (float)$position['y'])) : 0;
-        return '--ff-part-x:'.$x.'px;--ff-part-y:'.$y.'px;';
+        $scale = is_numeric($position['scale'] ?? null) ? max(0.4, min(3.5, (float)$position['scale'])) : 1;
+        return '--ff-part-x:'.$x.'px;--ff-part-y:'.$y.'px;--ff-part-scale:'.$scale.';';
     }
 }
