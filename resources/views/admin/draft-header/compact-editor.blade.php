@@ -12,7 +12,7 @@ body{margin:0;background:#f1f2ef;color:#252923;font:14px Arial,sans-serif}
 .toolbar{position:sticky;top:0;z-index:100;background:white;border-bottom:1px solid #d4dbd0;padding:14px 2.5%;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .toolbar h1{font:400 23px Georgia,serif;margin:0 18px 0 0}
 .toolbar a,.toolbar button{padding:10px 15px;border:1px solid #ced5ce;border-radius:7px;text-decoration:none;color:#222;background:white;font:13px Arial;cursor:pointer}
-.toolbar #save-compact{background:#244c35;color:white;border-color:#244c35;font-weight:bold}
+.toolbar #save-compact,.toolbar #save-exit-compact{background:#244c35;color:white;border-color:#244c35;font-weight:bold}
 .toolbar output{font-size:13px;color:#376343}
 .description{margin:20px 2.5%;line-height:1.55;max-width:1100px}
 .workspace{overflow:auto;padding:22px 25px 40px;background:repeating-conic-gradient(#f1f1ef 0% 25%,#e7e7e4 0% 50%) 0 0/20px 20px}
@@ -40,13 +40,16 @@ body{margin:0;background:#f1f2ef;color:#252923;font:14px Arial,sans-serif}
 <body>
 @php
     $saveCompactUrl = route('draft-header.compact-layout');
+    $cmsExitUrl = route('dashboard');
 @endphp
 <div class="toolbar">
     <h1>Wspólny nagłówek uproszczony</h1>
     <a href="{{ route('draft-header.preview') }}">← Nagłówek ze zdjęciem</a>
     <a href="{{ route('draft-header.review') }}">Przegląd publikacji</a>
-    <button type="button" id="save-compact">Zapisz nagłówek uproszczony</button>
+    <button type="button" id="save-compact">Zapisz zmiany</button>
+    <button type="button" id="save-exit-compact">Zapisz i wyjdź</button>
     <button type="button" id="restore-compact">Cofnij niezapisane zmiany</button>
+    <a href="{{ $cmsExitUrl }}" id="exit-compact">Wyjdź do CMS</a>
     <output id="compact-status" role="status">Gotowy</output>
 </div>
 <p class="description">
@@ -71,6 +74,7 @@ body{margin:0;background:#f1f2ef;color:#252923;font:14px Arial,sans-serif}
 (() => {
 const saved = @json($compactLayout);
 const saveUrl = @json($saveCompactUrl);
+const exitUrl = @json($cmsExitUrl);
 const csrf = document.querySelector('meta[name="csrf-token"]').content;
 const names = {logo:'Logo FoodFoto',divider:'Pionowa kreska',title:'Magda Gugała',subtitle:'FOTOGRAFIA I STYLIZACJA ŻYWNOŚCI',menu:'Białe menu'};
 const initial = {
@@ -235,22 +239,34 @@ window.addEventListener('resize',updateHandle);
 document.getElementById('restore-compact').addEventListener('click',()=>{
  layout=fresh();setVars();drawFields();dirty=false;status.textContent='Przywrócono ostatnio zapisane ustawienia';status.style.color='#376343';
 });
-document.getElementById('save-compact').addEventListener('click',async()=>{
- const btn=document.getElementById('save-compact');
- btn.disabled=true;status.textContent='Zapisywanie…';
+const saveButtons=[document.getElementById('save-compact'),document.getElementById('save-exit-compact')];
+async function saveCompactAndMaybeExit(leaveAfterSave){
+ saveButtons.forEach(button=>{button.disabled=true;});
+ status.textContent='Zapisywanie…';
  try{
   const response=await fetch(saveUrl,{method:'PUT',credentials:'same-origin',
     headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':csrf},
     body:JSON.stringify({layout})});
-  if(!response.ok){const error=await response.json().catch(()=>({}));throw Error(Object.values(error.errors||{}).flat()[0]||error.message||'HTTP '+response.status);}
+  if(!response.ok){
+    const error=await response.json().catch(()=>({}));
+    throw Error(Object.values(error.errors||{}).flat()[0]||error.message||'HTTP '+response.status);
+  }
   const result=await response.json();
   if(!result.ok)throw Error('Nie otrzymano potwierdzenia zapisu');
-  dirty=false;status.textContent='Zapisano ✓ — wspólne ustawienia są aktywne';status.style.color='#376343';
-  // Refresh the last saved baseline for the undo button.
+  dirty=false;
+  status.textContent='Zapisano ✓ — wspólne ustawienia są aktywne';
+  status.style.color='#376343';
   for(const key of Object.keys(initial)) saved[key]=JSON.parse(JSON.stringify(layout[key]));
- }catch(error){status.textContent='Błąd zapisu: '+error.message;status.style.color='#9b3232'}
- finally{btn.disabled=false}
-});
+  if(leaveAfterSave) window.location.assign(exitUrl);
+ }catch(error){
+  status.textContent='Błąd zapisu: '+error.message+' — pozostajesz w edytorze';
+  status.style.color='#9b3232';
+ }finally{
+  saveButtons.forEach(button=>{button.disabled=false;});
+ }
+}
+document.getElementById('save-compact').addEventListener('click',()=>saveCompactAndMaybeExit(false));
+document.getElementById('save-exit-compact').addEventListener('click',()=>saveCompactAndMaybeExit(true));
 window.addEventListener('beforeunload',event=>{if(dirty){event.preventDefault();event.returnValue='';}});
 setVars();
 })();
