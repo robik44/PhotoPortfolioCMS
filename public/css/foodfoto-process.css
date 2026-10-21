@@ -151,6 +151,22 @@
 }
 
 .ff-process .ff-process-branch-art { display:block; }
+.ff-process.is-editing .ff-process-height-handle {
+    position:absolute;
+    right:4px;
+    bottom:4px;
+    z-index:15;
+    width:24px;
+    height:24px;
+    border-right:4px solid #427a4d;
+    border-bottom:4px solid #427a4d;
+    border-radius:2px;
+    cursor:ns-resize;
+    pointer-events:auto;
+    touch-action:none;
+    opacity:.8;
+}
+.ff-process.is-editing .ff-process-height-handle:hover { opacity:1; }
 .ff-process .ff-process-icon {
     width: 52%;
     height: 52%;
