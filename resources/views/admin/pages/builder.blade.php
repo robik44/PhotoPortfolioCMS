@@ -1,6 +1,7 @@
 <x-app-layout>
     @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <script src="{{ asset('js/site-typography.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('css/foodfoto-gallery-mosaic.css') }}?v={{ @filemtime(public_path('css/foodfoto-gallery-mosaic.css')) ?: 1 }}">
     <script src="{{ asset('js/builder-button.js') }}"></script>
     <script src="{{ asset('js/builder-auto-flow.js') }}?v={{ @filemtime(public_path('js/builder-auto-flow.js')) ?: 1 }}"></script>
     <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
@@ -734,6 +735,9 @@
                 + Finał strony — zdjęcie i kontakt
             </button>
             @if($isHomeBuilder ?? false)
+                <button type="button" class="fve-tool" data-fve-add="gallery_mosaic">
+                    + Mozaika galerii FoodFoto (6 kart)
+                </button>
                 <button type="button" class="fve-tool" data-fve-preset="foodfoto-home">
                     + Kompozycja FoodFoto
                 </button>
@@ -1340,6 +1344,7 @@ document.addEventListener("DOMContentLoaded", function () {
             heading: "Nagłówek",
             image: "Zdjęcie",
             gallery: "Galeria",
+            gallery_mosaic: "Mozaika galerii FoodFoto",
             thumbnail_gallery: "Galeria miniaturek",
             button: "Przycisk",
             separator: "Separator",
@@ -1516,6 +1521,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
             box.appendChild(button);
 
+        } else if (item.type === "gallery_mosaic") {
+            box.appendChild(renderGalleryMosaic(item));
         } else if (item.type === "gallery") {
 
             const collectionId = Number(item.gallery_collection_id) || 0;
@@ -1848,6 +1855,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 image: 10,
                 separator: 20,
                 gallery: 30,
+                gallery_mosaic: 30,
                 thumbnail_gallery: 30,
                 text: 100,
                 heading: 110,
@@ -2373,6 +2381,11 @@ document.addEventListener("DOMContentLoaded", function () {
         properties.appendChild(flowTip);
 
 
+        if (item.type === 'gallery_mosaic') {
+            renderMosaicProperties(item);
+            return;
+        }
+
         if (item.type !== 'color_panel') window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
         window.BuilderButton.fields(properties, item, render, 'fve-field');
@@ -2577,7 +2590,7 @@ document.addEventListener("DOMContentLoaded", function () {
             window.ThumbnailGallery.properties(properties, item, photos, render, 'fve-field');
         }
 
-        if (item.type !== "image" && item.type !== "thumbnail_gallery" && item.type !== "process_steps") {
+        if (item.type !== "image" && item.type !== "thumbnail_gallery" && item.type !== "process_steps" && item.type !== "gallery_mosaic") {
 
             field(
                 item.type === 'button' ? 'Tekst przycisku' : "Treść",
@@ -2953,6 +2966,37 @@ document.addEventListener("DOMContentLoaded", function () {
         if (type === 'thumbnail_gallery') {
             window.ThumbnailGallery.initialize(item);
             item.element_width = 90;
+        }
+        if (type === 'gallery_mosaic') {
+            item.position_x = 5;
+            item.element_width = 90;
+            item.element_height = 0;
+            item.flow_mode = 'auto';
+            item.flow_base_height = 0;
+            item.mosaic_layout = 'editorial';
+            item.mosaic_kicker = 'WYBRANE REALIZACJE';
+            item.mosaic_title = 'Piękne obrazy\\ndla smacznych historii'.replace('\\n','\n');
+            item.mosaic_intro = 'Fotografia, która podkreśla charakter Twojej marki — od opakowań po kampanie reklamowe.';
+            item.mosaic_more_label = 'ZOBACZ WSZYSTKIE REALIZACJE';
+            item.mosaic_more_link = '/#portfolio';
+            item.mosaic_gap = 12;
+            item.mosaic_row_height = 260;
+            item.mosaic_side_width = 26;
+            item.mosaic_title_size = 44;
+            item.mosaic_descriptions = true;
+            item.mosaic_selected_index = 0;
+            item.mosaic_cards = Array.from({length:6}, (_,i) => {
+                const gallery=galleries.filter(g=>g.published !== false)[i] || null;
+                return {
+                  gallery_id:gallery ? Number(gallery.id) : null,
+                  photo_id:null,
+                  title:'',
+                  category:gallery ? gallery.title : '',
+                  description:'',
+                  link:'',
+                  crop_x:50,crop_y:50
+                };
+            });
         }
         data.sections.push(item);
 
