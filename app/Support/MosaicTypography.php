@@ -25,7 +25,9 @@ final class MosaicTypography
         }
         foreach ($groups as $key => $styles) {
             if (!is_array($styles)) {
-                Validator::make([$key => $styles], [$key => ['array']])->validate();
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    $key => 'Nieprawidłowe ustawienia typografii mozaiki.',
+                ]);
             }
             $allowedRoles = str_starts_with($key, 'mosaic_cards.') ? self::CARD_ROLES : self::ROLES;
             foreach ($styles as $role => $style) {
