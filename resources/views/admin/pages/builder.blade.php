@@ -1525,7 +1525,7 @@ document.addEventListener("DOMContentLoaded", function () {
         titleArea.appendChild(mosaicApplyTypography(mosaicNode('h2','ff-mosaic-heading',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii'),item,'heading'));
         header.appendChild(titleArea);
         header.appendChild(mosaicApplyTypography(mosaicNode('p','ff-mosaic-intro',item.mosaic_intro ?? 'Fotografia żywności dla Twojej marki'),item,'intro'));
-        const more=mosaicApplyTypography(mosaicNode('span','ff-mosaic-more'+(item.mosaic_more_button?' is-button':''),(item.mosaic_more_label || 'ZOBACZ WSZYSTKIE REALIZACJE')+' →'),item,'more');
+        const more=mosaicApplyTypography(mosaicNode('span','ff-mosaic-more'+(item.mosaic_more_button?' is-button':''),(item.mosaic_more_label || 'ZOBACZ WSZYSTKIE REALIZACJE')+' '+(item.mosaic_more_action_text??'→')),item,'more');
         more.style.setProperty('--fm-more-bg',item.mosaic_more_bg||'#58754a');
         more.style.setProperty('--fm-more-border',item.mosaic_more_border||'#58754a');
         more.style.setProperty('--fm-more-radius',Number(item.mosaic_more_radius??40)+'px');
@@ -1617,6 +1617,8 @@ document.addEventListener("DOMContentLoaded", function () {
         field('Nagłówek sekcji','textarea',item.mosaic_title ?? 'Piękne obrazy dla smacznych historii',v=>item.mosaic_title=v);
         field('Opis sekcji','textarea',item.mosaic_intro ?? '',v=>item.mosaic_intro=v);
         field('Tekst odnośnika','text',item.mosaic_more_label ?? 'ZOBACZ WSZYSTKIE REALIZACJE',v=>item.mosaic_more_label=v);
+        field('Symbol lub tekst na końcu linku','text',item.mosaic_more_action_text??'→',
+            v=>item.mosaic_more_action_text=String(v).slice(0,24));
         selectField('Dokąd prowadzi odnośnik?',item.mosaic_more_link || '/#portfolio',
             [['/#portfolio','Do portfolio na stronie'],...(window.builderButtonTargets||[]).map(t=>[t.url,t.label])],
             v=>item.mosaic_more_link=v);
