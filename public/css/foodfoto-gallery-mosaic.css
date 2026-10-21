@@ -51,7 +51,7 @@
 .ff-mosaic-placeholder{display:flex;flex:1;align-items:center;justify-content:center;background:#e9ede6;color:#647362;font:14px Arial}
 .ff-mosaic-card-meta{display:flex;align-items:center;gap:8px;padding:11px 13px;min-height:54px;flex:0 0 auto}
 .ff-mosaic-text{flex:1 1 auto;min-width:0}
-.ff-mosaic-card-category{font:700 10px/1.25 Arial;letter-spacing:.12em;text-transform:uppercase;margin:0;color:#424741}
+.ff-mosaic-card-category{font:700 10px/1.25 Arial;letter-spacing:.12em;text-transform:uppercase;margin:0;display:block;color:#424741}
 .ff-mosaic-card-title{font:400 14px/1.25 Georgia,serif;margin:3px 0 0}
 .ff-mosaic-card-description{font:11px/1.4 Arial;color:#7a7e77;margin:3px 0 0}
 .ff-mosaic-arrow{font:17px Arial;color:#455747;align-self:center}
