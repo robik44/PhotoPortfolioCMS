@@ -38,12 +38,44 @@
   function configurePhotos(values) { mediaPhotos = Array.isArray(values) ? values : []; }
   let typographyEditor = null;
   const activeParts = new WeakMap();
+  const moveModes = new WeakMap();
+  const selectedMoves = new WeakMap();
+  const moveKeys = [
+    ['kicker','Mała etykieta „JAK PRACUJĘ”'],
+    ['title','Duży nagłówek'],
+    ['intro','Opis z prawej'],
+    ['branch','Gałązka'],
+    ['decorative_photo','Dodatkowy obrazek'],
+    ...[1,2,3].flatMap(i=>[
+      ['step'+i+'_number','Etap '+i+' — numer'],
+      ['step'+i+'_icon','Etap '+i+' — ikona'],
+      ['step'+i+'_title','Etap '+i+' — tytuł'],
+      ['step'+i+'_description','Etap '+i+' — opis'],
+      ...(i<3 ? [['step'+i+'_connector','Łącznik za etapem '+i]] : [])
+    ])
+  ];
+  const moveName = key => moveKeys.find(p=>p[0]===key)?.[1] || key;
+  const movePosition = (item,key)=>{
+    item.process_positions ??= {};
+    const val=item.process_positions[key];
+    if(!val || typeof val!=='object' || Array.isArray(val)) return {x:0,y:0};
+    return {x:safeNumber(val.x,0,-1800,1800),y:safeNumber(val.y,0,-1000,1000)};
+  };
+  function setMove(node,item,key){
+    if(!node) return;
+    node.dataset.processMove=key;
+    const coords=movePosition(item,key);
+    node.style.setProperty('--ff-part-x',coords.x+'px');
+    node.style.setProperty('--ff-part-y',coords.y+'px');
+  }
+
   function attachTypography(editor) { typographyEditor = editor; }
   const typographyParts = [
     ['kicker','Etykieta „JAK PRACUJĘ”','text'],
     ['title','Nagłówek główny','heading'],
     ['intro','Opis wprowadzający','text'],
     ...[1,2,3].flatMap(i => [
+      ['step'+i+'_number','Etap '+i+' — numer','text'],
       ['step'+i+'_title','Etap '+i+' — tytuł','heading'],
       ['step'+i+'_description','Etap '+i+' — opis','text']
     ])
@@ -52,18 +84,19 @@
     const d = item.process_design;
     const heading = key==='title' || key.endsWith('_title');
     const kicker = key==='kicker';
+    const numeral = key.endsWith('_number');
     const title = key==='title';
     const intro = key==='intro';
-    const size = kicker ? 11 : title ? d.title_size : intro ? d.lead_size : heading ? d.step_title_size : d.step_description_size;
-    const color = kicker ? d.accent : (heading ? d.text : d.muted);
+    const size = numeral ? d.number_size : kicker ? 11 : title ? d.title_size : intro ? d.lead_size : heading ? d.step_title_size : d.step_description_size;
+    const color = kicker || numeral ? d.accent : (heading ? d.text : d.muted);
     return {
-      font_family: kicker || intro || (!heading) ? d.body_font : d.heading_font,
+      font_family: numeral ? 'Georgia' : (kicker || intro || (!heading) ? d.body_font : d.heading_font),
       font_size: size,
       font_weight: kicker ? 600 : title ? d.title_weight : heading ? 400 : 400,
-      font_style: title && d.heading_italic !== false ? 'italic' : 'normal',
+      font_style: numeral || (title && d.heading_italic !== false) ? 'italic' : 'normal',
       text_transform: kicker ? 'uppercase' : 'none',
       text_align: 'left',
-      line_height: kicker ? 1.5 : title ? 1.08 : intro ? 1.62 : heading ? 1.18 : 1.55,
+      line_height: numeral ? 1 : kicker ? 1.5 : title ? 1.08 : intro ? 1.62 : heading ? 1.18 : 1.55,
       letter_spacing: kicker ? .19 : title ? -.025 : 0,
       letter_spacing_unit: kicker || title ? 'em' : 'px',
       color,
@@ -99,6 +132,8 @@
       if (item.process_design[key] === undefined || item.process_design[key] === null)
         item.process_design[key] = value;
     }
+    if(!item.process_positions || typeof item.process_positions !== 'object'
+        || Array.isArray(item.process_positions)) item.process_positions={};
     return item;
   }
   const tag = (name, className, text) => {
