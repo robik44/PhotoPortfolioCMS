@@ -2232,6 +2232,13 @@ document.addEventListener("DOMContentLoaded", function () {
                 createElementContent(item);
 
             element.appendChild(inner);
+            if (item.type === 'gallery_mosaic') {
+                // Nested mosaic text needs a complete click/double-click cycle.
+                // The generic block drag handler below re-renders on
+                // mousedown and otherwise destroys the clicked text node.
+                // Use the outer resize handle to resize the mosaic block.
+                inner.addEventListener('mousedown', event => event.stopPropagation());
+            }
 
             const remove =
                 document.createElement("button");
@@ -2657,6 +2664,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
         properties.appendChild(heading);
 
+        if (item.type === 'gallery_mosaic') {
+            renderMosaicProperties(item);
+            return;
+        }
+
         const actions = document.createElement("div");
         actions.style.display = "grid";
         actions.style.gridTemplateColumns = "1fr 1fr";
@@ -2732,11 +2744,6 @@ document.addEventListener("DOMContentLoaded", function () {
         flowTip.textContent = 'Włączone: nowe lub powiększone pole robi miejsce w kolejnych rzędach. Wyłączone: swobodne nakładanie elementów.';
         properties.appendChild(flowTip);
 
-
-        if (item.type === 'gallery_mosaic') {
-            renderMosaicProperties(item);
-            return;
-        }
 
         if (item.type !== 'color_panel') window.builderTypography.panel(properties, item, render, 'fve-field');
         window.builderTypography.captionFields(properties, item, render, 'fve-field');
