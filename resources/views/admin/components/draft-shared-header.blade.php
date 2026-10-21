@@ -16,6 +16,14 @@ $xy = static fn ($item,$axis) => max(-400,min(400,(int)($item[$axis] ?? 0)));
 $blocks = ['eyebrow' => $p['eyebrow'] ?? [], 'headline' => $p['headline'] ?? [], 'description' => $p['description'] ?? [], 'cta' => $p['cta'] ?? []];
 $ctaX = max(-400, min(400, (int)($p['cta']['x'] ?? 0)));
 $ctaY = max(-300, min(300, (int)($p['cta']['y'] ?? 0)));
+// Absolute scene placement is populated on the next "Zapisz układ" in the
+// central header editor. It matches the canvas even when text baselines differ.
+$useSceneCta = $isPublicDraftHeader && $full
+    && isset($p['cta']['scene_x_percent'], $p['cta']['scene_y_percent'])
+    && is_numeric($p['cta']['scene_x_percent'])
+    && is_numeric($p['cta']['scene_y_percent']);
+$sceneCtaX = $useSceneCta ? max(-100, min(200, (float)$p['cta']['scene_x_percent'])) : 0;
+$sceneCtaY = $useSceneCta ? max(-100, min(200, (float)$p['cta']['scene_y_percent'])) : 0;
 // The central builder and the shared public header start the CTA from
 // different vertical flow baselines. Replaying a negative Y offset on the
 // public page lifts it into the paragraph. Keep the editor's saved X while
@@ -107,12 +115,25 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 <div class="ff-eyebrow" style="{{ $styleFor($blocks['eyebrow'],11,500) }}">{{ $pageBannerDraft['eyebrow'] ?? ($builderHeaderSettings['draft_header_eyebrow'] ?? 'APETYT NA PIĘKNE HISTORIE') }}</div>
 <h1 style="{{ $styleFor($blocks['headline'],83,850) }}">{{ $pageBannerDraft['title'] ?? ($builderHeaderSettings['draft_header_hero_title'] ?? "Fotografia\ni stylizacja żywności") }}</h1>
 <p style="{{ $styleFor($blocks['description'],16,560) }}">{{ $pageBannerDraft['description'] ?? ($builderHeaderSettings['draft_header_hero_description'] ?? 'Tworzę apetyczne obrazy, które budują marki, opowiadają historie i inspirują do dobrego jedzenia.') }}</p>
-@if($isPublicDraftHeader)
-<a href="{{ url('/#portfolio') }}" class="ff-cta" data-offset-x="{{ $ctaX }}" data-offset-y="{{ $ctaY }}" style="{{ $styleFor($blocks['cta'],14,300) }};{{ $publishedCtaOffset }}">
-@else
-<span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
-@endif{{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→@if($isPublicDraftHeader)</a>@else</span>@endif
+@if(!$useSceneCta)
+    @if($isPublicDraftHeader)
+        <a href="{{ url('/#portfolio') }}" class="ff-cta" data-offset-x="{{ $ctaX }}" data-offset-y="{{ $ctaY }}" style="{{ $styleFor($blocks['cta'],14,300) }};{{ $publishedCtaOffset }}">
+    @else
+        <span class="ff-cta" style="{{ $styleFor($blocks['cta'],14,300) }}">
+    @endif
+        {{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→
+    @if($isPublicDraftHeader)</a>@else</span>@endif
+@endif
 </div>
+@if($useSceneCta)
+<a href="{{ url('/#portfolio') }}"
+   class="ff-cta ff-cta-scene"
+   data-scene-x="{{ $sceneCtaX }}"
+   data-scene-y="{{ $sceneCtaY }}"
+   style="{{ $styleFor($blocks['cta'],14,300) }};left:{{ $sceneCtaX }}%;top:{{ $sceneCtaY }}%;">
+    {{ $pageBannerDraft['button'] ?? ($builderHeaderSettings['draft_header_cta_text'] ?? 'ZOBACZ PORTFOLIO') }}　→
+</a>
+@endif
 </section>
 </div>
 <style>
@@ -144,6 +165,13 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 #fve-header-variant-preview .ff-shared-hero p{position:relative;font-size:var(--fs,16px);line-height:var(--lh,1.65);letter-spacing:var(--ls,0px);max-width:var(--lw,560px);margin:0 0 8px}
 #fve-header-variant-preview .ff-cta{position:relative;font-size:var(--fs,14px);margin-top:8px}
 #fve-header-variant-preview .ff-cta{transform:translateX(var(--dx,0px));margin-top:19px;letter-spacing:var(--ls,.12em)}
+#fve-header-variant-preview .ff-cta.ff-cta-scene{
+  position:absolute;
+  margin:0;
+  transform:none;
+  z-index:3;
+  white-space:nowrap;
+}
 #fve-header-variant-preview .ff-simple .ff-shared-hero{display:none}
 #fve-header-variant-preview .ff-simple .ff-shared-bar{padding-top:12px;padding-bottom:12px}
 #fve-header-variant-preview .ff-simple .ff-shared-brand img{width:55px}
