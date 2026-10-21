@@ -158,6 +158,63 @@ class DraftHeaderController extends Controller
         return redirect()->route('draft-header.edit')->with('success', 'Zapisano testowy nagłówek. Strona publiczna nie została zmieniona.');
     }
 
+    /**
+     * One shared compact layout for all simple page headers and the
+     * scrolled-down sticky header. Does not change the full hero settings.
+     */
+    public function compactEditor()
+    {
+        $settings = $this->settings();
+        $saved = SiteSetting::where('key', 'draft_compact_header_layout')->value('value');
+        $compactLayout = json_decode($saved ?: '{}', true) ?: [];
+        $builderHeaderSettings = SiteSetting::pluck('value', 'key')->all();
+        $builderHeaderMenuItems = \App\Models\MenuItem::whereNull('parent_id')
+            ->where('published', true)->orderBy('sort_order')->get();
+        $headerVariantValue = 'simple';
+        $draftPreviewImage = null;
+        $pageBannerDraft = [];
+        $isPublicDraftHeader = false;
+        return view('admin.draft-header.compact-editor', compact(
+            'settings', 'compactLayout', 'builderHeaderSettings',
+            'builderHeaderMenuItems', 'headerVariantValue', 'draftPreviewImage',
+            'pageBannerDraft', 'isPublicDraftHeader'
+        ));
+    }
+
+    public function saveCompactLayout(Request $request)
+    {
+        $data = $request->validate([
+            'layout' => ['required','array'],
+            'layout.logo' => ['required','array'],
+            'layout.divider' => ['required','array'],
+            'layout.title' => ['required','array'],
+            'layout.subtitle' => ['required','array'],
+            'layout.menu' => ['required','array'],
+            'layout.*.x' => ['required','integer','between:-350,350'],
+            'layout.*.y' => ['required','integer','between:-150,150'],
+            'layout.logo.size' => ['required','integer','between:25,180'],
+            'layout.divider.size' => ['required','integer','between:20,150'],
+            'layout.divider.width' => ['required','integer','between:1,8'],
+            'layout.title.font' => ['required','numeric','between:12,80'],
+            'layout.subtitle.font' => ['required','numeric','between:6,32'],
+            'layout.title.spacing' => ['required','numeric','between:-2,20'],
+            'layout.subtitle.spacing' => ['required','numeric','between:-2,20'],
+            'layout.title.word_spacing' => ['required','numeric','between:-2,30'],
+            'layout.subtitle.word_spacing' => ['required','numeric','between:-2,30'],
+            'layout.title.color' => ['required','regex:/^#[0-9a-fA-F]{6}$/'],
+            'layout.subtitle.color' => ['required','regex:/^#[0-9a-fA-F]{6}$/'],
+            'layout.title.weight' => ['required','integer','in:300,400,500,600,700,800'],
+            'layout.menu.scale' => ['required','numeric','between:0.7,1.3'],
+        ]);
+        $allowed = ['logo','divider','title','subtitle','menu'];
+        $layout = array_intersect_key($data['layout'], array_flip($allowed));
+        SiteSetting::updateOrCreate(
+            ['key' => 'draft_compact_header_layout'],
+            ['value' => json_encode($layout, JSON_UNESCAPED_UNICODE)]
+        );
+        return response()->json(['ok' => true, 'layout' => $layout]);
+    }
+
     public function savePositions(Request $request)
     {
         $data = $request->validate([
