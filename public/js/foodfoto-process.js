@@ -212,6 +212,7 @@
     };
     const movable = (node,key) => {
       setMove(node,item,key);
+      if(selectedMoves.get(item)===key) node.classList.add('ff-active-part');
       if(!onTextClick) return node;
       node.setAttribute('title',moveName(key)+' — kliknij, aby wybrać. Tryb przesuwania: przeciągnij.');
       // Prevent the page builder from treating icon/number clicks as
@@ -430,6 +431,7 @@
       if(typographyParts.some(part=>part[0]===value))activate(item,value);
       container.innerHTML='';
       panel(container,item,rerender);
+      rerender();
     },{choices:moveKeys.map(([key,name])=>[key,name])});
     const coord=movePosition(item,selectedKey);
     field(container,'Przesunięcie poziome X (px)',coord.x,'number',value=>{
