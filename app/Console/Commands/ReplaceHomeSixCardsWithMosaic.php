@@ -240,15 +240,18 @@ class ReplaceHomeSixCardsWithMosaic extends Command
                 throw new RuntimeException('Nie można bezpiecznie rozpoznać sześciu różnych kategorii: '.$card['title']);
             }
             $usedKeys[$knownKey] = true;
-            $description = $this->findDescription($sections, $knownKey, $startY, $limitY,
-                $card['_x'], $card['_y'], array_merge($captionsToRemove, $descriptionsToRemove, [$headingIndex]));
+            $description = $source === 'galeria CMS'
+                ? $this->findExistingDescriptionByText($sections, $knownKey, $startY, $limitY,
+                    array_merge($captionsToRemove, $descriptionsToRemove, [$headingIndex]))
+                : $this->findDescription($sections, $knownKey, $startY, $limitY,
+                    $card['_x'], $card['_y'], array_merge($captionsToRemove, $descriptionsToRemove, [$headingIndex]));
             if ($description !== null) {
                 [$descriptionIndex, $text] = $description;
                 $descriptionsToRemove[] = $descriptionIndex;
             } else {
                 $text = self::EXISTING_DESCRIPTIONS[$knownKey];
             }
-            if (empty($card['link'])) {
+            if (empty($card['link']) || str_starts_with((string)$card['link'], '#')) {
                 $card['link'] = $this->matchPublishedPage($knownKey);
             }
             $link = BuilderButton::href($card['link']);
@@ -421,6 +424,22 @@ class ReplaceHomeSixCardsWithMosaic extends Command
         }
         usort($choices, fn ($a,$b) => $a[2] <=> $b[2]);
         return $choices ? [$choices[0][0],$choices[0][1]] : null;
+    }
+
+    private function findExistingDescriptionByText(array $sections, string $topic, float $startY,
+                                                   float $limitY, array $excluded): ?array
+    {
+        $expected = $this->norm(self::EXISTING_DESCRIPTIONS[$topic]);
+        $matches = [];
+        foreach ($sections as $index => $section) {
+            if (in_array($index, $excluded, true)
+                || !in_array($section['type'] ?? '', ['text','section'], true)) continue;
+            $y = (float)($section['position_y'] ?? -99);
+            if ($y < $startY || $y > $limitY) continue;
+            $text = trim(strip_tags((string)($section['content'] ?? '')));
+            if ($this->norm($text) === $expected) $matches[] = [$index,$text];
+        }
+        return count($matches) === 1 ? $matches[0] : null;
     }
 
     private function resolvePhoto(array $section, $photos): ?Photo
