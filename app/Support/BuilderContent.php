@@ -99,6 +99,33 @@ class BuilderContent
                 }
                 Validator::make($element, $rules)->validate();
 
+                // Free 2D positions for exactly the editable parts of the process
+                // section. Reject malformed data instead of accepting arbitrary CSS.
+                if (array_key_exists('process_positions', $element)) {
+                    $validParts = [
+                        'kicker', 'title', 'intro', 'branch', 'decorative_photo',
+                        'step1_number','step1_icon','step1_title','step1_description','step1_connector',
+                        'step2_number','step2_icon','step2_title','step2_description','step2_connector',
+                        'step3_number','step3_icon','step3_title','step3_description',
+                    ];
+                    $positions = $element['process_positions'];
+                    if (!is_array($positions)) {
+                        throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                            'process_positions' => 'Nieprawidłowe położenie elementów procesu.',
+                        ]);
+                    }
+                    foreach ($positions as $part => $position) {
+                        if (!in_array($part, $validParts, true) || !is_array($position)) {
+                            throw \\Illuminate\\Validation\\ValidationException::withMessages([
+                                'process_positions' => 'Niedozwolony element lub przesunięcie.',
+                            ]);
+                        }
+                        Validator::make($position, [
+                            'x' => ['sometimes','numeric','between:-1800,1800'],
+                            'y' => ['sometimes','numeric','between:-1000,1000'],
+                        ])->validate();
+                    }
+                }
                 if (isset($element['process_typography'])) {
                     Validator::make($element, [
                         'process_typography' => ['array'],
