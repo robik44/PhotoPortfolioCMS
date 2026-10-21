@@ -491,7 +491,7 @@
   function panel(container,item,rerender) {
     if (item.type !== 'process_steps') return;
     initialize(item);
-    const header = tag('p','', 'Kliknij i przeciągnij dowolny napis. Zielony uchwyt w jego prawym dolnym rogu zmienia wielkość proporcjonalnie. Wysokość sekcji ustawisz poniżej.');
+    const header = tag('p','', 'Przeciągnij napis, ikonę, gałązkę, zdjęcie lub linię. Zielony uchwyt w prawym dolnym rogu zmienia rozmiar proporcjonalnie. Linijki i prowadnice pomagają dokładnie wyrównać elementy.');
     header.style.cssText = 'color:#666;font-size:12px;line-height:1.5;';
     container.appendChild(header);
     const field = (root,label,value,kind,change,opts={}) => {
@@ -573,6 +573,20 @@
     sectionTitle('Wysokość całej sekcji');
     field(container,'Minimalna wysokość sekcji (px; 0 = automatyczna)',d.section_height??0,'number',
       value=>d.section_height=Math.max(0,Math.min(1600,Math.round(value))),{min:0,max:1600,step:5});
+    sectionTitle('Linijki i wyrównywanie jak w edytorze graficznym');
+    field(container,'Pokaż linijki poziomą i pionową',
+      rulerModes.get(item)===false?'no':'yes','select',v=>{
+        rulerModes.set(item,v==='yes');
+        container.replaceChildren();panel(container,item,rerender);rerender();
+      },{choices:[['yes','Tak — co 10 px, opis co 100 px'],['no','Nie']]});
+    field(container,'Przyciągaj do krawędzi i środków innych elementów',
+      snappingModes.get(item)===false?'no':'yes','select',v=>{
+        snappingModes.set(item,v==='yes');
+        container.replaceChildren();panel(container,item,rerender);rerender();
+      },{choices:[['yes','Tak — automatyczne prowadnice'],['no','Nie — całkiem swobodnie']]});
+    const snapHint=tag('p','', 'Podczas przeciągania pojawiają się zielone linie wyrównania. Przytrzymaj Alt, żeby chwilowo wyłączyć przyciąganie. Każdy element ma własny dolny prawy uchwyt do powiększania i pomniejszania z zachowaniem proporcji.');
+    snapHint.style.cssText='font:12px/1.5 Arial;color:#526a58;margin:8px 0';
+    container.appendChild(snapHint);
     sectionTitle('Położenie i rozmiar — złap i przeciągnij');
     const dragIsOn=moveModes.get(item)!==false;
     field(container,'Tryb swobodnego przesuwania',dragIsOn?'yes':'no','select',value=>{
@@ -581,7 +595,7 @@
       panel(container,item,rerender);
       rerender();
     },{choices:[['no','Wyłączony — kliknięcie otwiera typografię'],['yes','WŁĄCZONY — złap każdy element i przeciągnij']]});
-    const info=tag('p','', 'Kliknij tekst, żeby go zaznaczyć. Przeciągnij cały napis, aby go przesunąć; przeciągnij zielony kwadracik w prawym dolnym rogu, aby powiększyć lub pomniejszyć go proporcjonalnie.');
+    const info=tag('p','', 'Kliknij element, aby go zaznaczyć. Przeciągnij go w dowolnym kierunku; przeciągnij zielony kwadracik w jego prawym dolnym rogu, aby proporcjonalnie zmienić rozmiar.');
     info.style.cssText='font:12px/1.5 Arial;color:#657368';
     container.appendChild(info);
     const selectedKey=selectedMoves.get(item)||currentPart(item);
