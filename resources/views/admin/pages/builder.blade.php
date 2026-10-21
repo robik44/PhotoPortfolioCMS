@@ -582,6 +582,7 @@
 
 
 @if($isHomeBuilder ?? false)
+<a href="{{ route('draft-header.preview') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj logo i menu ↗</a>
 <a href="{{ route('home-hero-draft.edit') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Edytuj roboczy baner ↗</a>
 <a href="{{ route('draft-header.review') }}" class="fve-button" style="text-decoration:none;white-space:nowrap" target="_blank" rel="noopener">Przegląd publikacji ↗</a>
 @endif
@@ -783,6 +784,18 @@
                         #fve-page .fve-home-draft-hero .ff-shared-stage.ff-full {
                             height:540px;
                         }
+                        #fve-page .fve-home-draft-hero .ff-shared-brand,
+                        #fve-page .fve-home-draft-hero .ff-shared-menu,
+                        #fve-page .fve-home-draft-hero .ff-shared-hero {
+                            pointer-events:auto;
+                            cursor:pointer;
+                        }
+                        #fve-page .fve-home-draft-hero .ff-shared-brand:hover,
+                        #fve-page .fve-home-draft-hero .ff-shared-menu:hover,
+                        #fve-page .fve-home-draft-hero .ff-shared-hero:hover {
+                            outline:2px dashed #5a7b51;
+                            outline-offset:3px;
+                        }
                         #fve-page .fve-content .fve-element[data-id="hero-image"],
                         #fve-page .fve-content .fve-element[data-id="hero-heading"],
                         #fve-page .fve-content .fve-element[data-id="hero-text"],
@@ -791,6 +804,29 @@
                             visibility:hidden!important;pointer-events:none!important;
                         }
                     </style>
+                    <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const overlay = document.getElementById('fve-home-draft-hero');
+                        if (!overlay) return;
+                        const links = [
+                            ['.ff-shared-brand', @json(route('draft-header.preview')), 'Otwórz centralny edytor logo i nagłówka'],
+                            ['.ff-shared-menu', @json(route('draft-header.preview')), 'Otwórz centralny edytor menu'],
+                            ['.ff-shared-hero', @json(route('home-hero-draft.edit')), 'Otwórz edytor banera strony głównej']
+                        ];
+                        links.forEach(([selector,url,label]) => {
+                            const el=overlay.querySelector(selector);
+                            if (!el) return;
+                            el.title=label;
+                            el.setAttribute('role','button');
+                            el.setAttribute('tabindex','0');
+                            const open=()=>window.open(url,'_blank','noopener');
+                            el.addEventListener('click',open);
+                            el.addEventListener('keydown',event=>{
+                                if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}
+                            });
+                        });
+                    });
+                    </script>
                     @else
                         @include('admin.components.draft-shared-header')
                     @endif
