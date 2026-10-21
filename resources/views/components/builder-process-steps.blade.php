@@ -31,6 +31,7 @@
 @endphp
 <section class="ff-process {{ $connectorStyle === 'none' ? 'ff-process-hide-arrows' : '' }} {{ $connectorStyle === 'arrow' ? 'ff-process-arrow-connectors' : '' }} {{ !$showNumbers ? 'ff-process-no-numbers' : '' }}"
     style="
+        --ff-process-section-height:{{ $num('section_height', 0, 0, 1600) }}px;
         --ff-process-background:{{ $color('background', '#faf9f4') }};
         --ff-process-wash-color:{{ $color('wash_color', '#f1e7c9') }};
         --ff-process-wash-opacity:{{ $num('wash_opacity', 53, 0, 100)/100 }};
