@@ -25,7 +25,7 @@
     decorative_photo_x: 0, decorative_photo_y: 0, decorative_photo_rotate: 0,
     show_numbers: true, number_size: 38, icon_border_width: 1,
     connector_style: 'line', connector_length: 26,
-    background: '#faf9f4', text: '#24241f', muted: '#64675e',
+    text: '#24241f', muted: '#64675e',
     accent: '#a7b593', icon_background: '#f2f6eb', icon_color: '#858d82',
     pad_x: 54, pad_y: 70, head_gap: 56, section_gap: 46,
     steps_gap: 24, icon_size: 82,
@@ -225,7 +225,7 @@
       bubble.appendChild(createIcon(iconLabels.some(i=>i[0]===step.icon) ? step.icon : defaultSteps[index].icon));
       col.appendChild(bubble);
       const text = tag('div');
-      text.appendChild(assignText(tag('h3','ff-process-step-title',String(step.title||'').replace(/^\\s*[1-3][.)]\\s*/,'')),'step'+(index+1)+'_title'));
+      text.appendChild(assignText(tag('h3','ff-process-step-title',String(step.title||'').replace(/^\s*[1-3][.)]\s*/,'')),'step'+(index+1)+'_title'));
       text.appendChild(assignText(tag('p','ff-process-step-description',step.description),'step'+(index+1)+'_description'));
       col.appendChild(text);
       steps.appendChild(col);
