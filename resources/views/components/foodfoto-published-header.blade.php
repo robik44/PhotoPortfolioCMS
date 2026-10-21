@@ -64,7 +64,7 @@
         .ff-public-sticky .ff-nav-item{position:relative}
         .ff-public-sticky .ff-subnav{display:none;position:absolute;top:100%;left:0;background:#fff;padding:12px;min-width:160px;box-shadow:0 6px 14px #0002}
         .ff-public-sticky .ff-nav-item:hover .ff-subnav,.ff-public-sticky .ff-nav-item:focus-within .ff-subnav{display:flex;flex-direction:column;gap:9px}
-        @media(max-width:900px){.ff-public-sticky .ff-shared-bar{flex-wrap:wrap;gap:5px}.ff-public-sticky .ff-menu-links{flex-wrap:wrap;gap:8px}.ff-public-sticky .ff-shared-menu{max-width:100%;margin:0;flex-wrap:wrap}.ff-public-sticky .ff-shared-name strong{font-size:22px!important}}
+        @media(max-width:900px) and (hover:hover){.ff-public-sticky .ff-shared-bar{flex-wrap:wrap;gap:5px}.ff-public-sticky .ff-menu-links{flex-wrap:wrap;gap:8px}.ff-public-sticky .ff-shared-menu{max-width:100%;margin:0;flex-wrap:wrap}.ff-public-sticky .ff-shared-name strong{font-size:22px!important}}
     </style>
     <script>
         document.addEventListener('DOMContentLoaded', function () {
