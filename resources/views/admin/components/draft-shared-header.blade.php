@@ -4,6 +4,7 @@ $logo = $p['brand-image'] ?? []; $name = $p['brand-text'] ?? []; $line = $p['bra
 $radius = implode(' ', array_map(static fn($n) => max(0,min(120,(int)$n)).'px', [$menu['rtl']??10,$menu['rtr']??10,$menu['rbr']??24,$menu['rbl']??40]));
 $photo = $draftPreviewImage ?: ($builderHeaderSettings['preview_hero_image'] ?? null);
 $full = $headerVariantValue === 'full';
+$heroHeight = max(480, min(900, (int)($builderHeaderSettings['draft_header_hero_height'] ?? 650)));
 $isPublicDraftHeader = (bool) ($isPublicDraftHeader ?? false);
 $brand = $p['brand'] ?? [];
 $eyebrow = $p['eyebrow'] ?? [];
@@ -43,7 +44,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 };
 @endphp
 <div id="fve-header-variant-preview" class="{{ $isPublicDraftHeader ? 'ff-public-header' : 'ff-private-header' }}" data-variant="{{ $headerVariantValue }}">
-<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
+<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-hero-height:{{ $heroHeight }}px;--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
 <div class="ff-shared-bar">
 @if($isPublicDraftHeader)
@@ -143,7 +144,7 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
    must use the same scene height so normalized CTA coordinates and the
    cover-crop of the background photograph match the editor. The 540px
    homepage subpage-builder preview remains unchanged. */
-#fve-header-variant-preview.ff-public-header .ff-shared-stage.ff-full{height:650px}
+#fve-header-variant-preview.ff-public-header .ff-shared-stage.ff-full{height:var(--ff-hero-height,650px)}
 #fve-header-variant-preview .ff-shared-photo{display:none}
 #fve-header-variant-preview .ff-full .ff-shared-photo{display:block;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2}
 #fve-header-variant-preview .ff-full:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#f8f7f3d9,#f8f7f355 48%,transparent 90%);z-index:-1}
