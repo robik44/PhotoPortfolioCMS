@@ -29,7 +29,7 @@
     accent: '#a7b593', icon_background: '#f2f6eb', icon_color: '#858d82',
     pad_x: 54, pad_y: 70, head_gap: 56, section_gap: 46,
     steps_gap: 24, icon_size: 82,
-    title_size: 58, title_weight: 400, lead_size: 18,
+    title_size: 58, title_weight: 400, heading_italic: true, lead_size: 18,
     step_title_size: 23, step_description_size: 16,
     heading_font: 'Georgia', body_font: 'Arial', show_arrows: true
   };
@@ -60,7 +60,7 @@
       font_family: kicker || intro || (!heading) ? d.body_font : d.heading_font,
       font_size: size,
       font_weight: kicker ? 600 : title ? d.title_weight : heading ? 400 : 400,
-      font_style: 'normal',
+      font_style: title && d.heading_italic !== false ? 'italic' : 'normal',
       text_transform: kicker ? 'uppercase' : 'none',
       text_align: 'left',
       line_height: kicker ? 1.5 : title ? 1.08 : intro ? 1.62 : heading ? 1.18 : 1.55,
@@ -294,6 +294,7 @@
       field(container,'Tytuł',step.title,'textarea',v=>step.title=v);
       field(container,'Opis',step.description,'textarea',v=>step.description=v);
     });
+    field(container,'Nagłówek główny kursywą',d.heading_italic===false?'no':'yes','select',v=>d.heading_italic=v==='yes',{choices:[['yes','Tak, jak na projekcie'],['no','Nie, zwykły krój']]});
     sectionTitle('Kolory');
     for(const [key,label] of [
       ['background','Kolor bazowy tła'],['wash_color','Kolor żółtej poświaty'],['text','Nagłówki'],['muted','Teksty opisów'],
