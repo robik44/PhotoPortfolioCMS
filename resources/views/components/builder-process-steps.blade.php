@@ -62,15 +62,8 @@
     ">
     @if(($design['branch_visible'] ?? true) !== false)
         <div class="ff-process-branch" aria-hidden="true">
-            <svg viewBox="0 0 310 410" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 395C37 332 17 257 89 197C123 168 127 119 160 80C179 58 199 44 221 22" stroke="#839771" stroke-width="2.2"/>
-                <path d="M70 258C23 237 13 206 14 187C60 200 81 221 70 258Z" fill="#b5c5a0" fill-opacity=".45" stroke="#98aa82"/>
-                <path d="M92 198C54 172 58 135 68 115C106 145 115 177 92 198Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
-                <path d="M133 123C101 99 107 66 125 45C148 76 157 107 133 123Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
-                <path d="M113 163C147 125 188 127 208 135C178 174 140 187 113 163Z" fill="#b5c5a0" fill-opacity=".38" stroke="#98aa82"/>
-                <path d="M166 73C183 34 221 21 245 22C231 62 194 88 166 73Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
-                <path d="M49 317C73 276 112 266 134 273C113 309 80 328 49 317Z" fill="#b5c5a0" fill-opacity=".4" stroke="#98aa82"/>
-            </svg>
+            <img class="ff-process-branch-art" src="{{ asset('images/foodfoto-botanical-branch.svg') }}" alt="" loading="lazy">
+
         </div>
     @endif
     @if($decorativePhoto)
