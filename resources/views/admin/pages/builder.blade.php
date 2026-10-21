@@ -1670,7 +1670,7 @@ document.addEventListener("DOMContentLoaded", function () {
             card.appendChild(media);
             const meta=mosaicNode('div','ff-mosaic-card-meta');
             const text=mosaicNode('div','ff-mosaic-text');
-            text.appendChild(mosaicApplyTypography(mosaicNode('div','ff-mosaic-card-category',entry.category || gallery?.title || 'Wybierz galerię'),item,'category',entry));
+            text.appendChild(mosaicApplyTypography(mosaicNode('h3','ff-mosaic-card-category',entry.category || gallery?.title || 'Wybierz galerię'),item,'category',entry));
             if(item.mosaic_descriptions!==false && entry.description){
                 text.appendChild(mosaicApplyTypography(mosaicNode('p','ff-mosaic-card-description',entry.description),item,'description',entry));
             }
