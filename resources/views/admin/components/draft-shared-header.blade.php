@@ -6,6 +6,48 @@ $photo = $draftPreviewImage ?: ($builderHeaderSettings['preview_hero_image'] ?? 
 $full = $headerVariantValue === 'full';
 $heroHeight = max(480, min(900, (int)($builderHeaderSettings['draft_header_hero_height'] ?? 650)));
 $isPublicDraftHeader = (bool) ($isPublicDraftHeader ?? false);
+// Independent settings shared by EVERY simple header and the sticky header.
+// The full photo banner intentionally ignores these variables.
+$compactStored = json_decode($builderHeaderSettings['draft_compact_header_layout'] ?? '{}', true);
+$compactStored = is_array($compactStored) ? $compactStored : [];
+$compactDefaults = [
+    'logo' => ['x'=>0,'y'=>0,'size'=>58],
+    'divider' => ['x'=>0,'y'=>0,'size'=>58,'width'=>1],
+    'title' => ['x'=>0,'y'=>0,'font'=>28,'spacing'=>0,'word_spacing'=>0,'color'=>'#222222','weight'=>400],
+    'subtitle' => ['x'=>0,'y'=>0,'font'=>9,'spacing'=>1.4,'word_spacing'=>0,'color'=>'#222222'],
+    'menu' => ['x'=>0,'y'=>0,'scale'=>1],
+];
+$compact = [];
+foreach ($compactDefaults as $key => $defaults) {
+    $compact[$key] = array_merge($defaults, is_array($compactStored[$key] ?? null) ? $compactStored[$key] : []);
+}
+$number = static fn($v,$min,$max) => max($min,min($max,(float)$v));
+$colorSafe = static fn($v) => is_string($v) && preg_match('/^#[0-9a-fA-F]{6}$/',$v) ? $v : '#222222';
+$compactCssVars = implode(';', [
+    '--ffc-logo-size:'.$number($compact['logo']['size'],25,180).'px',
+    '--ffc-logo-x:'.$number($compact['logo']['x'],-350,350).'px',
+    '--ffc-logo-y:'.$number($compact['logo']['y'],-150,150).'px',
+    '--ffc-divider-size:'.$number($compact['divider']['size'],20,150).'px',
+    '--ffc-divider-width:'.$number($compact['divider']['width'],1,8).'px',
+    '--ffc-divider-x:'.$number($compact['divider']['x'],-350,350).'px',
+    '--ffc-divider-y:'.$number($compact['divider']['y'],-150,150).'px',
+    '--ffc-title-font:'.$number($compact['title']['font'],12,80).'px',
+    '--ffc-title-spacing:'.$number($compact['title']['spacing'],-2,20).'px',
+    '--ffc-title-word-spacing:'.$number($compact['title']['word_spacing'],-2,30).'px',
+    '--ffc-title-color:'.$colorSafe($compact['title']['color']),
+    '--ffc-title-weight:'.$number($compact['title']['weight'],300,800),
+    '--ffc-title-x:'.$number($compact['title']['x'],-350,350).'px',
+    '--ffc-title-y:'.$number($compact['title']['y'],-150,150).'px',
+    '--ffc-subtitle-font:'.$number($compact['subtitle']['font'],6,32).'px',
+    '--ffc-subtitle-spacing:'.$number($compact['subtitle']['spacing'],-2,20).'px',
+    '--ffc-subtitle-word-spacing:'.$number($compact['subtitle']['word_spacing'],-2,30).'px',
+    '--ffc-subtitle-color:'.$colorSafe($compact['subtitle']['color']),
+    '--ffc-subtitle-x:'.$number($compact['subtitle']['x'],-350,350).'px',
+    '--ffc-subtitle-y:'.$number($compact['subtitle']['y'],-150,150).'px',
+    '--ffc-menu-x:'.$number($compact['menu']['x'],-350,350).'px',
+    '--ffc-menu-y:'.$number($compact['menu']['y'],-150,150).'px',
+    '--ffc-menu-scale:'.$number($compact['menu']['scale'],0.7,1.3),
+]);
 $nameTypography = $p['brand-text'] ?? [];
 $mainNameSize = max(15, min(100, (float)($nameTypography['font'] ?? 36)));
 $subtitleNameSize = max(7, min(48, (float)($nameTypography['subtitle_font'] ?? 11)));
@@ -69,9 +111,9 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
 };
 @endphp
 <div id="fve-header-variant-preview" class="{{ $isPublicDraftHeader ? 'ff-public-header' : 'ff-private-header' }}" data-variant="{{ $headerVariantValue }}">
-<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-hero-height:{{ $heroHeight }}px;--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;{{ $brandCssVars }};--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
+<section class="ff-shared-stage {{ $full ? 'ff-full' : 'ff-simple' }}" data-menu-width="{{ (int)($menu['w'] ?? 0) }}" style="--ff-hero-x:{{ max(0,min(100,(int)($builderHeaderSettings['draft_header_hero_x'] ?? 50))) }}%;--ff-hero-height:{{ $heroHeight }}px;{{ $compactCssVars }};--ff-radius:{{ $radius }};--ff-logo:{{ max(30,min(200,(int)($logo['w']??100))) }}px;{{ $brandCssVars }};--ff-name:{{ max(15,min(100,(float)($name['font']??36))) }}px;--ff-line:{{ max(15,min(180,(int)($line['h']??85))) }}px;--ff-menu-scale:{{ max(.6,min(2,(float)($menu['w']??780)/780)) }};--ff-brand-x:{{ (int)($p['brand']['x']??0) }}px;--ff-brand-y:{{ (int)($p['brand']['y']??0) }}px;--ff-menu-x:{{ (int)($menu['x']??0) }}px;--ff-menu-y:{{ (int)($menu['y']??0) }}px;--ff-logo-x:{{ $xy($logo,'x') }}px;--ff-logo-y:{{ $xy($logo,'y') }}px;--ff-name-x:{{ $xy($name,'x') }}px;--ff-name-y:{{ $xy($name,'y') }}px;--ff-line-x:{{ $xy($line,'x') }}px;--ff-line-y:{{ $xy($line,'y') }}px">
 @if($photo)<img class="ff-shared-photo" src="{{ asset('storage/'.$photo) }}" alt="">@endif
-<div class="ff-shared-bar" style="{{ $brandCssVars }}">
+<div class="ff-shared-bar" style="{{ $brandCssVars }};{{ $compactCssVars }}">
 @if($isPublicDraftHeader)
 <a class="ff-shared-brand" href="{{ url('/') }}" aria-label="FoodFoto — strona główna">
 @else
@@ -242,6 +284,38 @@ $styleFor = static function (array $item, int $defaultSize, int $defaultWidth) {
  #fve-header-variant-preview.ff-public-header .ff-shared-hero p{font-size:16px;max-width:95%}
  #fve-header-variant-preview.ff-public-header .ff-simple .ff-shared-bar{padding:10px 4%}
 }
+
+/* One independent compact composition used by every simple page header.
+   The published sticky bar reads exactly these same --ffc-* variables. */
+#fve-header-variant-preview .ff-simple .ff-shared-brand img{
+  width:var(--ffc-logo-size,58px)!important;
+  transform:translate(var(--ffc-logo-x,0px),var(--ffc-logo-y,0px))!important;
+}
+#fve-header-variant-preview .ff-simple .ff-shared-rule{
+  height:var(--ffc-divider-size,58px)!important;
+  transform:translate(var(--ffc-divider-x,0px),var(--ffc-divider-y,0px))!important;
+}
+#fve-header-variant-preview .ff-simple .ff-shared-rule::before{
+  width:var(--ffc-divider-width,1px)!important;
+}
+#fve-header-variant-preview .ff-simple .ff-shared-name{transform:none!important}
+#fve-header-variant-preview .ff-simple .ff-shared-name strong{
+  position:relative;display:block;
+  font-size:var(--ffc-title-font,28px)!important;
+  font-weight:var(--ffc-title-weight,400)!important;
+  letter-spacing:var(--ffc-title-spacing,0px)!important;
+  word-spacing:var(--ffc-title-word-spacing,0px)!important;
+  color:var(--ffc-title-color,#222)!important;
+  transform:translate(var(--ffc-title-x,0px),var(--ffc-title-y,0px))!important;
+}
+#fve-header-variant-preview .ff-simple .ff-shared-name small{
+  position:relative;display:block;
+  font-size:var(--ffc-subtitle-font,9px)!important;
+  letter-spacing:var(--ffc-subtitle-spacing,1.4px)!important;
+  word-spacing:var(--ffc-subtitle-word-spacing,0px)!important;
+  color:var(--ffc-subtitle-color,#222)!important;
+  transform:translate(var(--ffc-subtitle-x,0px),var(--ffc-subtitle-y,0px))!important;
+}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -265,10 +339,11 @@ document.addEventListener('DOMContentLoaded', function () {
         // Skipping this used to clip its right-hand contact button.
 
         const style = getComputedStyle(stage);
-        const x = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
+
+        const x = Number.parseFloat(style.getPropertyValue(isSimple ? '--ffc-menu-x' : '--ff-menu-x')) || 0;
         const touchPublic = root.classList.contains('ff-public-header')
             && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
-        const y = touchPublic ? 0 : (Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0);
+        const y = touchPublic && !isSimple ? 0 : (Number.parseFloat(style.getPropertyValue(isSimple ? '--ffc-menu-y' : '--ff-menu-y')) || 0);
         const targetWidth = Number.parseFloat(stage.dataset.menuWidth) || 0;
         const isSimple = stage.classList.contains('ff-simple');
         const viewScale = stageRect.width / (stage.offsetWidth || 1);
@@ -279,7 +354,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const nativeWidth = menu.getBoundingClientRect().width / viewScale;
         if (nativeWidth < 100) return;
 
-        let zoom = isSimple ? 1 : Math.max(.55, Math.min(1.8, targetWidth > 0 ? targetWidth / nativeWidth : 1));
+        let zoom = isSimple ? Math.max(.7,Math.min(1.3,Number.parseFloat(style.getPropertyValue('--ffc-menu-scale'))||1)) : Math.max(.55, Math.min(1.8, targetWidth > 0 ? targetWidth / nativeWidth : 1));
         const barRect = bar.getBoundingClientRect();
         const brandRect = brand.getBoundingClientRect();
         const free = Math.max(160, (barRect.right - brandRect.right - 14) / viewScale);
@@ -290,9 +365,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const base = menu.getBoundingClientRect();
         const minX = (brandRect.right + 10 - base.left) / viewScale;
         const maxX = (stageRect.right - 4 - base.right) / viewScale;
-        const finalX = minX <= maxX ? Math.min(maxX, Math.max(minX, isSimple ? 0 : x)) : maxX;
+        const finalX = minX <= maxX ? Math.min(maxX, Math.max(minX, x)) : maxX;
         const minY = (stageRect.top + 2 - base.top) / viewScale;
-        const finalY = Math.max(minY, isSimple ? 0 : y);
+        const finalY = Math.max(minY, y);
         menu.style.transform = 'translate(' + finalX + 'px,' + finalY + 'px)';
     }
     function requestFit() {
