@@ -118,6 +118,11 @@
 .ff-process.is-editing [data-process-move]:hover {
     outline:1px dashed rgba(81,120,80,.5); outline-offset:3px;
 }
+.ff-process.is-editing .ff-active-part {
+    outline:2px dashed rgba(57,109,59,.8);
+    outline-offset:4px;
+}
+
 .ff-process .ff-process-branch-art { display:block; }
 .ff-process .ff-process-icon {
     width: 52%;
