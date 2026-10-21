@@ -214,6 +214,9 @@
       setMove(node,item,key);
       if(!onTextClick) return node;
       node.setAttribute('title',moveName(key)+' — kliknij, aby wybrać. Tryb przesuwania: przeciągnij.');
+      // Prevent the page builder from treating icon/number clicks as
+      // attempts to drag the entire three-step section.
+      node.addEventListener('mousedown',event=>event.stopPropagation());
       node.addEventListener('pointerdown',event=>{
         if(!moveModes.get(item) || event.button!==0) return;
         event.stopPropagation();
