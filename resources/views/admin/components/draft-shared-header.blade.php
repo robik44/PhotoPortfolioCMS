@@ -190,13 +190,14 @@ document.addEventListener('DOMContentLoaded', function () {
         queued = false;
         const stageRect = stage.getBoundingClientRect();
         if (stageRect.width < 350 || stageRect.height < 40) return;
-        if (root.classList.contains('ff-public-header') && window.matchMedia('(max-width:900px)').matches) {
-            menu.style.zoom = '1'; menu.style.transform = 'none'; return;
-        }
+        // Even on touch screens the menu needs collision-aware fitting.
+        // Skipping this used to clip its right-hand contact button.
 
         const style = getComputedStyle(stage);
         const x = Number.parseFloat(style.getPropertyValue('--ff-menu-x')) || 0;
-        const y = Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0;
+        const touchPublic = root.classList.contains('ff-public-header')
+            && window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+        const y = touchPublic ? 0 : (Number.parseFloat(style.getPropertyValue('--ff-menu-y')) || 0);
         const targetWidth = Number.parseFloat(stage.dataset.menuWidth) || 0;
         const isSimple = stage.classList.contains('ff-simple');
         const viewScale = stageRect.width / (stage.offsetWidth || 1);
