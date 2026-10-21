@@ -67,6 +67,7 @@ class BuilderContent
                     'process_design.show_arrows' => ['sometimes', 'boolean'],
                     'process_design.show_numbers' => ['sometimes', 'boolean'],
                     'process_design.branch_visible' => ['sometimes', 'boolean'],
+                    'process_design.heading_italic' => ['sometimes', 'boolean'],
                     'process_design.connector_style' => ['sometimes', 'in:line,arrow,none'],
                     'process_design.decorative_photo_id' => ['sometimes', 'nullable', 'integer', 'exists:photos,id'],
                 ];
