@@ -1512,6 +1512,102 @@ document.addEventListener("DOMContentLoaded", function () {
         if(textValue!==undefined)node.textContent=String(textValue);
         return node;
     }
+
+    const mosaicRoleToField={
+        kicker:'mosaic_kicker',heading:'mosaic_title',intro:'mosaic_intro',
+        more:'mosaic_more_label',category:'category',description:'description',arrow:'action_text'
+    };
+    function selectMosaicText(item,role,scope='shared',index=null){
+        ensureMosaicCards(item);
+        if(index!==null)item.mosaic_selected_index=index;
+        item.mosaic_typography_scope=scope;
+        item.mosaic_typography_role=role;
+        selectOnly(item.id);
+        for(const node of content.querySelectorAll('.fve-element')){
+            const match=node.dataset.id===item.id;
+            node.classList.toggle('selected',match);
+            node.classList.toggle('group-selected',match);
+            node.classList.toggle('primary-selected',match);
+        }
+        const mosaicRoot=content.querySelector('.fve-element[data-id="'+CSS.escape(item.id)+'"] .ff-mosaic');
+        mosaicRoot?.querySelectorAll('.ff-mosaic-card').forEach((card,i)=>
+            card.classList.toggle('is-active',i===item.mosaic_selected_index)
+        );
+        showProperties(item);
+        const sidebar=properties.closest('.fve-sidebar.right');
+        if(sidebar)sidebar.scrollTop=0;
+        properties.scrollTop=0;
+    }
+    function activateMosaicTextEditing(target,item,role,scope='shared',index=null){
+        if(target.isContentEditable)return;
+        selectMosaicText(item,role,scope,index);
+        const obj=scope==='card'?item.mosaic_cards[index]:item;
+        const key=mosaicRoleToField[role];
+        if(!obj||!key)return;
+        const original=String(obj[key]??target.innerText??target.textContent??'');
+        const oldRender=target.innerText;
+        target.contentEditable='true';
+        target.spellcheck=true;
+        target.classList.add('ff-mosaic-inline-edit');
+        target.setAttribute('role','textbox');
+        target.setAttribute('aria-label','Edytuj napis bezpośrednio. Enter zatwierdza, Escape anuluje');
+        target.focus();
+        // Do not re-render while editing, or Safari loses the caret.
+        const range=document.createRange();range.selectNodeContents(target);
+        const selection=window.getSelection();
+        selection.removeAllRanges();selection.addRange(range);
+        let finished=false;
+        const finish=(commit)=>{
+            if(finished)return;
+            finished=true;
+            const text=(target.innerText||target.textContent||'').replace(/\u00a0/g,' ').trim();
+            if(commit){
+                const max=role==='heading'?240:role==='intro'?800:role==='description'?300:role==='category'?160:role==='more'?120:role==='kicker'?120:24;
+                if(role==='more'){
+                    const suffix=String(item.mosaic_more_action_text??'→');
+                    obj[key]=(suffix && text.endsWith(suffix)?text.slice(0,-suffix.length):text).trim().slice(0,max);
+                    if(suffix && !text.endsWith(suffix))item.mosaic_more_action_text='';
+                }else{
+                    obj[key]=text.slice(0,max);
+                }
+            }
+            target.contentEditable='false';
+            target.classList.remove('ff-mosaic-inline-edit');
+            target.removeAttribute('role');
+            target.removeEventListener('keydown',onKey);
+            target.removeEventListener('blur',onBlur);
+            if(!commit)target.innerText=oldRender;
+            render();showProperties(item);
+            const sidebar=properties.closest('.fve-sidebar.right');if(sidebar)sidebar.scrollTop=0;
+        };
+        const onKey=e=>{
+            if(e.key==='Escape'){e.preventDefault();e.stopPropagation();finish(false);}
+            if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();e.stopPropagation();finish(true);}
+        };
+        const onBlur=()=>finish(true);
+        target.addEventListener('keydown',onKey);
+        target.addEventListener('blur',onBlur,{once:true});
+    }
+    function attachMosaicTextInteraction(target,item,role,scope='shared',index=null){
+        if(!target)return;
+        target.title='Kliknij: typografia. Dwuklik: edycja treści';
+        target.tabIndex=0;
+        target.addEventListener('mousedown',e=>e.stopPropagation());
+        target.addEventListener('click',e=>{
+            e.stopPropagation();e.preventDefault();
+            if(!target.isContentEditable)selectMosaicText(item,role,scope,index);
+        });
+        target.addEventListener('dblclick',e=>{
+            e.preventDefault();e.stopPropagation();
+            activateMosaicTextEditing(target,item,role,scope,index);
+        });
+        target.addEventListener('keydown',e=>{
+            if((e.key==='Enter'||e.key==='F2')&&!target.isContentEditable){
+                e.preventDefault();activateMosaicTextEditing(target,item,role,scope,index);
+            }
+        });
+    }
+
     function renderGalleryMosaic(item) {
         ensureMosaicCards(item);
         const root=mosaicNode('section','ff-mosaic ff-mosaic-desktop-fixed is-editing');
@@ -1537,15 +1633,7 @@ document.addEventListener("DOMContentLoaded", function () {
             ['kicker','.ff-mosaic-kicker'],['heading','.ff-mosaic-heading'],
             ['intro','.ff-mosaic-intro'],['more','.ff-mosaic-more']
         ]){
-            const target=header.querySelector(selector);
-            if(!target)continue;
-            target.addEventListener('mousedown',e=>e.stopPropagation());
-            target.addEventListener('click',e=>{
-                e.preventDefault();e.stopPropagation();
-                item.mosaic_typography_scope='shared';
-                item.mosaic_typography_role=role;
-                selectOnly(item.id);render();showProperties(item);
-            });
+            attachMosaicTextInteraction(header.querySelector(selector),item,role,'shared');
         }
         const grid=mosaicNode('div','ff-mosaic-grid'+(item.mosaic_layout==='even'?' is-even':''));
         item.mosaic_cards.forEach((entry,index)=>{
@@ -1576,20 +1664,17 @@ document.addEventListener("DOMContentLoaded", function () {
             meta.appendChild(text);
             meta.appendChild(mosaicApplyTypography(mosaicNode('span','ff-mosaic-arrow',entry.action_text??'→'),item,'arrow',entry));
             card.appendChild(meta);
+            for(const [role,selector] of [
+                ['category','.ff-mosaic-card-category'],
+                ['description','.ff-mosaic-card-description'],
+                ['arrow','.ff-mosaic-arrow']
+            ]){
+                attachMosaicTextInteraction(card.querySelector(selector),item,role,'card',index);
+            }
             card.addEventListener('mousedown',e=>e.stopPropagation());
             card.addEventListener('click',e=>{
                 e.preventDefault();e.stopPropagation();
-                item.mosaic_selected_index=index;
-                const roleTarget=e.target.closest('.ff-mosaic-card-category,.ff-mosaic-card-description,.ff-mosaic-arrow');
-                if(roleTarget){
-                    item.mosaic_typography_scope='card';
-                    item.mosaic_typography_role=roleTarget.classList.contains('ff-mosaic-card-description')
-                        ? 'description'
-                        : (roleTarget.classList.contains('ff-mosaic-arrow') ? 'arrow' : 'category');
-                }
-                selectOnly(item.id);
-                render();
-                showProperties(item);
+                selectMosaicText(item,'category','card',index);
             });
             grid.appendChild(card);
         });
@@ -1632,7 +1717,7 @@ document.addEventListener("DOMContentLoaded", function () {
             v=>item.mosaic_typography_role=v);
         renderMosaicTypographyFields(item,activeRole,scope);
         title('EDYTUJ ZAZNACZONY TEKST');
-        const currentRole = item.mosaic_typography_role || 'heading';
+        const currentRole = activeRole;
         const textFieldMap={
             kicker:'mosaic_kicker',heading:'mosaic_title',intro:'mosaic_intro',
             more:'mosaic_more_label',category:'category',description:'description',arrow:'action_text'
