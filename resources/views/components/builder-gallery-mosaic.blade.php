@@ -3,6 +3,10 @@
     while (count($mosaicCards) < 6) $mosaicCards[] = ['gallery_id' => null];
     $mosaicIds = collect($mosaicCards)->pluck('gallery_id')->filter(fn($id) => is_numeric($id) && $id > 0)->unique()->all();
     $mosaicGalleryMap = \App\Models\Gallery::with('photos')->where('published', true)->whereIn('id', $mosaicIds)->get()->keyBy('id');
+    // A card may link to a category page while displaying ANY photo from the
+    // photo library, even when the photo is not assigned to a gallery.
+    $mosaicPhotoIds = collect($mosaicCards)->pluck('photo_id')->filter(fn($id) => is_numeric($id) && $id > 0)->unique()->all();
+    $mosaicPhotoMap = \App\Models\Photo::whereIn('id', $mosaicPhotoIds)->get()->keyBy('id');
     $mosaicLayout = ($element['mosaic_layout'] ?? 'editorial') === 'even' ? 'even' : 'editorial';
     $mosaicGap = max(0, min(60, (int)($element['mosaic_gap'] ?? 12)));
     $mosaicRowHeight = max(150, min(550, (int)($element['mosaic_row_height'] ?? 260)));
@@ -26,7 +30,8 @@
             @php
                 $mosaicCard = is_array($mosaicCard) ? $mosaicCard : [];
                 $gallery = $mosaicGalleryMap->get((int)($mosaicCard['gallery_id'] ?? 0));
-                $photo = $gallery?->photos?->first(fn($p) => (int)$p->id === (int)($mosaicCard['photo_id'] ?? 0));
+                $photo = $mosaicPhotoMap->get((int)($mosaicCard['photo_id'] ?? 0))
+                    ?? $gallery?->photos?->first(fn($p) => (int)$p->id === (int)($mosaicCard['photo_id'] ?? 0));
                 if (!$photo && $gallery) $photo = $gallery->photos->first(fn($p) => (bool)$p->pivot?->is_cover) ?? $gallery->photos->first();
                 $cardLink = \App\Support\BuilderButton::href($mosaicCard['link'] ?? null) ?: ($gallery ? route('portfolio.gallery', $gallery) : null);
                 $cardTitle = trim((string)($mosaicCard['title'] ?? '')) ?: ($gallery?->title ?? 'Wybierz galerię');
