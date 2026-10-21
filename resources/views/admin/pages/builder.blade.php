@@ -1533,6 +1533,19 @@ document.addEventListener("DOMContentLoaded", function () {
         mosaicRoot?.querySelectorAll('.ff-mosaic-card').forEach((card,i)=>
             card.classList.toggle('is-active',i===item.mosaic_selected_index)
         );
+        mosaicRoot?.querySelectorAll('.ff-mosaic-typography-target').forEach(node=>
+            node.classList.remove('is-typography-selected')
+        );
+        const activeRoot = scope==='shared' ? mosaicRoot?.querySelector({
+            kicker:'.ff-mosaic-kicker',heading:'.ff-mosaic-heading',
+            intro:'.ff-mosaic-intro',more:'.ff-mosaic-more',
+            category:'.ff-mosaic-card-category',description:'.ff-mosaic-card-description',
+            arrow:'.ff-mosaic-arrow'
+        }[role]) : mosaicRoot?.querySelectorAll('.ff-mosaic-card')[index]?.querySelector({
+            category:'.ff-mosaic-card-category',description:'.ff-mosaic-card-description',
+            arrow:'.ff-mosaic-arrow'
+        }[role]);
+        activeRoot?.classList.add('is-typography-selected');
         showProperties(item);
         const sidebar=properties.closest('.fve-sidebar.right');
         if(sidebar)sidebar.scrollTop=0;
@@ -1679,6 +1692,20 @@ document.addEventListener("DOMContentLoaded", function () {
             grid.appendChild(card);
         });
         root.appendChild(grid);
+        const activeRole=item.mosaic_typography_role;
+        const activeScope=item.mosaic_typography_scope||'shared';
+        if(activeRole){
+            const selector={
+                kicker:'.ff-mosaic-kicker',heading:'.ff-mosaic-heading',intro:'.ff-mosaic-intro',
+                more:'.ff-mosaic-more',category:'.ff-mosaic-card-category',
+                description:'.ff-mosaic-card-description',arrow:'.ff-mosaic-arrow'
+            }[activeRole];
+            if(selector){
+                const textRoot=activeScope==='card' ?
+                    grid.querySelectorAll('.ff-mosaic-card')[item.mosaic_selected_index] : root;
+                textRoot?.querySelector(selector)?.classList.add('is-typography-selected');
+            }
+        }
         return root;
     }
     function renderMosaicProperties(item){
