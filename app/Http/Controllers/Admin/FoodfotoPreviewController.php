@@ -95,6 +95,295 @@ class FoodfotoPreviewController extends Controller
         return redirect()->route('foodfoto.home.preview')->with('foodfoto_blocks_saved', true);
     }
 
+    public function canvas(): Response
+    {
+        return $this->renderPage(false, true);
+    }
+
+
+    public function saveCanvasElements(Request $request)
+    {
+        $payload = $request->validate(['elements' => ['required', 'string', 'max:100000']]);
+        $elements = json_decode($payload['elements'], true);
+        abort_unless(is_array($elements) && array_is_list($elements) && count($elements) <= 80, 422);
+        $clean = [];
+        $ids = [];
+        foreach ($elements as $entry) {
+            abort_unless(is_array($entry), 422);
+            $id = $entry['id'] ?? '';
+            $type = $entry['type'] ?? '';
+            abort_unless(is_string($id) && preg_match('/^ffel_[a-z0-9]{8,24}$/', $id)
+                && !in_array($id, $ids, true)
+                && in_array($type, ['heading','text','image','thumbnail_gallery','gallery','button','separator'], true), 422);
+            $ids[] = $id;
+            $text = trim((string) ($entry['content'] ?? ''));
+            abort_unless(mb_strlen($text) <= 2000, 422);
+            $photoId = (int) ($entry['photo_id'] ?? 0);
+            $galleryId = (int) ($entry['gallery_id'] ?? 0);
+            $target = trim((string) ($entry['url'] ?? ''));
+            abort_unless(strlen($target) <= 500 && (!$target || preg_match('~^/(?!/)[a-zA-Z0-9/_?=&%.#-]*$~', $target)), 422);
+            if ($type === 'image') abort_unless(!$photoId || Photo::whereKey($photoId)->exists(), 422);
+            if ($type === 'gallery') abort_unless(!$galleryId || Gallery::whereKey($galleryId)->exists(), 422);
+            $clean[] = [
+                'id' => $id, 'type' => $type, 'content' => $text,
+                'photo_id' => $type === 'image' ? $photoId : 0,
+                'gallery_id' => $type === 'gallery' ? $galleryId : 0,
+                'url' => $type === 'button' ? ($target ?: '#portfolio') : '',
+            ];
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_extra_elements'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        return response()->json(['success' => true, 'elements' => $clean]);
+    }
+
+    public function uploadCanvasFont(Request $request)
+    {
+        $request->validate(['font' => ['required', 'file', 'max:2048']]);
+        $file = $request->file('font');
+        $extension = strtolower($file->getClientOriginalExtension());
+        abort_unless(in_array($extension, ['woff', 'woff2'], true), 422);
+        $handle = fopen($file->getRealPath(), 'rb');
+        $magic = fread($handle, 4);
+        fclose($handle);
+        abort_unless(($extension === 'woff' && $magic === 'wOFF')
+            || ($extension === 'woff2' && $magic === 'wOF2'), 422);
+
+        $fonts = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true);
+        if (!is_array($fonts)) $fonts = [];
+        abort_unless(count($fonts) < 20, 422);
+        $id = 'fffont_' . bin2hex(random_bytes(6));
+        $path = $file->storeAs('foodfoto-canvas-fonts', $id . '.' . $extension, 'public');
+        $fonts[$id] = ['label' => mb_substr(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME), 0, 70),
+            'url' => \Illuminate\Support\Facades\Storage::disk('public')->url($path)];
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_fonts'], [
+            'value' => json_encode($fonts, JSON_UNESCAPED_UNICODE),
+        ]);
+        return response()->json(['success' => true, 'fonts' => $fonts]);
+    }
+
+    private function normalizeCanvasTypography(array $style): array
+    {
+        $size = $style['font_size'] ?? null;
+        $height = $style['line_height'] ?? null;
+        $spacing = $style['letter_spacing'] ?? null;
+        abort_unless(is_numeric($size) && $size >= 8 && $size <= 160
+            && is_numeric($height) && $height >= .5 && $height <= 3
+            && is_numeric($spacing) && $spacing >= -5 && $spacing <= 20, 422);
+
+        $clean = [
+            'font_size' => round((float) $size, 1),
+            'line_height' => round((float) $height, 2),
+            'letter_spacing' => round((float) $spacing, 2),
+        ];
+        $fonts = ['inherit', 'Georgia', 'Arial', 'Helvetica', 'Verdana', 'Tahoma', 'Trebuchet MS', 'Times New Roman', 'Courier New'];
+        $uploaded = json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true);
+        if (is_array($uploaded)) $fonts = array_merge($fonts, array_keys($uploaded));
+        $alignments = ['inherit', 'left', 'center', 'right', 'justify'];
+        $transforms = ['none', 'uppercase', 'lowercase', 'capitalize'];
+        $font = $style['font_family'] ?? 'inherit';
+        $align = $style['text_align'] ?? 'inherit';
+        $transform = $style['text_transform'] ?? 'none';
+        $weight = $style['font_weight'] ?? 400;
+        abort_unless(in_array($font, $fonts, true) && in_array($align, $alignments, true)
+            && in_array($transform, $transforms, true)
+            && is_numeric($weight) && (int)$weight >= 100 && (int)$weight <= 900 && (int)$weight % 100 === 0, 422);
+        $clean['font_family'] = $font;
+        $clean['font_weight'] = (int) $weight;
+        $clean['text_align'] = $align;
+        $clean['text_transform'] = $transform;
+        foreach (['color', 'background_color'] as $name) {
+            $raw = $style[$name] ?? ($name === 'color' ? 'inherit' : 'transparent');
+            abort_unless(is_string($raw) && (
+                $raw === 'inherit' || $raw === 'transparent' ||
+                preg_match('/^#[0-9a-fA-F]{6}$/', $raw)
+            ), 422);
+            $clean[$name] = $raw;
+        }
+        foreach (['color_alpha', 'background_alpha'] as $name) {
+            $alpha = $style[$name] ?? 100;
+            abort_unless(is_numeric($alpha) && $alpha >= 0 && $alpha <= 100, 422);
+            $clean[$name] = (int) $alpha;
+        }
+
+        foreach (['word_spacing' => [-20, 50, 1], 'margin_top' => [-100, 200, 1],
+            'margin_bottom' => [-100, 200, 1], 'max_width' => [0, 1200, 1]] as $key => [$min, $max, $precision]) {
+            $value = $style[$key] ?? 0;
+            abort_unless(is_numeric($value) && $value >= $min && $value <= $max, 422);
+            $clean[$key] = round((float)$value, $precision);
+        }
+        return $clean;
+    }
+
+    public function saveCanvasAll(Request $request)
+    {
+        $data = $request->validate([
+            'layout' => ['required', 'string', 'max:60000'],
+            'texts' => ['required', 'string', 'max:40000'],
+            'typography' => ['required', 'string', 'max:25000'],
+            'photos' => ['required', 'string', 'max:20000'],
+        ]);
+        $sets = [];
+        foreach ($data as $key => $json) {
+            $decoded = json_decode($json, true);
+            abort_unless(json_last_error() === JSON_ERROR_NONE && is_array($decoded), 422);
+            $sets[$key] = $decoded;
+        }
+        abort_unless(count($sets['layout']) <= 120 && count($sets['texts']) <= 100
+            && count($sets['typography']) <= 60 && count($sets['photos']) <= 80, 422);
+
+        $positions = [];
+        foreach ($sets['layout'] as $id => $position) {
+            abort_unless(is_string($id) && preg_match('/^[a-z0-9_-]{1,80}$/', $id) && is_array($position), 422);
+            abort_unless(isset($position['x'], $position['y']) && is_numeric($position['x']) && is_numeric($position['y']), 422);
+            $x = (int) $position['x']; $y = (int) $position['y'];
+            $w = (int) ($position['w'] ?? 0); $h = (int) ($position['h'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $h >= 0 && $h <= 1200 && $z >= -5 && $z <= 25, 422);
+            $positions[$id] = compact('x', 'y', 'w', 'h', 'z');
+        }
+
+        $texts = [];
+        foreach ($sets['texts'] as $id => $value) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id)
+                && is_string($value) && mb_strlen($value) <= 2000, 422);
+            $texts[$id] = trim(strip_tags($value));
+        }
+
+        $typography = [];
+        foreach ($sets['typography'] as $id => $style) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id) && is_array($style), 422);
+            $typography[$id] = $this->normalizeCanvasTypography($style);
+        }
+
+        $photos = [];
+        foreach ($sets['photos'] as $slot => $photoId) {
+            abort_unless(is_string($slot) && preg_match('/^(hero-photo|editorial-photo|experience-photo|service-[0-9]{1,2}|process-photo-[0-9]|custom-[0-9]{1,2})$/', $slot)
+                && is_numeric($photoId) && (int)$photoId > 0, 422);
+            $photos[$slot] = (int)$photoId;
+        }
+        abort_unless(Photo::whereIn('id', array_unique(array_values($photos)))->count()
+            === count(array_unique(array_values($photos))), 422);
+
+        \Illuminate\Support\Facades\DB::transaction(function () use ($positions, $texts, $typography, $photos) {
+            foreach ([
+                'foodfoto_canvas_draft_positions' => $positions,
+                'foodfoto_canvas_draft_texts' => $texts,
+                'foodfoto_canvas_draft_typography' => $typography,
+                'foodfoto_canvas_draft_photos' => $photos,
+            ] as $key => $value) {
+                SiteSetting::updateOrCreate(['key' => $key], ['value' => json_encode($value, JSON_UNESCAPED_UNICODE)]);
+            }
+        });
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'message' => 'Zapisano wszystkie zmiany w wersji roboczej.']);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_all_saved', true);
+    }
+
+    public function saveCanvasLayout(Request $request)
+    {
+        $data = $request->validate(['layout' => ['required', 'string', 'max:60000']]);
+        $positions = json_decode($data['layout'], true);
+        abort_unless(is_array($positions) && count($positions) <= 120, 422);
+        $clean = [];
+        foreach ($positions as $id => $position) {
+            abort_unless(is_string($id) && preg_match('/^[a-z0-9_-]{1,80}$/', $id), 422);
+            abort_unless(is_array($position), 422);
+            foreach (['x', 'y'] as $axis) abort_unless(isset($position[$axis]) && is_numeric($position[$axis]), 422);
+            $x = (int) $position['x']; $y = (int) $position['y'];
+            $w = (int) ($position['w'] ?? 0); $h = (int) ($position['h'] ?? 0); $z = (int) ($position['z'] ?? 0);
+            abort_unless(abs($x) <= 350 && abs($y) <= 350 && $w >= 0 && $w <= 1200 && $h >= 0 && $h <= 1200 && $z >= -5 && $z <= 25, 422);
+            $clean[$id] = compact('x', 'y', 'w', 'h', 'z');
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_positions'], ['value' => json_encode($clean)]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'positions' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_layout_saved', true);
+    }
+
+    public function saveCanvasTexts(Request $request)
+    {
+        $data = $request->validate(['texts' => ['required', 'string', 'max:40000']]);
+        $texts = json_decode($data['texts'], true);
+        abort_unless(is_array($texts) && count($texts) <= 100, 422);
+        $clean = [];
+        foreach ($texts as $id => $value) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id), 422);
+            abort_unless(is_string($value) && mb_strlen($value) <= 2000, 422);
+            $clean[$id] = trim(strip_tags($value));
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_texts'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        return redirect()->route('foodfoto.canvas')->with('foodfoto_texts_saved', true);
+    }
+
+    public function saveCanvasTypography(Request $request)
+    {
+        $data = $request->validate(['typography' => ['required', 'string', 'max:25000']]);
+        $items = json_decode($data['typography'], true);
+        abort_unless(is_array($items) && count($items) <= 60, 422);
+        $clean = [];
+        foreach ($items as $id => $style) {
+            abort_unless(is_string($id) && preg_match('/^(preview_[a-z0-9_]+|section-[0-9]{1,2})$/', $id) && is_array($style), 422);
+            $clean[$id] = $this->normalizeCanvasTypography($style);
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_typography'], ['value' => json_encode($clean)]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'typography' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false))->with('foodfoto_typography_saved', true);
+    }
+
+    public function saveCanvasPhotoActions(Request $request)
+    {
+        $data = $request->validate([
+            'actions' => ['required', 'string', 'max:16000'],
+        ]);
+        $items = json_decode($data['actions'], true);
+        abort_unless(is_array($items) && count($items) <= 80, 422);
+        $clean = [];
+        foreach ($items as $slot => $entry) {
+            abort_unless(is_string($slot)
+                && preg_match('/^(hero-photo|editorial-photo|experience-photo|service-[0-9]{1,2}|process-photo-[0-9]|custom-[0-9]{1,2})$/', $slot)
+                && is_array($entry), 422);
+            $mode = $entry['mode'] ?? '';
+            abort_unless(in_array($mode, ['none', 'lightbox', 'link'], true), 422);
+            $target = trim((string) ($entry['url'] ?? ''));
+            if ($mode === 'link') {
+                abort_unless(strlen($target) <= 500
+                    && preg_match('~^/(?!/)[a-zA-Z0-9/_?=&%.#-]*$~', $target), 422);
+            } else {
+                $target = '';
+            }
+            $clean[$slot] = ['mode' => $mode, 'url' => $target];
+        }
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_photo_actions'], [
+            'value' => json_encode($clean, JSON_UNESCAPED_UNICODE),
+        ]);
+        if ($request->expectsJson()) {
+            return response()->json(['success' => true, 'actions' => $clean]);
+        }
+        return redirect()->to(route('foodfoto.canvas', [], false));
+    }
+
+    public function saveCanvasPhotos(Request $request)
+    {
+        $data = $request->validate(['photos' => ['required', 'string', 'max:20000']]);
+        $choices = json_decode($data['photos'], true);
+        abort_unless(is_array($choices) && count($choices) <= 80, 422);
+        $clean = [];
+        foreach ($choices as $slot => $photoId) {
+            abort_unless(is_string($slot) && preg_match('/^(hero-photo|editorial-photo|experience-photo|service-[0-9]{1,2}|process-photo-[0-9]|custom-[0-9]{1,2})$/', $slot), 422);
+            abort_unless(is_numeric($photoId) && (int)$photoId > 0, 422);
+            $clean[$slot] = (int) $photoId;
+        }
+        abort_unless(Photo::whereIn('id', array_values($clean))->count() === count(array_unique(array_values($clean))), 422);
+        SiteSetting::updateOrCreate(['key' => 'foodfoto_canvas_draft_photos'], ['value' => json_encode($clean)]);
+        return redirect()->route('foodfoto.canvas')->with('foodfoto_photos_saved', true);
+    }
+
     public function __invoke(): Response
     {
         return $this->renderPage(false);
@@ -106,15 +395,38 @@ class FoodfotoPreviewController extends Controller
         return $this->renderPage(true);
     }
 
-    private function renderPage(bool $public): Response
+    private function renderPage(bool $public, bool $canvas = false): Response
     {
         $builder = PageBuilder::query()->whereNull('page_id')->where('type', 'home')->firstOrFail();
         $sections = array_values($builder->content['sections'] ?? []);
-        abort_unless(count($sections) === 32
+        $approvedLayout = count($sections) === 32
             && ($sections[3]['content'] ?? null) === 'Co tworzę'
             && ($sections[24]['type'] ?? null) === 'gallery'
             && ($sections[30]['type'] ?? null) === 'thumbnail_gallery'
-            && (int) ($sections[31]['photo_id'] ?? 0) === 96, 409, 'The current layout differs from the inspected 32-element homepage.');
+            && (int) ($sections[31]['photo_id'] ?? 0) === 96;
+
+        // The published homepage must match the approved production structure.
+        // Codespaces can have an older database. Build a read-only visual fixture
+        // for the private canvas only, without modifying the real PageBuilder.
+        abort_unless($approvedLayout || $canvas, 409, 'The current layout differs from the inspected 32-element homepage.');
+        $canvasUsingFixture = $canvas && !$approvedLayout;
+        if ($canvasUsingFixture) {
+            $source = $sections;
+            $images = collect($source)->filter(fn ($section) => ($section['type'] ?? '') === 'image'
+                && (int) ($section['photo_id'] ?? 0) > 0)->values();
+            $sections = array_fill(0, 32, ['type' => 'text', 'content' => '']);
+            $sections[3] = ['type' => 'heading', 'content' => 'Co tworzę'];
+            $sections[4] = ['type' => 'text', 'content' => 'Fotografia i stylizacja żywności — podgląd roboczy'];
+            foreach ([5, 6, 7, 14, 15, 16, 25, 27, 28, 29, 31] as $index) {
+                $candidate = $images->shift();
+                $sections[$index] = ['type' => 'image', 'photo_id' => $candidate['photo_id'] ?? 0];
+            }
+            foreach ([8, 9, 10, 17, 18, 19] as $index) {
+                $sections[$index]['content'] = 'Fotografia żywności';
+            }
+            $sections[24] = ['type' => 'gallery', 'gallery_mode' => 'all'];
+            $sections[30] = ['type' => 'thumbnail_gallery', 'photo_ids' => []];
+        }
 
         $photoIds = collect($sections)->pluck('photo_id')
             ->merge($sections[30]['photo_ids'] ?? [])
@@ -160,13 +472,37 @@ class FoodfotoPreviewController extends Controller
         $customPhotoIds = collect($customBlocks)->pluck('photo_id')->filter()->map(fn ($id) => (int) $id)->unique();
         $photos = $photos->union(Photo::whereIn('id', $customPhotoIds)->get()->keyBy('id'));
 
-        $editorPositions = json_decode(SiteSetting::where('key', 'preview_editor_positions')->value('value') ?: '{}', true);
+        $canvasElements = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_extra_elements')->value('value') ?: '[]', true) : [];
+        if (!is_array($canvasElements) || !array_is_list($canvasElements)) $canvasElements = [];
+        $canvasElementPhotos = collect($canvasElements)->pluck('photo_id')->filter()->map(fn($id)=>(int)$id)->unique();
+        $photos = $photos->union(Photo::whereIn('id', $canvasElementPhotos)->get()->keyBy('id'));
+        $canvasGalleryOptions = $canvas ? Gallery::query()->orderBy('title')->get(['id','title'])->map(fn($gallery)=>['id'=>$gallery->id,'title'=>$gallery->title])->all() : [];
+
+        $canvasPhotoActions = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photo_actions')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasPhotoActions)) $canvasPhotoActions = [];
+
+        $canvasPhotos = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_photos')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasPhotos)) $canvasPhotos = [];
+        $canvasFontOptions = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_fonts')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasFontOptions)) $canvasFontOptions = [];
+        $canvasTypography = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_typography')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasTypography)) $canvasTypography = [];
+        $canvasTexts = $canvas ? json_decode(SiteSetting::where('key', 'foodfoto_canvas_draft_texts')->value('value') ?: '{}', true) : [];
+        if (!is_array($canvasTexts)) $canvasTexts = [];
+
+        $editorPositions = json_decode(SiteSetting::where('key', $canvas ? 'foodfoto_canvas_draft_positions' : 'preview_editor_positions')->value('value') ?: '{}', true);
         if (!is_array($editorPositions)) $editorPositions = [];
 
         $photoOptions = Photo::query()->orderBy('sort_order')->orderBy('id')->get(['id','title','alt','filename']);
 
+        $photoPickerOptions = $canvas ? $photoOptions->map(fn ($photo) => [
+            'id' => $photo->id,
+            'url' => $photo->imageUrl(),
+            'title' => $photo->title ?: $photo->alt ?: 'Fotografia',
+        ])->values()->all() : [];
+
         $response = response()->view('admin.foodfoto-home-preview', compact(
-            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks'
+            'sections', 'photos', 'galleries', 'seoLinks', 'thumbs', 'previewDecorations', 'photoOptions', 'editorPositions', 'public', 'customBlocks', 'canvas', 'canvasTexts', 'canvasTypography', 'canvasPhotos', 'canvasPhotoActions', 'photoPickerOptions', 'canvasUsingFixture', 'canvasFontOptions', 'canvasElements', 'canvasGalleryOptions'
         ));
         if (!$public) {
             $response->headers->set('X-Robots-Tag', 'noindex, nofollow, noarchive');

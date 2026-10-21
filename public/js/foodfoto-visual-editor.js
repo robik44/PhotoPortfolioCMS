@@ -8,7 +8,7 @@
     let positions = {};
     for (const key of nodes.keys()) {
         const pos = initial[key] || {};
-        positions[key] = {x: Number(pos.x) || 0, y: Number(pos.y) || 0, w: Number(pos.w) || 0, z: Number(pos.z) || 0};
+        positions[key] = {x: Number(pos.x) || 0, y: Number(pos.y) || 0, w: Number(pos.w) || 0, h: Number(pos.h) || 0, z: Number(pos.z) || 0};
     }
     const saved = JSON.parse(JSON.stringify(positions));
     const selected = new Set();
@@ -25,11 +25,18 @@
     const snapToggle = document.getElementById('ff-layout-snap');
     const clone = p => JSON.parse(JSON.stringify(p));
     const clamp = n => Math.max(-350, Math.min(350, Math.round(n)));
+    const canvasScale = () => root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1;
     function apply() {
         for (const [id, el] of nodes) {
             const p = positions[id] || {x:0,y:0};
             el.style.translate = p.x + 'px ' + p.y + 'px';
             el.style.width = p.w > 0 ? p.w + 'px' : '';
+            el.style.height = p.h > 0 ? p.h + 'px' : '';
+            el.classList.toggle('ff-free-resized',p.w>0&&p.h>0);
+            el.classList.toggle('ff-width-resized',p.w>0);
+            el.classList.toggle('ff-height-resized',p.h>0);
+            if (el.tagName === 'IMG') el.style.objectFit = p.h > 0 && p.w > 0 ? 'fill' : '';
+            if (el.tagName === 'IMG' && p.h > 0 && p.w > 0) el.style.maxWidth='none'; else if(el.tagName==='IMG') el.style.maxWidth='';
             el.style.zIndex = p.z ? String(p.z) : '';
             el.classList.toggle('ff-selected', editing && selected.has(id));
             el.classList.toggle('ff-movable', editing);
@@ -51,6 +58,8 @@
             selected.clear(); selected.add(id);
         }
         apply();
+        const only=selected.size===1 ? positions[Array.from(selected)[0]] : null;
+        if(only){document.getElementById('ff-size').value=only.w||0;document.getElementById('ff-height').value=only.h||0;}
     }
     function setEditing(active) {
         editing = active;
@@ -63,6 +72,31 @@
         note(active ? 'Kliknij element. Shift + klik zaznacza kilka. Przeciągnij, aby przesunąć.' : '');
     }
     toggle.addEventListener('click', () => setEditing(!editing));
+    root.addEventListener('click', e => {
+        if (!editing) return;
+        if (e.target.closest('a,button,[role="link"]')) {e.preventDefault();e.stopImmediatePropagation();}
+    }, true);
+    root.addEventListener('auxclick', e => {if(editing){e.preventDefault();e.stopPropagation();}},true);
+    document.addEventListener('ff-select-text-box', event=>{
+        const id=event.detail && event.detail.id;
+        const el=nodes.get(id);
+        if(!el){note('Nie znaleziono boksu.');return;}
+        if(!editing)setEditing(true);
+        selected.clear();
+        pick(el,false);
+        document.getElementById('ff-size').value=positions[id].w||Math.round(el.getBoundingClientRect().width);
+        document.getElementById('ff-height').value=positions[id].h||Math.round(el.getBoundingClientRect().height);
+        note('Boks tekstowy zaznaczony. Przeciągnij uchwyt ↘ lub wpisz szerokość. Zapisz układ po zmianach.');
+        root.scrollIntoView({block:'nearest'});
+        requestAnimationFrame(()=>root.dispatchEvent(new Event('click')));
+    });
+
+    // While arranging, links remain selection targets and must never navigate.
+    root.addEventListener('click',e=>{
+        if(!editing)return;
+        const link=e.target.closest('a,[role="link"]');
+        if(link){e.preventDefault();e.stopImmediatePropagation();}
+    },true);
     root.addEventListener('pointerdown', e => {
         if (!editing || e.button !== 0) return;
         const el = e.target.closest('[data-move-id]');
@@ -80,7 +114,7 @@
     });
     root.addEventListener('pointermove', e => {
         if (!drag || e.pointerId !== drag.pointerId) return;
-        const dx = e.clientX - drag.startX, dy = e.clientY - drag.startY;
+        const dx = (e.clientX - drag.startX)/canvasScale(), dy = (e.clientY - drag.startY)/canvasScale();
         for (const id of selected) {
             positions[id] = {...drag.initialPositions[id], x:clamp(drag.initialPositions[id].x+dx), y:clamp(drag.initialPositions[id].y+dy)};
         }
@@ -153,6 +187,14 @@
         for(const id of selected) positions[id].w=width;
         apply();note('Zmieniono szerokość '+selected.size+' elementów. 0 oznacza rozmiar oryginalny.');
     });
+    document.getElementById('ff-height-apply').addEventListener('click', () => {
+        if(!selected.size){note('Najpierw wybierz element.');return;}
+        const height=Number(document.getElementById('ff-height').value);
+        if(!Number.isInteger(height)||height<0||height>1200){note('Wysokość: 0–1200 px.');return;}
+        snapshot();
+        for(const id of selected)positions[id].h=height;
+        apply();note('Zmieniono wysokość '+selected.size+' elementów.');
+    });
     for(const [button,delta] of [['ff-layer-up',1],['ff-layer-down',-1]]) {
         document.getElementById(button).addEventListener('click',()=>{
             if(!selected.size){note('Najpierw wybierz element.');return;}
@@ -163,14 +205,14 @@
     }
     // Width handle at the selected block's lower-right corner. Dragging changes width.
     const handle=document.createElement('button');
-    handle.type='button';handle.textContent='↘';handle.title='Przeciągnij, aby zmienić szerokość zaznaczonego elementu';
+    handle.type='button';handle.textContent='↘';handle.title='Przeciągnij w poziomie i pionie, aby dowolnie zmienić szerokość i wysokość';
     handle.style.cssText='position:absolute;z-index:120;display:none;background:#26392b;color:white;border:0;padding:4px 7px;cursor:ew-resize;touch-action:none';
     root.appendChild(handle);
     let sizing=null;
     function placeHandle(){
         if(!editing||selected.size!==1||drag||sizing){handle.style.display='none';return;}
         const id=Array.from(selected)[0],el=nodes.get(id),a=el.getBoundingClientRect(),b=root.getBoundingClientRect();
-        handle.style.display='block';handle.style.left=(a.right-b.left-8)+'px';handle.style.top=(a.bottom-b.top-8)+'px';
+        handle.style.display='block';handle.style.left=((a.right-b.left)/canvasScale()-8)+'px';handle.style.top=((a.bottom-b.top)/canvasScale()-8)+'px';
     }
     root.addEventListener('pointerup',()=>requestAnimationFrame(placeHandle));
     root.addEventListener('click',()=>requestAnimationFrame(placeHandle));
@@ -180,19 +222,37 @@
         e.preventDefault();e.stopPropagation();
         snapshot();
         const id=Array.from(selected)[0],el=nodes.get(id);
-        sizing={id,startX:e.clientX,width:el.getBoundingClientRect().width,pointerId:e.pointerId};
+        sizing={id,startX:e.clientX,startY:e.clientY,width:el.getBoundingClientRect().width/canvasScale(),height:el.getBoundingClientRect().height/canvasScale(),pointerId:e.pointerId};
         handle.setPointerCapture(e.pointerId);
     });
     handle.addEventListener('pointermove',e=>{
         if(!sizing||sizing.pointerId!==e.pointerId)return;
-        positions[sizing.id].w=Math.max(40,Math.min(1200,Math.round(sizing.width+e.clientX-sizing.startX)));
-        widthInput.value=positions[sizing.id].w;apply();
+        positions[sizing.id].w=Math.max(40,Math.min(1200,Math.round(sizing.width+(e.clientX-sizing.startX)/canvasScale())));
+        positions[sizing.id].h=Math.max(30,Math.min(1200,Math.round(sizing.height+(e.clientY-sizing.startY)/canvasScale())));
+        widthInput.value=positions[sizing.id].w;
+        document.getElementById('ff-height').value=positions[sizing.id].h;
+        apply();
     });
     function stopSize(e){if(!sizing||sizing.pointerId!==e.pointerId)return;sizing=null;requestAnimationFrame(placeHandle);}
     handle.addEventListener('pointerup',stopSize);handle.addEventListener('pointercancel',stopSize);
     window.addEventListener('resize',placeHandle);
-    saveForm.addEventListener('submit', () => {
+    saveForm.addEventListener('submit', event => {
         saveValue.value=JSON.stringify(positions);
+        if(!document.getElementById('ff-unified-panel'))return;
+        event.preventDefault();
+        const status=document.getElementById('ff-save-status');
+        status.hidden=false;
+        status.textContent='Zapisywanie układu…';
+        fetch('/admin/foodfoto-canvas/layout',{
+            method:'POST',credentials:'same-origin',
+            headers:{'Accept':'application/json','X-Requested-With':'XMLHttpRequest'},
+            body:new FormData(saveForm),
+        }).then(async response=>{
+            if(!response.ok)throw new Error('HTTP '+response.status);
+            const result=await response.json();
+            if(!result.success)throw new Error('Niepotwierdzony zapis');
+            status.textContent='Zapisano położenie elementów.';
+        }).catch(error=>{status.textContent='Nie zapisano układu: '+error.message;});
     });
     apply();
 })();
