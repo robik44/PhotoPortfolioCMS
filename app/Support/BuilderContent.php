@@ -20,7 +20,7 @@ class BuilderContent
                 Validator::make($element, [
                     'panel_color' => ['required', 'regex:/^#[0-9a-fA-F]{6}$/'],
                     'panel_opacity' => ['sometimes', 'numeric', 'between:0,100'],
-                    'panel_layer' => ['sometimes', 'integer', 'between:0,50'],
+                    'panel_layer' => ['sometimes', 'integer', 'between:0,150'],
                     'element_height' => ['required', 'numeric', 'between:1,1500'],
                 ])->validate();
             }
@@ -40,6 +40,8 @@ class BuilderContent
                     $rules['image_radius'] = ['sometimes', 'numeric', 'between:0,200'];
                     $rules['image_height'] = ['sometimes', 'numeric', 'between:0,2000'];
                     $rules['image_lightbox'] = ['sometimes', 'boolean'];
+                    $rules['image_opacity'] = ['sometimes', 'numeric', 'between:0,100'];
+                    $rules['image_layer'] = ['sometimes', 'integer', 'between:0,150'];
                     $rules['image_link'] = ['sometimes', 'nullable', 'string', 'max:2048', function ($attribute, $value, $fail) {
                         if ($value !== null && trim((string) $value) !== '' && BuilderButton::href($value) === null) {
                             $fail('Wybierz prawidłowy cel linku zdjęcia.');
@@ -63,8 +65,12 @@ class BuilderContent
                     'process_design.heading_font' => ['sometimes', 'string', \Illuminate\Validation\Rule::in($families)],
                     'process_design.body_font' => ['sometimes', 'string', \Illuminate\Validation\Rule::in($families)],
                     'process_design.show_arrows' => ['sometimes', 'boolean'],
+                    'process_design.show_numbers' => ['sometimes', 'boolean'],
+                    'process_design.branch_visible' => ['sometimes', 'boolean'],
+                    'process_design.connector_style' => ['sometimes', 'in:line,arrow,none'],
+                    'process_design.decorative_photo_id' => ['sometimes', 'nullable', 'integer', 'exists:photos,id'],
                 ];
-                foreach (['background', 'text', 'muted', 'accent', 'icon_background', 'icon_color'] as $key) {
+                foreach (['background', 'text', 'muted', 'accent', 'icon_background', 'icon_color', 'wash_color'] as $key) {
                     $rules['process_design.'.$key] = ['sometimes', 'regex:/^#[0-9a-fA-F]{6}$/'];
                 }
                 foreach ([
@@ -74,6 +80,19 @@ class BuilderContent
                     'title_size' => [20,100], 'title_weight' => [100,900],
                     'lead_size' => [10,36], 'step_title_size' => [12,40],
                     'step_description_size' => [10,30],
+                    'wash_opacity' => [0,100],
+                    'branch_opacity' => [0,100],
+                    'branch_width' => [70,650],
+                    'branch_x' => [-350,350],
+                    'branch_y' => [-350,350],
+                    'number_size' => [12,100],
+                    'icon_border_width' => [0,8],
+                    'connector_length' => [0,110],
+                    'decorative_photo_opacity' => [0,100],
+                    'decorative_photo_width' => [40,900],
+                    'decorative_photo_x' => [-300,100],
+                    'decorative_photo_y' => [-500,500],
+                    'decorative_photo_rotate' => [-180,180],
                 ] as $key => [$min, $max]) {
                     $rules['process_design.'.$key] = ['sometimes', 'numeric', 'between:'.$min.','.$max];
                 }
