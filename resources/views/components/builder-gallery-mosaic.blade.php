@@ -40,7 +40,7 @@
                 $imageY = max(0, min(100, (int)($mosaicCard['crop_y'] ?? 50)));
                 $imageX = max(0, min(100, (int)($mosaicCard['crop_x'] ?? 50)));
             @endphp
-            <a class="ff-mosaic-card" href="{{ $cardLink ?: '#' }}" aria-label="{{ $cardTitle }}" @if(!$cardLink) aria-disabled="true" @endif>
+            <a class="ff-mosaic-card" @if($cardLink) href="{{ $cardLink }}" @else aria-disabled="true" tabindex="-1" @endif aria-label="{{ $cardTitle }}">
                 <div class="ff-mosaic-photo">
                     @if($photo)
                         <img class="ff-mosaic-image" src="{{ $photo->imageUrl() }}" alt="{{ $photo->alt ?: ($photo->title ?: $cardTitle) }}" loading="lazy" decoding="async" style="object-position:{{ $imageX }}% {{ $imageY }}%;">
