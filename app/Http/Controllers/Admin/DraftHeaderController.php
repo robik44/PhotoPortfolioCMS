@@ -13,6 +13,7 @@ class DraftHeaderController extends Controller
         'draft_header_gap' => 80,
         'draft_header_radius' => 36,
         'draft_header_height' => 84,
+        'draft_header_hero_height' => 650,
         'draft_header_logo_background' => '#ffffff',
         'draft_header_logo_opacity' => 90,
         'draft_header_menu_background' => '#ffffff',
@@ -161,6 +162,7 @@ class DraftHeaderController extends Controller
     {
         $data = $request->validate([
             'positions' => ['required', 'array'],
+            'hero_height' => ['sometimes', 'integer', 'between:480,900'],
             'positions.*.x' => ['required', 'integer', 'between:-400,400'],
             'positions.*.y' => ['required', 'integer', 'between:-300,300'],
             'positions.*.w' => ['sometimes', 'integer', 'between:1,1400'],
@@ -177,11 +179,23 @@ class DraftHeaderController extends Controller
         ]);
         $allowed = ['brand', 'brand-image', 'brand-divider', 'brand-text', 'menu-panel', 'navlinks', 'contact', 'eyebrow', 'headline', 'description', 'cta'];
         $positions = array_intersect_key($data['positions'], array_flip($allowed));
-        SiteSetting::updateOrCreate(
-            ['key' => 'draft_header_builder_positions'],
-            ['value' => json_encode($positions)]
-        );
-        return response()->json(['ok' => true, 'positions' => $positions]);
+        \Illuminate\Support\Facades\DB::transaction(static function () use ($positions, $data) {
+            SiteSetting::updateOrCreate(
+                ['key' => 'draft_header_builder_positions'],
+                ['value' => json_encode($positions)]
+            );
+            if (array_key_exists('hero_height', $data)) {
+                SiteSetting::updateOrCreate(
+                    ['key' => 'draft_header_hero_height'],
+                    ['value' => (string) $data['hero_height']]
+                );
+            }
+        });
+        return response()->json([
+            'ok' => true,
+            'positions' => $positions,
+            'hero_height' => (int) ($data['hero_height'] ?? 650),
+        ]);
     }
 
     public function exportHeroDraft()
