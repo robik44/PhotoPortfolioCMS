@@ -10,7 +10,7 @@
     // Do not depend on a heading: it can be edited or deleted in the builder.
     $portfolioAnchorIndex = $canvasId === 'home-public-builder-canvas'
         ? $sections
-            ->filter(fn ($element) => in_array(($element['type'] ?? ''), ['gallery', 'thumbnail_gallery'], true))
+            ->filter(fn ($element) => in_array(($element['type'] ?? ''), ['gallery_mosaic', 'gallery', 'thumbnail_gallery'], true))
             ->sortBy(fn ($element) => (float) ($element['position_y'] ?? 0))
             ->keys()
             ->first()
@@ -20,6 +20,7 @@
         'color_panel' => 2,
         'separator' => 20,
         'gallery' => 30,
+        'gallery_mosaic' => 30,
         'thumbnail_gallery' => 30,
         'section' => 40,
         'text' => 100,
@@ -28,6 +29,9 @@
     ];
 @endphp
 
+@if($sections->contains(fn ($item) => ($item['type'] ?? '') === 'gallery_mosaic'))
+    <link rel="stylesheet" href="{{ asset('css/foodfoto-gallery-mosaic.css') }}?v={{ @filemtime(public_path('css/foodfoto-gallery-mosaic.css')) ?: 1 }}">
+@endif
 @if($sections->contains(fn ($item) => ($item['type'] ?? '') === 'process_steps'))
     <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
 @endif
@@ -282,6 +286,9 @@
 
             @elseif($type === 'thumbnail_gallery')
                 @include('components.builder-thumbnail-gallery', ['element' => $element])
+
+            @elseif($type === 'gallery_mosaic')
+                @include('components.builder-gallery-mosaic', ['element' => $element])
 
             @elseif($type === 'gallery')
                 <div data-builder-typography-target style="{{ $typographyCss }}">
