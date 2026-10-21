@@ -499,13 +499,42 @@
     if ($renderNewFoodfotoHeader) {
         $oldHeroIds = ['hero-image', 'hero-heading', 'hero-text', 'hero-eyebrow', 'hero-portfolio-cta'];
         $publicHomeSections = $publicHomeSections
-            ->reject(static fn ($section) => in_array($section['id'] ?? null, $oldHeroIds, true))
+            ->reject(static function ($section) use ($oldHeroIds) {
+                if (in_array($section['id'] ?? null, $oldHeroIds, true)) {
+                    return true;
+                }
+                // Older versions of the homepage stored this button under
+                // generated IDs; it should not survive as a second CTA.
+                $isOldPortfolioCta = ($section['type'] ?? '') === 'button'
+                    && (float) ($section['position_y'] ?? 999) < 65
+                    && (
+                        str_contains(mb_strtolower((string) ($section['content'] ?? '')), 'zobacz portfolio')
+                        || trim((string) ($section['button_link'] ?? '')) === '#portfolio'
+                    );
+                return $isOldPortfolioCta;
+            })
             ->values();
     }
 @endphp
 @include("components.site-header", ["settings" => $settings, "menuItems" => $menuItems])
 
 @include('components.site-typography')
+@if($renderNewFoodfotoHeader)
+<style>
+    /* The old home canvas stored its first real section below a 540px hero.
+       The published hero is now outside the canvas, so compensate for that
+       original hero space without moving or rewriting a single builder record. */
+    #fve-header-variant-preview.ff-public-header {
+        position:relative;
+        z-index:2;
+    }
+    #home-public-builder-canvas {
+        position:relative;
+        z-index:1;
+        margin-top:-540px;
+    }
+</style>
+@endif
 <main class="site-typography">
     @include('components.public-builder-canvas', [
         'sections' => $publicHomeSections,
