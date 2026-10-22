@@ -1,0 +1,25 @@
+name: Check Photo Header Restore Installer
+
+on:
+  push:
+    branches:
+      - 'fix/hero-header-menu-resize-exit-20261022'
+    paths:
+      - 'scripts/restore-photo-header-menu-resize-exit.php'
+      - '.github/workflows/photo-header-installer-check.yml'
+  workflow_dispatch:
+
+jobs:
+  syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP CLI syntax check
+        run: php -l scripts/restore-photo-header-menu-resize-exit.php
+      - name: Check for critical safety strings
+        shell: bash
+        run: |
+          grep -q 'KOPIA:' scripts/restore-photo-header-menu-resize-exit.php
+          grep -q 'PRZERWANO BEZ ZMIAN' scripts/restore-photo-header-menu-resize-exit.php
+          grep -q 'ff-hero-menu-resize-handle' scripts/restore-photo-header-menu-resize-exit.php
+          grep -q 'save-exit-hero-header-builder' scripts/restore-photo-header-menu-resize-exit.php
