@@ -5,6 +5,7 @@
     <script src="{{ asset('js/builder-auto-flow.js') }}?v={{ @filemtime(public_path('js/builder-auto-flow.js')) ?: 1 }}"></script>
     <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
     <script src="{{ asset('js/foodfoto-process.js') }}?v={{ @filemtime(public_path('js/foodfoto-process.js')) ?: 1 }}"></script>
+    <script src="{{ asset('js/process-decorative-photo-library.js') }}?v={{ @filemtime(public_path('js/process-decorative-photo-library.js')) ?: 1 }}" defer></script>
     @php
         $builderHeaderSettings = \App\Models\SiteSetting::pluck('value', 'key')->toArray();
         $builderHeaderMenuItems = \App\Models\MenuItem::query()
