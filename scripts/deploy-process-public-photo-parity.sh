@@ -55,7 +55,7 @@ $bladeChanged = false;
 // different containing box. Match the editor's DOM without changing
 // existing user data or the inline geometry settings.
 if (!str_contains($b, 'class="ff-process-decorative-photo-image"')) {
-    $re = '~^([ \t]*)<img class="ff-process-decorative-photo"\s+data-process-move="decorative_photo"[\s\S]*?>~m';
+    $re = '~^([ \t]*)<img class="ff-process-decorative-photo"\s+data-process-move="decorative_photo"[\s\S]*?">~m';
     if (preg_match_all($re, $b, $found) !== 1) $abort('nieznany szablon obrazka w widoku publicznym');
     $whole = $found[0][0];
     $indent = $found[1][0];
