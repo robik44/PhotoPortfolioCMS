@@ -1,0 +1,52 @@
+/* FOODFOTO_CUSTOM_PROCESS_BACKGROUND_V1: only the photo selected from the library is decorative. */
+.ff-process {
+    position: relative;
+    isolation: isolate;
+    background-image: none !important;
+}
+/* Retired plant illustration and old yellow wash. */
+.ff-process::before,
+.ff-process::after {
+    content: none !important;
+    display: none !important;
+}
+.ff-process .ff-process-branch,
+.ff-process .ff-process-branch-art,
+.ff-process .ff-process-wash,
+.ff-process .ff-process-glow {
+    display: none !important;
+}
+/* Editor: draggable div containing an image. Public: standalone img.
+   In either case keep the photo underneath text and icons. */
+.ff-process .ff-process-decorative-photo,
+.ff-process [data-process-move="decorative_photo"] {
+    position: absolute !important;
+    display: block !important;
+    visibility: visible !important;
+    z-index: 0 !important;
+    max-width: none;
+    transform-origin: center center;
+}
+.ff-process img.ff-process-decorative-photo {
+    height: auto;
+    object-fit: contain;
+}
+.ff-process .ff-process-decorative-photo-image {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    object-fit: contain;
+}
+/* Leave exact text positions and resize handles unchanged. */
+.ff-process > .ff-process-intro,
+.ff-process > .ff-process-steps {
+    position: relative;
+    z-index: 2 !important;
+}
+.ff-process .ff-process-step,
+.ff-process .ff-process-number,
+.ff-process .ff-process-bubble,
+.ff-process [data-process-part] {
+    z-index: 2 !important;
+}
