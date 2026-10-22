@@ -63,6 +63,14 @@ if($n!==1||$m!==1){
     abortFix('W produkcyjnym naglowku nie ma dokladnie jednego zwyklego H1. Niczego nie zmieniam.',implode("\n",array_slice($notes,-12)));
 }
 $open=$opens[0][0];$close=$closes[0][0];
+// Extra safeguard: patch an H1 only when it is actually inside the global <header>.
+$hStart=stripos($s,'<header');
+$hEnd=stripos($s,'</header>');
+$h1Start=strpos($s,$open);
+if($hStart===false||$hEnd===false||$h1Start===false||
+   $h1Start<$hStart||$h1Start>$hEnd){
+    abortFix('H1 znajduje sie poza znacznikiem <header> — brak zmian.',$open);
+}
 // Zakaz zgadywania wygladu: znacznik musi juz miec jawna typografie.
 if(!preg_match('~\bstyle\s*=\s*["\x27][^"\x27]*font-size~i',$open)||
    !str_contains($open,'font-weight')){
