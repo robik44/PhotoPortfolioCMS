@@ -110,7 +110,11 @@ $replacement="@if(\$isPublicDraftHeader && request()->getPathInfo() !== '/')\n"
     .$divOpening.$inner."</div>\n"
     ."@else\n".$opening.$inner."</h1>\n@endif";
 $next=str_replace($original,$replacement,$source);
-$next=str_replace($cssSelector,'.ff-shared-hero :is(h1,.ff-seo-hero-title){',$next,$modifiedCss);
+$next=preg_replace_callback(
+    '~(#fve-header-variant-preview(?:\.ff-public-header)?\s+\.ff-shared-hero)\s+h1\{~',
+    static fn(array $parts):string => $parts[1].' h1,'.$parts[1].' .ff-seo-hero-title{',
+    $next, -1, $modifiedCss
+);
 $next="{{-- ".$marker." --}}\n".$next;
 if($modifiedCss!==3
     || substr_count($next,'class="ff-seo-hero-title"')!==1
