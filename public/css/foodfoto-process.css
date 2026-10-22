@@ -123,3 +123,26 @@
     .ff-process .ff-process-step { grid-template-columns: 64px minmax(0, 1fr); }
     .ff-process .ff-process-bubble { width: 64px; height: 64px; }
 }
+
+
+/* FOODFOTO_PROCESS_DECORATION_STACK_V1
+ * Keep headings, descriptions and icons in front of decorative images,
+ * even while a decoration is moved, scaled or rotated.
+ * The isolated section prevents these high local z-index values from
+ * leaking above the CMS toolbar and other page sections.
+ */
+.ff-process {
+    position: relative;
+    isolation: isolate;
+}
+.ff-process > .ff-process-intro,
+.ff-process > .ff-process-steps {
+    position: relative;
+    z-index: 2147483000 !important;
+}
+.ff-process .ff-process-step,
+.ff-process [data-process-part],
+.ff-process .ff-process-bubble {
+    /* Keep each element's existing absolute/free-positioning coordinates. */
+    z-index: 2147483000 !important;
+}
