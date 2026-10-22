@@ -32,6 +32,7 @@
     <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
 @endif
 
+<script src="{{ asset('js/email-protect.js') }}?v={{ @filemtime(public_path('js/email-protect.js')) ?: 1 }}" defer></script>
 <div id="{{ $canvasId }}" class="builder-public-canvas" style="background:{{ $canvasBackground }};">
     @foreach($sections as $element)
         @php
