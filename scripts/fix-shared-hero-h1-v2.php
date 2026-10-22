@@ -101,6 +101,13 @@ foreach($cssCandidates as $cssPath){
     $cssSources[$cssPath]=$s;
 }
 if(!$cssSources)quit('Nie znaleziono styli h1 dla banera; nie ryzykuje zmiany wygladu.');
+foreach(array_keys($cssSources) as $cssFile){
+    if(str_starts_with($cssFile,$root.'/public/css/')){
+        quit('Style banera sa w osobnym pliku CSS i moga byc w cache przegladarki. Nie zmieniam strony bez osobnej strategii wersjonowania.',[
+            str_replace($root.'/','',$cssFile)
+        ]);
+    }
+}
 $jsReferences=[];
 foreach(filesIn($root.'/public/js',['.js']) as $jsPath){
     $js=file_get_contents($jsPath);
