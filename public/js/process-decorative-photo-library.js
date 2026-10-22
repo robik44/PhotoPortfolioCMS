@@ -35,7 +35,10 @@
             const hasThumbnails = wrapper.querySelectorAll('img').length > 1;
             const hasRemove = Array.from(wrapper.querySelectorAll('button'))
                 .some(button => normalize(button.textContent).includes('usuń obrazek z tej sekcji'));
-            if (hasRemove && (hasSearch || hasThumbnails)) {
+            // Never hide a parent containing the remaining decoration settings.
+            // Only the legacy thumbnail gallery (with its own remove button) goes away.
+            const hasOtherSettings = /krycie dekoracji|pozycja gałązki|wielkość dekoracji/.test(normalize(wrapper.textContent));
+            if (!hasOtherSettings && hasRemove && (hasSearch || hasThumbnails)) {
                 wrapper.hidden = true;
                 wrapper.style.display = 'none';
                 return;
