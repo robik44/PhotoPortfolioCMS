@@ -116,8 +116,17 @@ if(substr_count($component,$jsAnchor)!==1)stopRigid('Nie rozpoznano obliczen poz
 $component=str_replace($jsAnchor,$fixedMenuJS."\n".$jsAnchor,$component);
 $observerAnchor="    const observer = new ResizeObserver(requestFit);\n    observer.observe(stage);";
 $observerNew="    if (typeof ResizeObserver !== 'undefined') {\n        const observer = new ResizeObserver(requestFit);\n        observer.observe(stage);\n    }";
-if(substr_count($component,$observerAnchor)!==1)stopRigid('Inna wersja obslugi Safari.');
-$component=str_replace($observerAnchor,$observerNew,$component);
+// Both variants are safe: older component with unconditional observer and
+// newer component where the Safari compatibility guard is already present.
+if(substr_count($component,$observerAnchor)===1){
+    $component=str_replace($observerAnchor,$observerNew,$component);
+}elseif(str_contains($component,"if (typeof ResizeObserver !== 'undefined') {")
+    && str_contains($component,"const observer = new ResizeObserver(requestFit);")
+    && str_contains($component,"observer.observe(stage);")){
+    echo "SAFARI: istniejace zabezpieczenie ResizeObserver zostaje bez zmian.\\n";
+}else{
+    stopRigid('Nie rozpoznano obecnej obslugi Safari.');
+}
 $raw[$files[2]]=$component;
 $backup=$root.'/storage/app/backups/fixed-canvas-20261022-'.date('Ymd-His').'-'.bin2hex(random_bytes(3));
 if(!mkdir($backup,0700,true))stopRigid('Nie mozna utworzyc kopii.');
