@@ -255,17 +255,25 @@
 .ff-process.ff-process-arrow-connectors .ff-process-connector::after {
     content:'→'; font:300 30px/1 Arial,sans-serif;
 }
-@container (max-width: 980px) {
-    .ff-process .ff-process-intro { grid-template-columns: 1fr; gap: 15px; }
-    .ff-process .ff-process-steps { grid-template-columns: 1fr; gap: 28px; }
-    .ff-process .ff-process-step { padding-right: 0; }
-    .ff-process .ff-process-connector { top:auto; right:50%; bottom:-20px; width:1px; height:16px; }
-    .ff-process.ff-process-arrow-connectors .ff-process-connector { top:auto; right:50%; bottom:-27px; width:auto; height:auto; }
-    .ff-process.ff-process-arrow-connectors .ff-process-connector::after { content:'↓'; font-size:21px; }
+/* FoodFoto keeps the same three-column editorial composition on phones.
+   The public site already uses a desktop-sized canvas that can be pinched to zoom;
+   switching this one section to stacked columns breaks parity with the editor.
+   Keep the same title, three stages and horizontal connector layout at every size. */
+.ff-process .ff-process-intro {
+    grid-template-columns:minmax(0,1.35fr) minmax(0,.85fr);
 }
-@container (max-width: 520px) {
-    .ff-process { padding: 28px 22px; }
-    .ff-process h2.ff-process-title { font-size: min(var(--ff-process-title-size, 58px), 38px); }
-    .ff-process .ff-process-step { grid-template-columns: 33px 64px minmax(0, 1fr); gap: 10px; }
-    .ff-process .ff-process-bubble { width: 64px; height: 64px; }
+.ff-process .ff-process-steps {
+    grid-template-columns:repeat(3,minmax(0,1fr));
+}
+.ff-process .ff-process-connector {
+    top:38px;
+    right:calc(var(--ff-process-connector-length,26px) / -2);
+    width:var(--ff-process-connector-length,26px);
+    height:1px;
+}
+.ff-process.ff-process-arrow-connectors .ff-process-connector {
+    top:24px;right:-15px;width:auto;height:auto;
+}
+.ff-process.ff-process-arrow-connectors .ff-process-connector::after {
+    content:'→';font-size:30px;
 }
