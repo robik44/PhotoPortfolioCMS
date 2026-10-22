@@ -6,6 +6,13 @@
     <link rel="stylesheet" href="{{ asset('css/foodfoto-process.css') }}?v={{ @filemtime(public_path('css/foodfoto-process.css')) ?: 1 }}">
     <script src="{{ asset('js/foodfoto-process.js') }}?v={{ @filemtime(public_path('js/foodfoto-process.js')) ?: 1 }}"></script>
     @php
+        // Use the currently saved homepage process design as a reusable, independent template.
+        $savedHomeProcessSections = \App\Models\PageBuilder::query()
+            ->whereNull('page_id')
+            ->where('type', 'home')
+            ->first()?->content['sections'] ?? [];
+        $reusableProcessTemplate = collect($savedHomeProcessSections)->firstWhere('type', 'process_steps')
+            ?? collect($builder?->content['sections'] ?? [])->firstWhere('type', 'process_steps');
         $builderHeaderSettings = \App\Models\SiteSetting::pluck('value', 'key')->toArray();
         $builderHeaderMenuItems = \App\Models\MenuItem::query()
             ->whereNull('parent_id')
@@ -641,6 +648,10 @@
                 + Separator
             </button>
 
+            <button type="button" class="fve-tool" data-fve-preset="process-collaboration">
+                + Jak pracuję — gotowa sekcja
+            </button>
+
             <div class="fve-sidebar-title" style="margin-top:22px;">
                 Gotowe układy
             </div>
@@ -653,9 +664,7 @@
             <button type="button" class="fve-tool" data-fve-preset="three-steps">
                 + Trzy etapy
             </button>
-            <button type="button" class="fve-tool" data-fve-preset="process-collaboration">
-                + Proces współpracy — 3 etapy
-            </button>
+
             <button type="button" class="fve-tool" data-fve-preset="contact-banner">
                 + Baner kontaktowy
             </button>
@@ -763,6 +772,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const rulerTop = document.getElementById("fve-ruler-top");
     const rulerLeft = document.getElementById("fve-ruler-left");
     const isHomeBuilder = @json($isHomeBuilder ?? false);
+    const reusableProcessTemplate = @json($reusableProcessTemplate);
 
     let data = @json($builder->content ?? [
         "version" => 1,
@@ -2919,6 +2929,15 @@ document.addEventListener("DOMContentLoaded", function () {
                 element_width: 90, flow_mode: 'auto', flow_base_height: 0
             });
             window.FoodfotoProcess.initialize(item);
+            // Each inserted section is a standalone copy; never reuse its original
+            // id, page positioning, layering, or editor flow coordinates.
+            if (reusableProcessTemplate && reusableProcessTemplate.type === 'process_steps') {
+                for (const [key, value] of Object.entries(reusableProcessTemplate)) {
+                    if (key.startsWith('process_')) {
+                        item[key] = JSON.parse(JSON.stringify(value));
+                    }
+                }
+            }
         } else if (preset === 'three-steps') {
             insert('heading', {
                 content: 'Od pomysłu do kadru',
