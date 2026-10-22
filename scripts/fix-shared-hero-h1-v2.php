@@ -159,6 +159,23 @@ foreach($changes as $file=>$text){
 $viewCache=$root.'/storage/framework/views';
 if(is_dir($viewCache))foreach(glob($viewCache.'/*.php')?:[] as $f)@unlink($f);
 echo "ZAPISANO ZMIANY. BACKUP: $backupRoot\n";
+// Roll back automatically if the newly rendered home or contact H1 is wrong,
+// or Laravel fails to render. Leave no broken page on a failed deployment.
+$home=headings('https://www.foodfoto.pl/?h1_postflight='.time());
+$contact=headings('https://www.foodfoto.pl/kontakt?h1_postflight='.time());
+if($home===null||$contact===null||
+   count($home['all'])!==1||count($home['shared'])!==1||
+   count($contact['all'])!==1||count($contact['shared'])!==0){
+    foreach($changes as $restore=>$_){
+        $relative=substr($restore,strlen($root)+1);
+        if(is_file($backupRoot.'/'.$relative))copy($backupRoot.'/'.$relative,$restore);
+    }
+    if(is_dir($viewCache))foreach(glob($viewCache.'/*.php')?:[] as $f)@unlink($f);
+    quit('Kontrola po wdrozeniu nie przeszla. Przywrocono wszystkie pliki.',[
+        'glowna: '.($home?implode(' | ',$home['all']):'brak odczytu'),
+        'kontakt: '.($contact?implode(' | ',$contact['all']):'brak odczytu')
+    ]);
+}
 $checkPaths=['/','/o-mnie','/kontakt','/strona/klienci','/polityka-prywatnosci',
 '/portfolio/zywnosc','/portfolio/stylizacja','/portfolio/opakowania','/portfolio/czasopisma',
 '/strona/fotografia-zywnosci','/strona/fotografia-kulinarna','/strona/food-styling',
