@@ -1,0 +1,51 @@
+/* Compact selected-photo summary: the full photo grid lives in the shared dialog. */
+#fve-properties .fve-process-photo-library-picker {
+    display: grid;
+    gap: 10px;
+    margin: 12px 0 16px;
+    padding: 12px;
+    border: 1px solid #d7dfd6;
+    border-radius: 12px;
+    background: #f8faf7;
+    min-width: 0;
+}
+#fve-properties .fve-process-photo-library-label {
+    font-weight: 600;
+}
+#fve-properties .fve-process-photo-library-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    color: #465447;
+}
+#fve-properties .fve-process-photo-library-preview img {
+    display: block;
+    width: 96px;
+    height: 76px;
+    max-width: 45%;
+    flex: 0 0 auto;
+    object-fit: contain;
+    background: #fff;
+    border-radius: 8px;
+}
+#fve-properties .fve-process-photo-library-preview img[hidden] {
+    display: none;
+}
+#fve-properties .fve-process-photo-library-preview span {
+    min-width: 0;
+    overflow-wrap: anywhere;
+    font-size: 13px;
+}
+#fve-properties .fve-process-photo-library-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+#fve-properties .fve-process-photo-library-actions button {
+    flex: 1 1 auto;
+    white-space: normal;
+}
+#fve-properties .fve-process-photo-library-actions button[hidden] {
+    display: none;
+}
