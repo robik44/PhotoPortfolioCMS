@@ -8,7 +8,8 @@ PUBLIC='resources/views/components/public-builder-canvas.blade.php'
 EMAIL_JS='public/js/email-protect.js'
 EDITOR_JS='public/js/builder-contact-button-editor.js'
 BASE='https://raw.githubusercontent.com/robik44/PhotoPortfolioCMS/7c1716b68f6fccae64723f1855779ecaeeb71fee'
-for f in "$EDITOR" "$PUBLIC" "$EMAIL_JS"; do
+# email-protect.js may be absent on SEOHOST; the installer creates it.
+for f in "$EDITOR" "$PUBLIC"; do
     [[ -s "$f" ]] || { echo "PRZERWANO: brakuje $f" >&2; exit 1; }
 done
 grep -Fq 'BuilderButton.fields(properties, item' "$EDITOR" || { echo 'PRZERWANO: nieznana wersja edytora przycisku.' >&2; exit 1; }
@@ -29,7 +30,11 @@ BACKUP="storage/app/contact-finale-button-backup-$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$BACKUP" public/js
 cp -p "$EDITOR" "$BACKUP/builder.blade.php"
 cp -p "$PUBLIC" "$BACKUP/public-builder-canvas.blade.php"
-cp -p "$EMAIL_JS" "$BACKUP/email-protect.js"
+if [[ -f "$EMAIL_JS" ]]; then
+    cp -p "$EMAIL_JS" "$BACKUP/email-protect.js"
+else
+    echo 'Brakujacy email-protect.js zostanie teraz zainstalowany.'
+fi
 if [[ -f "$EDITOR_JS" ]]; then cp -p "$EDITOR_JS" "$BACKUP/builder-contact-button-editor.js"; fi
 echo "Kopia bezpieczenstwa: $BACKUP"
 
