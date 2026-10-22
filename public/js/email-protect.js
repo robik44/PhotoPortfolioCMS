@@ -3,6 +3,8 @@
  * Runs on all pages, including reusable builder contact sections. */
 (() => {
   'use strict';
+  if (window.__foodfotoEmailProtectionReady) return;
+  window.__foodfotoEmailProtectionReady = true;
   function decode(value) {
     if (!value) return '';
     try {
