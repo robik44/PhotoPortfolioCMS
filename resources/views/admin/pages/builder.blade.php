@@ -1,4 +1,5 @@
 <x-app-layout>
+    <script src="{{ asset('js/process-custom-photo-only.js') }}?v={{ @filemtime(public_path('js/process-custom-photo-only.js')) ?: 1 }}" defer></script>
     @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <script src="{{ asset('js/site-typography.js') }}"></script>
     <script src="{{ asset('js/builder-button.js') }}"></script>
