@@ -125,7 +125,10 @@ $editedSource=substr_replace($source,$replacementClose,$closePos,strlen($close))
 $editedSource=substr_replace($editedSource,"{{-- ".MARK." --}}\n".$replacementOpen,$openPos,strlen($open));
 $changes=[$path=>$editedSource];
 foreach($cssSources as $cssPath=>$text){
-    $changed=preg_replace($selectorPattern,'$1:is(h1, .ff-seo-shared-headline)',$text,-1,$count);
+    // A Blade file can contain BOTH the HTML markup and its CSS rules.
+    // Apply the selector change to the already edited markup, not the old file!
+    $base=$changes[$cssPath]??$text;
+    $changed=preg_replace($selectorPattern,'$1:is(h1, .ff-seo-shared-headline)',$base,-1,$count);
     if(!is_string($changed)||$count<1)quit('Blad przygotowania zmiany CSS.');
     $changes[$cssPath]=$changed;
 }
