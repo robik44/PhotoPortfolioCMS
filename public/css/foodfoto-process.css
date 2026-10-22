@@ -143,6 +143,6 @@
 .ff-process .ff-process-step,
 .ff-process [data-process-part],
 .ff-process .ff-process-bubble {
-    position: relative;
+    /* Keep each element's existing absolute/free-positioning coordinates. */
     z-index: 2147483000 !important;
 }
