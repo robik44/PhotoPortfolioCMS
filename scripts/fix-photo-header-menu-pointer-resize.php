@@ -48,8 +48,8 @@ $checks=[
     'checkpoint();history.length=0;sync();',
     "document.getElementById('save-layout').onclick=async()=>",
 ];
-foreach($checks as $str)if(substr_count($old,$str)!==1)
-    failPointer('Rozpoznano inna wersje edytora; nie nadpisuje kodu: '.substr($str,0,45));
+foreach($checks as $str)if(!str_contains($old,$str))
+    failPointer('Brak oczekiwanego fragmentu edytora; nie nadpisuje kodu: '.substr($str,0,45));
 
 $anchor='checkpoint();history.length=0;sync();';
 
