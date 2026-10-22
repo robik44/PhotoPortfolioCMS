@@ -59,7 +59,8 @@ foreach($required as $token) {
 
 $saveAnchor = '<button type="button" id="save-layout">Zapisz układ</button>';
 $exitHtml = <<<'BLADE'
-<a id="exit-hero-header-builder" class="ff-hero-builder-exit" href="{{ route('dashboard') }}" title="Zamknij edytor nagłówka ze zdjęciem i wróć do panelu CMS">Wyjdź do CMS ↗</a>
+<button type="button" id="save-exit-hero-header-builder" class="ff-hero-builder-save-exit" title="Zapisz układ i wróć do CMS">Zapisz i wyjdź</button>
+<a id="exit-hero-header-builder" class="ff-hero-builder-exit" href="{{ route('dashboard') }}" title="Wróć do panelu CMS bez zapisywania zmian">Wyjdź do CMS ↗</a>
 BLADE;
 
 $css = <<<'CSS'
@@ -98,6 +99,15 @@ $css = <<<'CSS'
     outline: 2px solid #a1d1a5;
     outline-offset: 3px;
 }
+.builder-tools button.ff-hero-builder-save-exit {
+    background: #286144;
+    border: 1px solid #286144;
+    color: #fff;
+    font-weight: 700;
+    padding: 10px 15px;
+}
+.builder-tools button.ff-hero-builder-save-exit:hover,
+.builder-tools button.ff-hero-builder-save-exit:focus-visible {background: #17452e;}
 .builder-tools .ff-hero-builder-exit {
     display: inline-flex;
     align-items: center;
@@ -124,10 +134,23 @@ $handleAnchor = "handle.className='resize-handle';handle.title='Zmień szerokoś
 $handleReplacement = "handle.className='resize-handle';if(id==='menu-panel'){handle.classList.add('ff-hero-menu-resize-handle');handle.title='Chwyć i przeciągnij, aby skalować całe białe menu';}else{handle.title='Zmień szerokość';}";
 if (!str_contains($original,$handleAnchor)) abortHero('Kod tworzenia uchwytow w builderze jest inny.');
 
+$exitScript = <<<'JS'
+// Leave the full/photo header editor via a visible CMS action.
+document.getElementById('save-exit-hero-header-builder').addEventListener('click',async()=>{
+  const save=document.getElementById('save-layout');
+  await save.onclick();
+  if(status.textContent==='Zapisano ✓')window.location.assign(@json(route('dashboard')));
+});
+document.getElementById('exit-hero-header-builder').addEventListener('click',(event)=>{
+  if(!window.confirm('Wyjść do CMS? Niezapisane zmiany nagłówka nie zostaną zachowane.'))event.preventDefault();
+});
+JS;
+
 $replacements=[
     $saveAnchor => $saveAnchor."\n".$exitHtml,
     '</style></head>' => $css."\n</style></head>",
     $handleAnchor => $handleReplacement,
+    "\n})();\n</script></body></html>" => "\n".$exitScript."\n})();\n</script></body></html>",
 ];
 $changed=$original;
 foreach($replacements as $anchor=>$replacement) {
@@ -168,6 +191,7 @@ $verification=@file_get_contents($file);
 if(!is_string($verification) || hash('sha256',$verification)!==hash('sha256',$changed)
     || substr_count($verification,$signature)!==1
     || substr_count($verification,'id="exit-hero-header-builder"')!==1
+    || substr_count($verification,'id="save-exit-hero-header-builder"')!==1
     || substr_count($verification,'ff-hero-menu-resize-handle')<3) {
     @copy($backup,$file);
     fwrite(STDERR,"KONTROLA NIEUDANA: przywrocono kopie oryginalnego szablonu.\n");
@@ -180,7 +204,7 @@ if(is_dir($viewDir)) {
     foreach(glob($viewDir.'/*.php')?:[] as $compiled)
         if(is_file($compiled))@unlink($compiled);
 }
-echo "SUKCES: Edytor naglowka ZE ZDJECIEM ma stale widoczny uchwyt skalowania bialego menu i przycisk 'Wyjdz do CMS'.\n";
+echo "SUKCES: Edytor naglowka ZE ZDJECIEM: widoczny uchwyt skalowania menu, 'Zapisz i wyjdz' i 'Wyjdz do CMS'.\n";
 echo "MENU: przeciagnij zielony uchwyt z prawego dolnego rogu; skaluje caly panel i linki jak poprzednio.\n";
 echo "Bez zmian w naglowku publicznym, bazie, zdjeciach, pozycjach, ustawieniach typografii oraz builderze uproszczonym.\n";
 echo "Edytor: https://www.foodfoto.pl/admin/header-draft/preview\n";
