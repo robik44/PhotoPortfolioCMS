@@ -1,4 +1,5 @@
 <x-app-layout>
+    <script src="{{ asset('js/builder-contact-button-editor.js') }}?v={{ @filemtime(public_path('js/builder-contact-button-editor.js')) ?: 1 }}" defer></script>
     @include('components.header-font-faces', ['fonts' => $siteFonts['fonts']])
     <script src="{{ asset('js/site-typography.js') }}"></script>
     <script src="{{ asset('js/builder-button.js') }}"></script>
