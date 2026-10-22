@@ -48,7 +48,7 @@ function connect(array $v,string $root):PDO {
     fail('Nieobslugiwany rodzaj bazy danych.');
 }
 function headings():?array {
-    $url='https://www.foodfoto.pl/kontakt?seo_test_heading_check='.time();
+    $url='https://www.foodfoto.pl/kontakt?seo_test_heading_check='.time().'-'.bin2hex(random_bytes(3));
     $cmd='curl -fsSL --connect-timeout 8 --max-time 25'
        .' -A '.escapeshellarg('FoodFoto-ContactH2Fix/1.0')
        .' '.escapeshellarg($url).' 2>/dev/null';
