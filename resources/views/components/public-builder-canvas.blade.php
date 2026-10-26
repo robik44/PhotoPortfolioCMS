@@ -37,6 +37,13 @@
         @php
             $type = $element['type'] ?? 'text';
             $content = $element['content'] ?? '';
+            // A standalone Polish telephone number is clickable even if no link
+            // has been manually configured in the CMS. Other content is unchanged.
+            $phoneLabel = trim((string) $content);
+            $phoneDigits = preg_replace('/\D+/', '', $phoneLabel);
+            $autoPhoneHref = preg_match('/^(?:\+48[\s().-]*)?(?:\d[\s().-]*){9}$/u', $phoneLabel) === 1
+                ? 'tel:+48'.substr($phoneDigits, -9)
+                : null;
             $style = is_array($element['style'] ?? null) ? $element['style'] : [];
 
             $x = max(0, min(100, (float) ($element['position_x'] ?? 5)));
@@ -240,7 +247,7 @@
                 @php
                     $textLink = \App\Support\BuilderButton::href($element['text_link'] ?? null);
                     $exactEmail = filter_var(trim((string) $content), FILTER_VALIDATE_EMAIL) ? trim((string) $content) : null;
-                    $textHref = $textLink ?: ($exactEmail ? 'mailto:'.$exactEmail : null);
+                    $textHref = $autoPhoneHref ?: ($textLink ?: ($exactEmail ? 'mailto:'.$exactEmail : null));
                     $mailTarget = $textHref && preg_match('/^mailto:([^?]+)/i', $textHref, $mailMatches)
                         ? rawurldecode($mailMatches[1]) : null;
                     $protectedTextEmail = $mailTarget && filter_var($mailTarget, FILTER_VALIDATE_EMAIL)
@@ -250,11 +257,11 @@
 @if($protectedTextEmail)<a href="{{ url('/kontakt') }}"
     data-ff-email="{{ base64_encode($protectedTextEmail) }}"
     data-ff-email-label="{{ base64_encode((string) $content) }}"
-    style="color:inherit;text-decoration:underline;text-underline-offset:3px;">Napisz e-mail</a>@elseif($textHref)<a href="{{ $textHref }}" style="color:inherit;text-decoration:underline;text-underline-offset:3px;">{!! nl2br(e($content)) !!}</a>@else{!! nl2br(e($content)) !!}@endif</{{ $semanticTag }}>
+    style="color:inherit;text-decoration:underline;text-underline-offset:3px;">Napisz e-mail</a>@elseif($textHref)<a href="{{ $textHref }}" style="color:inherit;text-decoration:{{ $autoPhoneHref ? 'none' : 'underline' }};text-underline-offset:3px;">{!! nl2br(e($content)) !!}</a>@else{!! nl2br(e($content)) !!}@endif</{{ $semanticTag }}>
 
             @elseif($type === 'button')
                 @php
-                    $buttonHref = \App\Support\BuilderButton::href($element['button_link'] ?? null);
+                    $buttonHref = $autoPhoneHref ?: \App\Support\BuilderButton::href($element['button_link'] ?? null);
                     $buttonMailTarget = $buttonHref && preg_match('/^mailto:([^?]+)/i', $buttonHref, $buttonMailMatches)
                         ? rawurldecode($buttonMailMatches[1]) : null;
                     $protectedButtonEmail = $buttonMailTarget && filter_var($buttonMailTarget, FILTER_VALIDATE_EMAIL)
@@ -267,7 +274,7 @@
                         data-ff-email="{{ base64_encode($protectedButtonEmail) }}"
                         data-ff-email-label="{{ base64_encode((string) $content) }}"
                     @elseif($buttonHref) href="{{ $buttonHref }}" @endif
-                    @if($buttonHref && !$protectedButtonEmail && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
+                    @if($buttonHref && !$protectedButtonEmail && !str_starts_with($buttonHref, 'tel:') && ($element['button_new_tab'] ?? false)) target="_blank" rel="noopener noreferrer" @endif
                     style="{{ $typographyCss }}{{ \App\Support\BuilderButton::css($element) }}"
                 >{{ $protectedButtonEmail ? 'Napisz e-mail →' : $content }}</a>
 
