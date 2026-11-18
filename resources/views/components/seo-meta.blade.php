@@ -44,6 +44,9 @@
         'name' => $seo['site_name'],
         'url' => url('/'),
     ],
+    // Link the AboutPage to the Person described below.
+    'mainEntity' => ($seo['schema_type'] ?? '') === 'AboutPage'
+        ? ['@id' => url('/o-mnie').'#magda-gugala'] : null,
     'primaryImageOfPage' => $seo['image'] ? [
         '@type' => 'ImageObject',
         'url' => $seo['image'],
@@ -64,3 +67,28 @@
     ], fn ($value) => $value !== null && $value !== '');
 @endphp
 <script type="application/ld+json">{!! json_encode($organization, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+
+{{-- FF_GEO_PERSON_MAGDA_20261118: factual Person schema only on the About page. --}}
+@if(($seo['schema_type'] ?? '') === 'AboutPage')
+@php
+    $person = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Person',
+        '@id' => url('/o-mnie').'#magda-gugala',
+        'name' => 'Magda Gugała',
+        'url' => url('/o-mnie'),
+        'mainEntityOfPage' => url('/o-mnie'),
+        'jobTitle' => 'Stylistka żywności i fotografka kulinarna',
+        'description' => 'Zajmuje się stylizacją żywności i przygotowaniem potraw do profesjonalnych sesji zdjęciowych. Współpracuje z fotografami i zespołami realizującymi projekty reklamowe.',
+        'knowsAbout' => [
+            'stylizacja żywności',
+            'food styling',
+            'stylizacja potraw',
+            'fotografia kulinarna',
+            'zdjęcia na opakowania produktów spożywczych',
+        ],
+        'affiliation' => ['@id' => url('/').'#organization'],
+    ];
+@endphp
+<script type="application/ld+json">{!! json_encode($person, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
+@endif
